@@ -40,9 +40,13 @@ dotfiles-nix/
 │   ├── rofi/
 │   ├── swaync/
 │   ├── waybar/
+│   │   └── themes/
+│   │       ├── waybar-theme-switcher.sh
+│   │       └── ...
 │   └── ...
 │
 ├── .zshrc
+├── setup-permissions.sh
 │
 ├── screenshots/
 │   ├── Desktop.png
@@ -165,7 +169,7 @@ mv ~/.config/kitty ~/.config/kitty.backup
 mv ~/.config/rofi ~/.config/rofi.backup
 ```
 
-> **Do not delete your existing configuration unless you are sure you no longer need it.**
+> **⚠️ Do not delete your existing configuration unless you are sure you no longer need it.**
 
 ---
 
@@ -183,15 +187,15 @@ GNU Stow will create symbolic links in your home directory.
 For example:
 
 ```text
-~/.config/hypr     -> ~/dotfiles/.config/hypr
-~/.config/waybar   -> ~/dotfiles/.config/waybar
-~/.config/kitty    -> ~/dotfiles/.config/kitty
-~/.config/rofi     -> ~/dotfiles/.config/rofi
-~/.config/cava     -> ~/dotfiles/.config/cava
-~/.config/swaync   -> ~/dotfiles/.config/swaync
-~/.config/matugen  -> ~/dotfiles/.config/matugen
+~/.config/hypr      -> ~/dotfiles/.config/hypr
+~/.config/waybar    -> ~/dotfiles/.config/waybar
+~/.config/kitty     -> ~/dotfiles/.config/kitty
+~/.config/rofi      -> ~/dotfiles/.config/rofi
+~/.config/cava      -> ~/dotfiles/.config/cava
+~/.config/swaync    -> ~/dotfiles/.config/swaync
+~/.config/matugen   -> ~/dotfiles/.config/matugen
 ~/.config/fastfetch -> ~/dotfiles/.config/fastfetch
-~/.zshrc           -> ~/dotfiles/.zshrc
+~/.zshrc            -> ~/dotfiles/.zshrc
 ```
 
 You can verify the links with:
@@ -208,13 +212,66 @@ ls -l ~/.config/hypr
 
 ---
 
+# 🔐 Script Permissions
+
+Some parts of the configuration use shell scripts, including:
+
+* Rofi launchers
+* Wlogout scripts
+* Waybar theme switcher
+* Other utility scripts included in the repository
+
+The repository includes a helper script called:
+
+```text
+setup-permissions.sh
+```
+
+This script grants the required execution permissions to the shell scripts used by the dotfiles.
+
+## 1. Grant execution permission to the setup script
+
+After cloning the repository, run:
+
+```bash
+chmod +x setup-permissions.sh
+```
+
+You only need to do this **once**.
+
+## 2. Run the permission setup
+
+From the root of the repository:
+
+```bash
+./setup-permissions.sh
+```
+
+After running it, scripts such as the Rofi launcher, Wlogout scripts, and Waybar theme switcher should have the required execution permissions.
+
+For example, the Waybar theme switcher is located at:
+
+```text
+.config/waybar/themes/waybar-theme-switcher.sh
+```
+
+It can be executed with:
+
+```bash
+./.config/waybar/themes/waybar-theme-switcher.sh
+```
+
+> **💡 Tip:** If one of the included scripts returns `Permission denied`, run `setup-permissions.sh` again before manually changing the permissions of individual files.
+
+---
+
 # ⚙️ After Installation
 
 The dotfiles may require additional software that is **not included in this repository**.
 
 Make sure the required programs are installed before starting Hyprland.
 
-At minimum, you should review the configurations for dependencies such as:
+At minimum, review the configurations for dependencies such as:
 
 * Hyprland
 * Waybar
@@ -231,7 +288,7 @@ At minimum, you should review the configurations for dependencies such as:
 * Fonts
 * Any scripts referenced by the configuration
 
-You should also check the configuration files for commands that may be specific to my system.
+You should also check the configuration files for commands or paths that may be specific to my system.
 
 For example:
 
@@ -245,16 +302,36 @@ Replace any paths, usernames, or commands that do not exist on your system.
 
 # 🎨 Waybar Themes
 
-The Waybar configuration includes additional themes/scripts that can be used instead of the default setup.
+The repository includes multiple Waybar themes.
 
-Check the Waybar directory:
+They are located in:
+
+```text
+.config/waybar/themes/
+```
+
+You can view the available themes with:
 
 ```bash
-cd ~/dotfiles/.config/waybar
+cd ~/dotfiles/.config/waybar/themes
 ls
 ```
 
-If you prefer a different appearance, look through the available themes and scripts and select the one you want to use.
+The included theme switcher is:
+
+```text
+.config/waybar/themes/waybar-theme-switcher.sh
+```
+
+Run it with:
+
+```bash
+./.config/waybar/themes/waybar-theme-switcher.sh
+```
+
+The script allows you to switch between the available Waybar themes without manually editing the Waybar configuration.
+
+Feel free to modify the existing themes or add your own.
 
 ---
 
@@ -262,7 +339,7 @@ If you prefer a different appearance, look through the available themes and scri
 
 Some parts of the configuration expect wallpapers to be available in:
 
-```bash
+```text
 $HOME/Pictures/Wallpapers
 ```
 
@@ -274,7 +351,7 @@ mkdir -p ~/Pictures/Wallpapers
 
 Then place your wallpapers inside it.
 
-> **Important:** If your wallpapers are stored somewhere else, update the corresponding paths in the configuration.
+> **⚠️ Important:** If your wallpapers are stored somewhere else, update the corresponding paths in the configuration.
 
 ---
 
@@ -321,7 +398,7 @@ This makes it easy to commit your changes back to Git.
 
 # 🔄 Updating the Dotfiles
 
-On another machine, or after making changes to the repository, pull the latest version:
+On another machine, or after changes have been pushed to the repository, pull the latest version:
 
 ```bash
 cd ~/dotfiles
@@ -330,10 +407,16 @@ git pull
 
 If the symlinks are already installed, the changes should be available immediately because your configuration directories point to the repository.
 
-If you removed the symlinks or installed the repository on a new machine, run:
+If the dotfiles have not been installed on the machine yet, run:
 
 ```bash
 stow .
+```
+
+If the scripts are not executable after an update, run:
+
+```bash
+./setup-permissions.sh
 ```
 
 ---
@@ -422,6 +505,29 @@ stow .
 
 ---
 
+## Script returns `Permission denied`
+
+Run the permission setup script:
+
+```bash
+cd ~/dotfiles
+./setup-permissions.sh
+```
+
+If the setup script itself does not have execution permissions:
+
+```bash
+chmod +x setup-permissions.sh
+```
+
+Then run it again:
+
+```bash
+./setup-permissions.sh
+```
+
+---
+
 ## Check where a symlink points
 
 Use:
@@ -436,11 +542,13 @@ You should see something similar to:
 /home/<your-user>/dotfiles/.config/hypr
 ```
 
+This confirms that the configuration is linked to the repository.
+
 ---
 
 # 💡 Important Notes
 
-These dotfiles were created for my personal NixOS + Hyprland environment.
+These dotfiles were created for my personal **NixOS + Hyprland** environment.
 
 They are provided as a starting point rather than a completely universal configuration.
 
@@ -453,6 +561,8 @@ Before using them:
 5. **Check your wallpaper directory.**
 6. **Review scripts before executing them.**
 7. **Back up your existing configuration.**
+
+Some scripts or configurations may reference applications that are not installed by default on your system.
 
 You are encouraged to modify the configuration to fit your own system.
 
