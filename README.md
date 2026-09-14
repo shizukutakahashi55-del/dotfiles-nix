@@ -58,6 +58,10 @@ dotfiles-nix/
 
 ![WalpaperShell](screenshots/WallpaperChanger.png)
 
+### Wlogout
+
+![Wlogout](screenshots/wlogout.png)
+
 ## 🚀 Installation
 
 ### 1. Clone the repository
@@ -197,6 +201,10 @@ This repository is primarily intended for my personal NixOS environment.
 Some configurations may depend on additional packages, fonts, scripts, or services that are not included in this repository.
 
 Before using these dotfiles on another system, review the configuration and install the required dependencies.
+
+If you don't like the Waybar default, you can use a .sh on Waybar folder, I have some themes you may like. 
+
+These are dotfiles for my main system with NixOS, remember to verify all the files and change folder names, or links.
 
 ---
 
