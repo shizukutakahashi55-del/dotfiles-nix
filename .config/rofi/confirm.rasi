@@ -1,0 +1,68 @@
+/*****----- Configuración de Confirmación -----*****/
+
+
+configuration {
+    show-icons: false;
+}
+@import "colors-ML.rasi"
+
+* {
+    
+    background-color: transparent;
+    text-color:       @ml-text;
+}
+
+window {
+    width:            320px;
+    location:         center;
+    anchor:           center;
+    x-offset:         0px;
+    y-offset:         0px;
+    padding:          20px;
+    border:           2px solid;
+    border-radius:    20px;
+    border-color:     @outline;
+    background-color: @base;
+}
+
+mainbox {
+    children:         [ "inputbar", "listview" ];
+    spacing:          15px;
+}
+
+inputbar {
+    children:         [ "prompt" ];
+}
+
+prompt {
+    font:             "JetBrainsMono Nerd Font Bold 14";
+    horizontal-align: 0.5;
+    text-color:       @ml-text;
+}
+
+listview {
+    columns:          2;
+    lines:            1;
+    cycle:            true;
+    spacing:          12px;
+    layout:           vertical;
+    fixed-height:     true;
+}
+
+element {
+    padding:          10px;
+    border-radius:    12px;
+    background-color: @p-container;
+    cursor:           pointer;
+}
+
+element-text {
+    font:             "JetBrainsMono Nerd Font Bold 12";
+    horizontal-align: 0.5;
+    text-color:       inherit;
+}
+
+element selected.normal {
+    background-color: @s-container;
+    text-color:       @on-p-cont;
+}

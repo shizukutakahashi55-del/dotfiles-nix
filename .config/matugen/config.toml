@@ -1,0 +1,20 @@
+[config]
+mode = "dark"
+version_check = false
+caching = false
+show_color_picker = false
+
+[templates.waybar]
+input_path  = "/home/oozenix/.config/matugen/templates/waybar.css"
+output_path = "/home/oozenix/.config/waybar/style.css"
+post_hook   = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
+
+[templates.swaync]
+input_path  = "/home/oozenix/.config/matugen/templates/swaync.css"
+output_path = "/home/oozenix/.config/swaync/style.css"
+post_hook   = "swaync-client --reload-css"
+
+[templates.rofi]
+input_path  = "/home/oozenix/.config/matugen/templates/colors-ML.rasi"
+output_path = "/home/oozenix/.config/rofi/colors-ML.rasi"
+

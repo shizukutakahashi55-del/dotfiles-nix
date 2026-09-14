@@ -1,0 +1,57 @@
+-- ============================================================================
+--  MODULE: appearance.lua
+--  Contains: "Look and feel" -> general (gaps, borders, layout) and
+--  decoration (rounding, opacity, shadow, blur). Animations live in their
+--  own module (animations.lua) since they can grow quite large.
+--  Wiki: https://wiki.hypr.land/Configuring/Basics/Variables/
+-- ============================================================================
+
+-----------------------
+---- LOOK AND FEEL ----
+-----------------------
+
+-- Refer to https://wiki.hypr.land/Configuring/Basics/Variables/
+hl.config({
+    general = {
+        gaps_in  = 3,
+        gaps_out = 6,
+
+        border_size = 2,
+
+        col = {
+            active_border   = { colors = {"rgba(33ccffee)", "rgba(00ff99ee)"}, angle = 45 },
+            inactive_border = "rgba(595959aa)",
+        },
+
+        -- Set to true to enable resizing windows by clicking and dragging on borders and gaps
+        resize_on_border = false,
+
+        -- Please see https://wiki.hypr.land/Configuring/Advanced-and-Cool/Tearing/ before you turn this on
+        allow_tearing = false,
+
+        layout = "dwindle",
+    },
+
+    decoration = {
+        rounding       = 10,
+        rounding_power = 5,
+
+        -- Change transparency of focused and unfocused windows
+        active_opacity   = 1.0,
+        inactive_opacity = 1.0,
+
+        shadow = {
+            enabled      = false,
+            range        = 4,
+            render_power = 3,
+            color        = 0xee1a1a1a,
+        },
+
+        blur = {
+            enabled   = true,
+            size      = 3,
+            passes    = 1,
+            vibrancy  = 0.1696,
+        },
+    },
+})

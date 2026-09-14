@@ -1,0 +1,99 @@
+@define-color base        #1d1012;
+@define-color mantle      #170b0d;
+@define-color surface     #2a1c1e;
+@define-color text        #f7dcdf;
+@define-color primary     #ffb2be;
+@define-color tertiary    #ffb695;
+@define-color t_container #6d391f;
+@define-color on_primary  #660026;
+@define-color on_t_cont   #ffdbcc;
+@define-color outline     #544245;
+
+:root {
+  --border-radius: 22px;
+  --cc-bg: transparent;
+  --widget-background: alpha(@surface, 0.85);   /* antes: rgba(0,0,0,0.7) */
+  --noti-bg-alpha: 0.6;
+  --padding: calc(var(--border-radius) / 2);
+}
+
+.control-center {
+  border-radius: 0;
+  margin-bottom: 20px;
+  margin-top: 1px;
+}
+
+.control-center-list {
+  min-height: 100px;
+}
+
+.widget-title > button {
+  color: @on_primary;                           /* antes: black */
+  background: @primary;
+}
+
+.widgets > .widget,
+.widget-mpris > carouselindicatordots,
+.widget-mpris > box > button {
+  background: var(--widget-background);
+  border-radius: var(--border-radius);
+  padding: calc(var(--border-radius) / 2);
+  border: 1px solid alpha(@outline, 0.40);      /* antes: var(--border) indefinido */
+  color: @text;                                 /* antes: white */
+}
+
+.control-center-list-placeholder {
+  padding: var(--border-radius);
+}
+
+.notification-group {
+  border-radius: var(--border-radius);
+  padding: 8px;
+}
+
+/* ✅ Mpris unido: mismo fondo que los demás, sin separación */
+.widget.widget-mpris {
+  background: var(--widget-background);
+  border-radius: none;
+  padding: var(--padding);
+  border: 1px solid alpha(@outline, 0.40);      /* antes: var(--border) indefinido */
+  margin-top: 0;
+  min-height: 140px;
+}
+
+.widget.widget-mpris > carouselindicatordots {
+  --dots-padding: 4px;
+  padding: var(--dots-padding);
+  padding-left: var(--dots-padding);
+  padding-right: calc(6px + var(--dots-padding));
+  margin: 0;
+  margin-top: var(--padding);
+  border: none;
+}
+
+.widget-mpris > box > button {
+  color: @text;                                 /* antes: white */
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+.widget-mpris > box > button:hover {
+  background: alpha(@tertiary, 0.25);           /* antes: rgb(0,0,0) */
+  color: @text;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
+/* ✅ El player interno sin bordes/sombras duplicados */
+.widget-mpris-player {
+  box-shadow: none;
+  border: none;
+  margin: 0;
+  min-height: 140px;
+}
+
+.widget-mpris-player:only-child {
+  margin: 0;
+}

@@ -1,0 +1,80 @@
+/* ============================================================
+ * WLOGOUT — Material You (matugen)
+ * output: ~/.config/wlogout/style.css
+ * ============================================================ */
+
+* {
+    background-image: none;
+    box-shadow: none;
+}
+
+window {
+    background-color: alpha({{ colors.background.dark.hex }}, 0.55);
+}
+
+button {
+    border-radius:          16px;
+    border-style:           solid;
+    border-width:           1px;
+    border-color:           {{ colors.outline_variant.dark.hex }};
+    color:                  {{ colors.on_surface_variant.dark.hex }};
+    background-color:       alpha({{ colors.surface_container.dark.hex }}, 0.80);
+    background-repeat:      no-repeat;
+    background-position:    center;
+    background-size:        25%;
+    margin:                 10px;
+    transition:             background-color 0.2s ease,
+                            border-color     0.2s ease,
+                            color            0.2s ease;
+}
+
+button:focus,
+button:active,
+button:hover {
+    background-color:   {{ colors.primary_container.dark.hex }};
+    border-color:       {{ colors.primary.dark.hex }};
+    color:              {{ colors.on_primary_container.dark.hex }};
+    outline-style:      none;
+}
+
+#logout {
+    background-image: image(
+        url("/usr/share/wlogout/icons/logout.png"),
+        url("/usr/local/share/wlogout/icons/logout.png")
+    );
+}
+
+#shutdown {
+    background-image: image(
+        url("/usr/share/wlogout/icons/shutdown.png"),
+        url("/usr/local/share/wlogout/icons/shutdown.png")
+    );
+}
+
+#reboot {
+    background-image: image(
+        url("/usr/share/wlogout/icons/reboot.png"),
+        url("/usr/local/share/wlogout/icons/reboot.png")
+    );
+}
+
+#suspend {
+    background-image: image(
+        url("/usr/share/wlogout/icons/suspend.png"),
+        url("/usr/local/share/wlogout/icons/suspend.png")
+    );
+}
+
+#hibernate {
+    background-image: image(
+        url("/usr/share/wlogout/icons/hibernate.png"),
+        url("/usr/local/share/wlogout/icons/hibernate.png")
+    );
+}
+
+#lock {
+    background-image: image(
+        url("/usr/share/wlogout/icons/lock.png"),
+        url("/usr/local/share/wlogout/icons/lock.png")
+    );
+}

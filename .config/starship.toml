@@ -1,0 +1,68 @@
+# ~/.config/starship.toml
+# Soft Pastel Clean & Minimal Style for NixOS ❄️🌸✨
+
+format = """
+[](#f5c2e7)\
+$username\
+[](bg:#cba6f7 fg:#f5c2e7)\
+$hostname\
+[](bg:#f9e2af fg:#cba6f7)\
+$directory\
+[](fg:#f9e2af bg:#a6e3a1)\
+$git_branch\
+$git_status\
+[](fg:#a6e3a1)\
+$cmd_duration\
+$line_break\
+$character"""
+
+right_format = """$time"""
+
+add_newline = true
+
+[username]
+show_always = true
+style_user = "bg:#f5c2e7 fg:#2b1f2d bold"
+style_root = "bg:#f38ba8 fg:#2b1f2d bold"
+format = "[󱄅 $user]($style)"
+
+[hostname]
+ssh_only = false
+style = "bg:#cba6f7 fg:#2b1f2d bold"
+format = "[@$hostname]($style)"
+
+[directory]
+style = "bg:#f9e2af fg:#2b1f2d bold"
+format = "[ 󰉋 $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = "󰊢 "
+style = "bg:#a6e3a1 fg:#2b1f2d bold"
+format = "[ $symbol$branch]($style)"
+
+[git_status]
+style = "bg:#a6e3a1 fg:#2b1f2d bold"
+format = "[($all_status$ahead_behind)]($style) "
+conflicted = "⚔ "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+untracked = "󰞋 "
+modified = "󰏫 "
+staged = "󰸞 "
+
+[cmd_duration]
+min_time = 2_000
+style = "bold #f9e2af"
+format = " 󱦟 [$duration]($style)"
+
+[time]
+disabled = false
+style = "bold #f5c2e7"
+format = "󰥔 [$time]($style)"
+time_format = "%H:%M"
+
+[character]
+success_symbol = "[╭─ 󰅂](bold #f5c2e7) "
+error_symbol = "[╭─ 󰅂](bold #f38ba8) "

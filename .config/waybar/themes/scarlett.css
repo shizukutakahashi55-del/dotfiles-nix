@@ -1,0 +1,393 @@
+/* ============================================================
+ * WAYBAR — Scarlett · Dark Blood Edition
+ * Deep crimson, sharp edges, no wasted space
+ * ============================================================ */
+
+@define-color base       #0d0305;
+@define-color mantle     #110407;
+@define-color surface0   #1e0a0d;
+@define-color surface1   #2a0f13;
+@define-color overlay0   #4a1a20;
+@define-color text       #e8c4c4;
+@define-color subtext    #a87878;
+@define-color scarlett   #cc1a2a;
+@define-color scarlett2  #ff2d3f;
+@define-color scarlett3  #8b0015;
+@define-color blood      #7a0010;
+@define-color ember      #ff6b35;
+@define-color ash        #c4a882;
+@define-color teal_dark  #0d4a4a;
+@define-color teal       #1a8a7a;
+@define-color dim        #180608;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    transition: all 0.15s ease;
+}
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ── ISLA 1: Power + Power Profile ───────────────────────────── */
+#custom-power,
+#power-profiles-daemon {
+    background: alpha(@mantle, 0.96);
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border-top: 1px solid @scarlett3;
+    border-bottom: 1px solid @scarlett3;
+}
+
+#custom-power {
+    margin-left: 2px;
+    color: @scarlett2;
+    border-left: 1px solid @scarlett3;
+    border-right: none;
+    padding-left: 10px;
+    text-shadow: 0 0 8px alpha(@scarlett2, 0.8);
+    box-shadow: inset 0 0 10px alpha(@blood, 0.4), -2px 0 8px alpha(@scarlett, 0.3);
+}
+
+#power-profiles-daemon {
+    margin-right: 2px;
+    color: @ash;
+    border-right: 1px solid @scarlett3;
+    border-left: none;
+}
+
+#custom-power:hover        { background: alpha(@blood, 0.5); }
+#power-profiles-daemon:hover { background: alpha(@scarlett3, 0.2); }
+
+/* ── ISLA 2: Spotify ─────────────────────────────────────────── */
+#custom-spotify {
+    background: alpha(@dim, 0.95);
+    color: @text;
+    border-top: 1px solid alpha(@scarlett, 0.4);
+    border-bottom: 1px solid alpha(@scarlett, 0.4);
+    border-left: 2px solid @scarlett;
+    border-right: none;
+    padding: 0px 14px;
+    margin: 0px 2px;
+    font-style: italic;
+    min-width: 180px;
+    box-shadow: inset 0 0 12px alpha(@blood, 0.3);
+}
+
+#custom-spotify:hover {
+    background: alpha(@scarlett3, 0.15);
+    color: @text;
+}
+
+/* ── ISLA 3: Cava ────────────────────────────────────────────── */
+#cava {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: none;
+    border-right: none;
+    color: @scarlett;
+    padding: 0px 12px;
+    margin: 0px 2px;
+    font-size: 10px;
+}
+
+/* ── ISLA 4: Notificaciones ──────────────────────────────────── */
+#custom-notifications {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.4);
+    border-bottom: 1px solid alpha(@scarlett3, 0.4);
+    border-left: 1px solid alpha(@scarlett3, 0.4);
+    border-right: 1px solid alpha(@scarlett3, 0.4);
+    color: @subtext;
+    padding: 0px 10px;
+    margin: 0px 2px;
+}
+
+#custom-notifications:hover {
+    color: @text;
+    background: alpha(@surface0, 0.8);
+}
+
+/* ── ISLA 5: Workspaces ──────────────────────────────────────── */
+#workspaces {
+    background: alpha(@mantle, 0.95);
+    border-top: 1px solid alpha(@scarlett3, 0.6);
+    border-bottom: 1px solid alpha(@scarlett3, 0.6);
+    border-left: 1px solid alpha(@scarlett3, 0.6);
+    border-right: 1px solid alpha(@scarlett3, 0.6);
+    padding: 0;
+    margin: 0px 2px;
+}
+
+#workspaces button {
+    color: @overlay0;
+    padding: 0px 7px;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    border-right: 1px solid alpha(@scarlett3, 0.3);
+}
+
+#workspaces button:hover  {
+    background: alpha(@scarlett3, 0.25);
+    color: @text;
+}
+#workspaces button.active {
+    background: @scarlett3;
+    color: @text;
+    box-shadow: inset 0 0 8px alpha(@scarlett, 0.4);
+}
+#workspaces button.urgent {
+    background: @scarlett;
+    color: @base;
+    text-shadow: 0 0 6px @scarlett2;
+}
+#workspaces button.persistent {
+    color: alpha(@overlay0, 0.4);
+}
+
+/* ── ISLA 6: Clock ───────────────────────────────────────────── */
+#clock {
+    background: alpha(@surface0, 0.9);
+    border-top: 1px solid @scarlett3;
+    border-bottom: 1px solid @scarlett3;
+    border-left: 1px solid @scarlett3;
+    border-right: 1px solid @scarlett3;
+    color: @text;
+    font-weight: 700;
+    padding: 0px 14px;
+    margin: 0px 2px;
+    text-shadow: 0 0 6px alpha(@scarlett, 0.5);
+}
+
+#clock:hover { background: alpha(@scarlett3, 0.2); }
+
+/* ── ISLA 7: Monitores (CPU + RAM + GPU) ─────────────────────── */
+#cpu {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: 1px solid alpha(@scarlett3, 0.5);
+    border-right: 1px solid alpha(@scarlett3, 0.2);
+    color: @teal;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 2px;
+}
+
+#memory {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: none;
+    border-right: 1px solid alpha(@scarlett3, 0.2);
+    color: @ash;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#custom-gpu {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: none;
+    border-right: 1px solid alpha(@scarlett3, 0.5);
+    color: @ember;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 2px;
+}
+
+#cpu:hover    { background: alpha(@teal_dark, 0.3); }
+#memory:hover { background: alpha(@surface1, 0.4); }
+#custom-gpu:hover { background: alpha(@ember, 0.08); }
+
+/* ── ISLA 8: Audio + Bluetooth + Red ─────────────────────────── */
+#pulseaudio {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: 1px solid alpha(@scarlett3, 0.5);
+    border-right: 1px solid alpha(@scarlett3, 0.2);
+    color: @ash;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 2px;
+}
+
+#bluetooth {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: none;
+    border-right: 1px solid alpha(@scarlett3, 0.2);
+    color: @teal;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#network {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: none;
+    border-right: 1px solid alpha(@scarlett3, 0.5);
+    color: @subtext;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 2px;
+}
+
+#pulseaudio:hover { background: alpha(@surface1, 0.4); }
+#bluetooth:hover  { background: alpha(@teal_dark, 0.3); }
+#network:hover    { background: alpha(@surface1, 0.4); }
+
+/* ── ISLA 9: Privacy + Taskbar + Tray ────────────────────────── */
+#privacy {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: 1px solid alpha(@scarlett3, 0.5);
+    border-right: 1px solid alpha(@scarlett3, 0.2);
+    padding: 0px 6px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 2px;
+}
+
+#privacy-item.screenshare { color: @scarlett2; }
+#privacy-item.audio-in    { color: @ember; }
+#privacy-item.video-in    { color: @teal; }
+#privacy:hover { background: alpha(@surface0, 0.6); }
+
+#taskbar {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: none;
+    border-right: 1px solid alpha(@scarlett3, 0.2);
+    padding: 0px 4px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#taskbar button {
+    background: transparent;
+    border-radius: 0;
+    padding: 0px 4px;
+    border: none;
+    color: @subtext;
+}
+
+#taskbar button:hover  { background: alpha(@scarlett3, 0.2); color: @text; }
+#taskbar button.active { background: alpha(@scarlett3, 0.35); color: @text; }
+
+#tray {
+    background: alpha(@mantle, 0.92);
+    border-top: 1px solid alpha(@scarlett3, 0.5);
+    border-bottom: 1px solid alpha(@scarlett3, 0.5);
+    border-left: none;
+    border-right: 1px solid alpha(@scarlett3, 0.5);
+    padding: 0px 6px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 2px;
+}
+
+#tray > .passive         { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }
+
+/* ── Unificar colores de texto — estilo Scarlett ─────────────── */
+
+/* Power */
+#custom-power {
+    color: @scarlett2;
+}
+
+#power-profiles-daemon {
+    color: @text;
+}
+
+/* Spotify — texto blanco rojizo */
+#custom-spotify {
+    color: @text;
+}
+
+/* Cava — rojo */
+#cava {
+    color: @scarlett;
+}
+
+/* Notificaciones — blanco rojizo */
+#custom-notifications {
+    color: @text;
+}
+
+/* Workspaces */
+#workspaces button {
+    color: alpha(@text, 0.4);
+}
+#workspaces button.active {
+    color: @text;
+}
+
+/* Clock — blanco rojizo */
+#clock {
+    color: @text;
+}
+
+/* Monitores — todos blanco rojizo */
+#cpu, #memory, #custom-gpu {
+    color: @text;
+}
+
+/* Audio/BT/Red */
+#pulseaudio, #bluetooth, #network {
+    color: @text;
+}
+
+/* Privacy/Taskbar/Tray */
+#privacy, #taskbar button, #tray {
+    color: @text;
+}
+
+#taskbar button.active {
+    color: @text;
+}
+
+/* Íconos de estado con acento rojo */
+#pulseaudio.muted {
+    color: @scarlett;
+}
+
+#network.disconnected {
+    color: @scarlett;
+}
+
+#bluetooth.off {
+    color: alpha(@text, 0.3);
+}

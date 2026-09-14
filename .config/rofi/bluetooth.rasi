@@ -1,0 +1,145 @@
+/*****----- Bluetooth Menu - Material You -----*****/
+@import "colors-ML.rasi"
+
+configuration {
+    show-icons:         false;
+    display-dmenu:      "󰂯 Bluetooth";
+}
+
+* {
+    background-color:   transparent;
+    text-color:         @ml-text;
+}
+
+window {
+    transparency:       "real";
+    location:           center;
+    anchor:             center;
+    width:              400px;
+    x-offset:           -15px;
+    y-offset:           0px;
+    border-radius:      16px;
+    border:             1px solid;
+    border-color:       @outline;
+    background-color:   @base;
+    cursor:             "default";
+}
+
+mainbox {
+    spacing:            0px;
+    background-color:   transparent;
+    children:           [ "inputbar", "message", "listview" ];
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    padding:            12px 16px;
+    background-color:   @surface;
+    border-radius:      16px 16px 0 0;
+    children:           [ "prompt", "entry" ];
+    spacing:            8px;
+    border:             0px 0px 1px 0px;
+    border-color:       @outline;
+}
+
+prompt {
+    font:               "JetBrainsMono Nerd Font Bold 13";
+    background-color:   transparent;
+    text-color:         @primary;
+    vertical-align:     0.5;
+}
+
+entry {
+    font:               "JetBrainsMono Nerd Font 13";
+    background-color:   transparent;
+    text-color:         @on-p-cont;
+    vertical-align:     0.5;
+    placeholder:        "Search device...";
+    placeholder-color:  @subtext;
+}
+
+/*****----- Message -----*****/
+message {
+    padding:            8px 16px;
+    background-color:   @surface;
+    text-color:         @subtext;
+    border:             0px 0px 1px 0px;
+    border-color:       @outline;
+}
+
+textbox {
+    font:               "JetBrainsMono Nerd Font 11";
+    background-color:   transparent;
+    text-color:         inherit;
+    horizontal-align:   0.0;
+}
+
+/*****----- Listview -----*****/
+listview {
+    padding:            8px;
+    spacing:            4px;
+    background-color:   transparent;
+    scrollbar:          false;
+    lines:              9;
+    fixed-height:       false;
+}
+
+/*****----- Elements -----*****/
+element {
+    padding:            10px 14px;
+    border-radius:      10px;
+    background-color:   transparent;
+    text-color:         @subtext;
+    cursor:             pointer;
+    spacing:            10px;
+}
+
+element-text {
+    font:               "JetBrainsMono Nerd Font 13";
+    background-color:   transparent;
+    text-color:         inherit;
+    cursor:             inherit;
+    vertical-align:     0.5;
+}
+
+/* ── Normal ── */
+element normal.normal {
+    background-color:   transparent;
+    text-color:         @subtext;
+}
+
+element selected.normal {
+    background-color:   @p-container;
+    text-color:         @on-p-cont;
+    border:             1px solid;
+    border-color:       @primary;
+    border-radius:      10px;
+}
+
+/* ── Activo: dispositivo conectado — usa tertiary (azul/cyan en M3) ── */
+element normal.active {
+    background-color:   transparent;
+    text-color:         @tertiary;
+}
+
+element selected.active {
+    background-color:   @t-container;
+    text-color:         @on-t-cont;
+    border:             1px solid;
+    border-color:       @tertiary;
+    border-radius:      10px;
+}
+
+/* ── Urgente: error / desconectado — usa ml-error ── */
+element normal.urgent {
+    background-color:   transparent;
+    text-color:         @ml-error;
+}
+
+element selected.urgent {
+    background-color:   @s-container;
+    text-color:         @ml-error;
+    border:             1px solid;
+    border-color:       @ml-error;
+    border-radius:      10px;
+}

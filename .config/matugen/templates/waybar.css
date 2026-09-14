@@ -1,0 +1,319 @@
+/* ============================================================
+ * WAYBAR — Generado por matugen (Material You)
+ * Estilo: Pastel Pop · Islands Edition (Custom Darker)
+ * ============================================================ */
+
+@define-color base        {{ colors.background.dark.hex }};
+@define-color mantle      {{ colors.surface_container_lowest.dark.hex }};
+@define-color surface     {{ colors.surface_container.dark.hex }};
+@define-color text        {{ colors.on_background.dark.hex }};
+@define-color subtext     {{ colors.on_surface_variant.dark.hex }};
+@define-color primary     {{ colors.primary.dark.hex }};
+@define-color secondary   {{ colors.secondary.dark.hex }};
+@define-color tertiary    {{ colors.tertiary.dark.hex }};
+@define-color p_container {{ colors.primary_container.dark.hex }};
+@define-color s_container {{ colors.secondary_container.dark.hex }};
+@define-color t_container {{ colors.tertiary_container.dark.hex }};
+@define-color on_primary  {{ colors.on_primary.dark.hex }};
+@define-color on_p_cont   {{ colors.on_primary_container.dark.hex }};
+@define-color on_s_cont   {{ colors.on_secondary_container.dark.hex }};
+@define-color on_t_cont   {{ colors.on_tertiary_container.dark.hex }};
+@define-color error       {{ colors.error.dark.hex }};
+@define-color outline     {{ colors.outline_variant.dark.hex }};
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+    border: none;
+    border-radius: 0;
+    transition: all 0.2s ease;
+    min-height: 0;
+    box-shadow: none;
+}
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ── ISLA 1: Power + Power Profile ───────────────────────────── */
+#custom-power,
+#power-profiles-daemon {
+    background: alpha(@mantle, 0.98);
+    border: 1px solid alpha(@outline, 0.50);
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#custom-power {
+    border-radius: 10px 0 0 10px;
+    margin-left: 4px;
+    color: @on_primary;
+    background: @primary;
+    border-right: none;
+}
+
+#power-profiles-daemon {
+    border-radius: 0 10px 10px 0;
+    margin-right: 4px;
+    color: @on_s_cont;
+    background: @s_container;
+    border-left: none;
+}
+
+#custom-power:hover          { background: alpha(@primary, 0.70); color: @text; }
+#power-profiles-daemon:hover { background: alpha(@s_container, 0.60); }
+
+/* ── hyprland-language ────────────────────────────────────────────── */
+#language {
+    background: @p_container;
+    border: 1px solid alpha(@primary, 0.60);
+    border-radius: 10px;
+    color: @on_p_cont;
+    font-weight: 700;
+    padding: 1px 14px;
+    margin: 2px 4px;
+}
+
+#language:hover { background: alpha(@p_container, 0.70); }
+
+/* ── ISLA 2: Spotify ─────────────────────────────────────────── */
+#custom-spotify {
+    background: @t_container;
+    color: @on_t_cont;
+    border-radius: 10px;
+    padding: 1px 10px;
+    margin: 2px 4px;
+    font-weight: 800;
+    min-width: 200px;
+    border: 1px solid alpha(@tertiary, 0.6);
+}
+
+#custom-spotify:hover {
+    background: alpha(@t_container, 0.75);
+}
+
+/* ── ISLA 3: Cava ────────────────────────────────────────────── */
+#cava {
+    background: @s_container;
+    border: 1px solid alpha(@primary, 0.50);
+    border-radius: 10px;
+    color: @primary;
+    padding: 1px 12px;
+    margin: 2px 4px;
+    font-size: 10px;
+}
+
+/* ── ISLA 4: Notificaciones ──────────────────────────────────── */
+#custom-notifications {
+    background: @p_container;
+    border: 1px solid alpha(@primary, 0.60);
+    border-radius: 10px;
+    color: @on_p_cont;
+    padding: 1px 10px;
+    margin: 2px 4px;
+}
+
+#custom-notifications:hover { background: alpha(@p_container, 0.65); }
+#custom-notifications.none  { color: @text; }
+
+/* ── ISLA 5: Workspaces (Ajustada a Mantle) ──────────────────── */
+#workspaces {
+    background: alpha(@mantle, 0.90);
+    border: 1px solid alpha(@outline, 0.30);
+    border-radius: 10px;
+    padding: 1px 4px;
+    margin: 2px 4px;
+}
+
+#workspaces button {
+    color: alpha(@text, 0.50);
+    font-size: 14px;
+    padding: 0 4px;
+    background: transparent;
+    border-radius: 6px;
+    border: none;
+    transition: all 0.15s ease;
+}
+
+#workspaces button:hover      { background: alpha(@text, 0.12); color: @text; }
+#workspaces button.active     { color: @on_p_cont; background: @p_container; border-radius: 6px; }
+#workspaces button.occupied   { color: @secondary; font-weight: 800; }
+#workspaces button.persistent { color: alpha(@text, 0.35); }
+#workspaces button.urgent     { color: @error; background: alpha(@error, 0.20); }
+
+/* ── ISLA 6: Clock ───────────────────────────────────────────── */
+#clock {
+    background: @p_container;
+    border: 1px solid alpha(@primary, 0.60);
+    border-radius: 10px;
+    color: @on_p_cont;
+    font-weight: 700;
+    padding: 1px 14px;
+    margin: 2px 4px;
+}
+
+#clock:hover { background: alpha(@p_container, 0.70); }
+
+/* ── ISLA 7: Monitores (CPU + RAM + GPU) ─────────────────────── */
+#cpu {
+    background: @t_container;
+    border: 1px solid alpha(@tertiary, 0.60);
+    border-radius: 10px 0 0 10px;
+    color: @on_t_cont;
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-left: 4px;
+    border-right: none;
+}
+
+#memory {
+    background: @s_container;
+    border: 1px solid alpha(@secondary, 0.60);
+    color: @on_s_cont;
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-left: none;
+    border-right: none;
+}
+
+#custom-gpu {
+    background: @t_container;
+    border: 1px solid alpha(@tertiary, 0.60);
+    border-radius: 0 10px 10px 0;
+    color: @on_t_cont;
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-right: 4px;
+    border-left: none;
+}
+
+#cpu:hover        { background: alpha(@t_container, 0.70); }
+#memory:hover     { background: alpha(@s_container, 0.70); }
+#custom-gpu:hover { background: alpha(@t_container, 0.70); }
+
+/* ── ISLA 8: Audio + Bluetooth + Red ─────────────────────────── */
+#pulseaudio {
+    background: @s_container;
+    border: 1px solid alpha(@secondary, 0.60);
+    border-radius: 10px 0 0 10px;
+    color: @on_s_cont;
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-left: 4px;
+    border-right: none;
+}
+
+#bluetooth {
+    background: @t_container;
+    border: 1px solid alpha(@tertiary, 0.60);
+    color: @on_t_cont;
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-left: none;
+    border-right: none;
+}
+
+#keyboard-state {
+    background: @t_container;
+    border: 1px solid alpha(@secondary, 0.60);
+    border-radius: 10px;
+    color: @on_t_cont;
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#keyboard-state.capslock.locked {
+    background: @primary;
+    color: @on_primary;
+}
+
+#network {
+    background: @p_container;
+    border: 1px solid alpha(@primary, 0.60);
+    border-radius: 0 10px 10px 0;
+    color: @on_p_cont;
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-right: 4px;
+    border-left: none;
+}
+
+#pulseaudio:hover     { background: alpha(@s_container, 0.70); }
+#bluetooth:hover      { background: alpha(@t_container, 0.70); }
+#keyboard-state:hover { background: alpha(@t_container, 0.70); }
+#network:hover        { background: alpha(@p_container, 0.70); }
+
+/* ── ISLA 9: Privacy + Taskbar + Tray (Ajustada a Mantle) ─────── */
+#privacy {
+    background: alpha(@mantle, 0.90);
+    border: 1px solid alpha(@outline, 0.30);
+    border-radius: 10px 0 0 10px;
+    padding: 1px 8px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-left: 4px;
+    border-right: none;
+}
+
+#privacy-item.screenshare { color: @error; }
+#privacy-item.audio-in    { color: @secondary; }
+#privacy-item.video-in    { color: @tertiary; }
+#privacy:hover { background: alpha(@surface, 0.80); }
+
+#taskbar {
+    background: alpha(@mantle, 0.90);
+    border: 1px solid alpha(@outline, 0.30);
+    padding: 1px 6px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    border-left: none;
+    border-right: none;
+}
+
+#taskbar button {
+    background: transparent;
+    border-radius: 6px;
+    padding: 2px 4px;
+    border: none;
+    transition: all 0.15s ease;
+}
+
+#taskbar button:hover  { background: alpha(@text, 0.10); }
+#taskbar button.active {
+    background: @p_container;
+    color: @on_p_cont;
+    border-radius: 6px;
+}
+
+#tray {
+    background: alpha(@mantle, 0.90);
+    border: 1px solid alpha(@outline, 0.30);
+    border-radius: 0 10px 10px 0;
+    padding: 1px 8px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-right: 4px;
+    border-left: none;
+}
+
+#tray > .passive         { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }

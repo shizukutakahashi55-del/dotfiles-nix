@@ -1,0 +1,310 @@
+/* ============================================================
+ * WAYBAR — Catppuccin Mocha · Islands Edition
+ * Cada grupo de módulos es una isla independiente
+ * ============================================================ */
+
+@define-color base      #1e1e2e;
+@define-color mantle    #181825;
+@define-color crust     #11111b;
+@define-color surface0  #313244;
+@define-color surface1  #45475a;
+@define-color surface2  #585b70;
+@define-color overlay0  #6c7086;
+@define-color overlay1  #7f849c;
+@define-color text      #cdd6f4;
+@define-color subtext0  #a6adc8;
+@define-color subtext1  #bac2de;
+@define-color lavender  #b4befe;
+@define-color blue      #89b4fa;
+@define-color sapphire  #74c7ec;
+@define-color sky       #89dceb;
+@define-color teal      #94e2d5;
+@define-color green     #a6e3a1;
+@define-color yellow    #f9e2af;
+@define-color peach     #fab387;
+@define-color maroon    #eba0ac;
+@define-color red       #f38ba8;
+@define-color mauve     #cba6f7;
+@define-color pink      #f5c2e7;
+@define-color flamingo  #f2cdcd;
+@define-color rosewater #f5e0dc;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", monospace;
+    font-size: 12.5px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+}
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+/* Quitar fondos de contenedores principales */
+.modules-left,
+.modules-center,
+.modules-right {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ── Mixin base de isla ───────────────────────────────────────── */
+/* Cada módulo que quiera ser isla hereda de aquí via su selector */
+
+/* ── ISLA 1: Power + Power Profile ───────────────────────────── */
+#custom-power,
+#power-profiles-daemon {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@red, 0.18);
+    color: @subtext1;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+#custom-power {
+    border-radius: 999px 0 0 999px;
+    margin-left: 6px;
+    padding-left: 14px;
+    color: @red;
+    font-size: 14px;
+    border-right: none;
+}
+
+#power-profiles-daemon {
+    border-radius: 0 999px 999px 0;
+    margin-right: 6px;
+    padding-right: 14px;
+    color: @sky;
+    border-left: none;
+}
+
+/* ── ISLA 2: Spotify ─────────────────────────────────────────── */
+#custom-spotify {
+    background: linear-gradient(90deg, alpha(#1DB954, 0.42), alpha(#1DB954, 0.70));
+    border: 1px solid alpha(#1DB954, 0.45);
+    border-radius: 999px;
+    color: @mantle;
+    font-weight: 600;
+    padding: 1px 16px;
+    margin: 3px 6px;
+    min-width: 200px;
+}
+
+#custom-spotify:hover {
+    background: linear-gradient(90deg, alpha(#1ed760, 0.32), alpha(#1DB954, 0.18));
+}
+
+/* ── ISLA 3: Cava ────────────────────────────────────────────── */
+#cava {
+    background: alpha(@mantle, 0.75);
+    border: 1px solid alpha(@mauve, 0.15);
+    border-radius: 999px;
+    color: @mauve;
+    padding: 1px 14px;
+    margin: 3px 6px;
+    font-size: 11px;
+}
+
+/* ── ISLA 4: Notificaciones ──────────────────────────────────── */
+#custom-notifications {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@mauve, 0.18);
+    border-radius: 999px;
+    color: @mauve;
+    padding: 1px 14px;
+    margin: 3px 6px;
+}
+
+#custom-notifications:hover {
+    background: alpha(@mauve, 0.12);
+}
+
+/* ── ISLA 5: Workspaces (isla propia) ────────────────────────── */
+#workspaces {
+    background: alpha(@mantle, 0.90);
+    border: 1px solid alpha(@lavender, 0.14);
+    border-radius: 999px;
+    padding: 2px 8px;
+    margin: 3px 6px;
+}
+
+/* ── ISLA 6: Clock (isla propia) ─────────────────────────────── */
+#clock {
+    background: alpha(@mantle, 0.90);
+    border: 1px solid alpha(@lavender, 0.14);
+    border-radius: 999px;
+    color: @lavender;
+    font-weight: 600;
+    padding: 1px 16px;
+    margin: 3px 6px;
+}
+
+#clock:hover { background: alpha(@lavender, 0.10); }
+
+#workspaces button {
+    padding: 2px 7px;
+    color: @overlay0;
+    background: transparent;
+    border-radius: 999px;
+    border: none;
+    transition: all 0.15s ease;
+    min-width: 0;
+}
+
+#workspaces button:hover { background: alpha(@surface0, 0.6); color: @text; }
+
+#workspaces button.active {
+    background: alpha(@mauve, 0.18);
+    color: @mauve;
+    font-weight: 700;
+    border: 1px solid alpha(@mauve, 0.3);
+}
+
+#workspaces button.urgent { background: alpha(@red, 0.18); color: @red; }
+#workspaces button.persistent { color: @surface1; }
+
+/* ── ISLA 6: Monitores (CPU, RAM, GPU) ───────────────────────── */
+#cpu {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@sapphire, 0.14);
+    border-radius: 999px 0 0 999px;
+    color: @sapphire;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 6px;
+    border-right: none;
+}
+
+#memory {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@sapphire, 0.14);
+    color: @teal;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-left: none;
+    border-right: none;
+}
+
+#custom-gpu {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@sapphire, 0.14);
+    border-radius: 0 999px 999px 0;
+    color: @sapphire;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-right: 6px;
+    border-left: none;
+}
+
+#cpu:hover, #memory:hover, #custom-gpu:hover {
+    background: alpha(@sapphire, 0.10);
+}
+
+/* ── ISLA 7: Audio + Bluetooth + Red ─────────────────────────── */
+#pulseaudio {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@green, 0.14);
+    border-radius: 999px 0 0 999px;
+    color: @green;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 6px;
+    border-right: none;
+}
+
+#bluetooth {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@green, 0.14);
+    color: @blue;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-left: none;
+    border-right: none;
+}
+
+#network {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@green, 0.14);
+    border-radius: 0 999px 999px 0;
+    color: @sky;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-right: 6px;
+    border-left: none;
+}
+
+#pulseaudio:hover { background: alpha(@green, 0.10); }
+#bluetooth:hover  { background: alpha(@blue, 0.10); }
+#network:hover    { background: alpha(@sky, 0.10); }
+
+/* ── ISLA 8: Privacy + Taskbar + Tray ────────────────────────── */
+#privacy {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@surface1, 0.20);
+    border-radius: 999px 0 0 999px;
+    padding: 1px 10px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 6px;
+    border-right: none;
+}
+
+#privacy-item.screenshare { color: @red; }
+#privacy-item.audio-in    { color: @yellow; }
+#privacy-item.video-in    { color: @mauve; }
+
+#taskbar {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@surface1, 0.20);
+    padding: 1px 8px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-left: none;
+    border-right: none;
+}
+
+#taskbar button {
+    background: transparent;
+    border-radius: 8px;
+    padding: 2px 4px;
+    border: none;
+    transition: all 0.15s ease;
+}
+
+#taskbar button:hover {
+    background: alpha(@surface0, 0.6);
+}
+
+#taskbar button.active {
+    background: alpha(@mauve, 0.18);
+    border: 1px solid alpha(@mauve, 0.3);
+}
+
+#tray {
+    background: alpha(@mantle, 0.82);
+    border: 1px solid alpha(@surface1, 0.20);
+    border-radius: 0 999px 999px 0;
+    padding: 1px 10px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-right: 6px;
+    border-left: none;
+}
+
+#tray > .passive { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }

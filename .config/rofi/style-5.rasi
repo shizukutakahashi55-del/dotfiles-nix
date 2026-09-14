@@ -1,0 +1,165 @@
+/*****----- Material You Fullscreen Edition -----*****/
+
+configuration {
+    show-icons: true;
+}
+
+/* Importamos tus colores de Material You */
+@import "colors-ML.rasi"
+
+/*****----- Global Properties -----*****/
+* {
+    font:                        "JetBrainsMono Nerd Font Bold 12";
+    background-color:            transparent;
+    text-color:                  @ml-text;
+    
+    /* Mapeo de variables corregido */
+    accent:                      @primary;
+    
+    /* Cambiamos 'surface' por una variable que sí exista en tu .rasi de colores */
+    /* Si sigue fallando, prueba cambiando @s-container por @surface-container o @base */
+    bg-surface:                  @s-container; 
+    
+    border-col:                  @outline;
+    selected-bg:                 @p-container;
+    selected-fg:                 @on-p-cont;
+}
+
+/*****----- Window -----*****/
+window {
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+    fullscreen:                  true;
+    cursor:                      "default";
+    background-color:            #000000aa; 
+}
+
+/*****----- Mainbox -----*****/
+mainbox {
+    enabled:                     true;
+    spacing:                     20px;
+    margin:                      0px;
+    padding:                     0px;
+    background-color:            transparent;
+    children:                    [ "dummy", "userimage-box", "inputbar", "message", "listview", "dummy" ];
+}
+
+/*****----- User Image -----*****/
+userimage-box {
+    background-color:            transparent;
+    orientation:                 horizontal;
+    children:                    [ "dummy", "userimage", "dummy" ];
+}
+
+userimage {
+    width:                       200px;
+    height:                      200px;
+    expand:                      false;
+    background-color:            @bg-surface; /* Usando la nueva variable */
+    background-image:            url("~/.config/rofi/images/Rinooze.png", height);
+    border:                      3px solid;
+    border-color:                @primary;
+    border-radius:               100%;
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    enabled:                     true;
+    background-color:            transparent;
+    children:                    [ "dummy", "prompt", "dummy" ];
+}
+
+prompt {
+    enabled:                     true;
+    background-color:            transparent;
+    text-color:                  @ml-text;
+    font:                        "JetBrainsMono Nerd Font Bold 24";
+}
+
+/*****----- Message -----*****/
+message {
+    enabled:                     true;
+    margin:                      0px 150px;
+    padding:                     10px;
+    background-color:            @bg-surface; /* Usando la nueva variable */
+    border-radius:               12px;
+    border:                      1px solid;
+    border-color:                @outline;
+}
+
+textbox {
+    background-color:            transparent;
+    text-color:                  @subtext;
+    vertical-align:              0.5;
+    horizontal-align:            0.5;
+}
+
+/*****----- Listview -----*****/
+listview {
+    enabled:                     true;
+    columns:                     5;
+    lines:                       1;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    layout:                      vertical;
+    reverse:                     false;
+    fixed-height:                true;
+    fixed-columns:               true;
+    
+    spacing:                     20px;
+    margin:                      0px 150px;
+    background-color:            transparent;
+    cursor:                      "default";
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:                     true;
+    spacing:                     15px;
+    margin:                      0px;
+    padding:                     35px 10px;
+    border:                      1px solid;
+    border-radius:               20px;
+    border-color:                @outline;
+    background-color:            @bg-surface; /* Usando la nueva variable */
+    text-color:                  @subtext;
+    orientation:                 vertical;
+    cursor:                      pointer;
+}
+
+element-icon {
+    background-color:            transparent;
+    text-color:                  inherit;
+    size:                        64px;
+    cursor:                      inherit;
+    horizontal-align:            0.5;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    highlight:                   inherit;
+    cursor:                      inherit;
+    vertical-align:              0.5;
+    horizontal-align:            0.5;
+}
+
+/*****----- States -----*****/
+element normal.normal {
+    background-color:            @bg-surface;
+    text-color:                  @subtext;
+}
+
+element selected.normal {
+    background-color:            @p-container;
+    text-color:                  @on-p-cont;
+    border-color:                @primary;
+}
+
+/*****----- Utilities -----*****/
+dummy {
+    expand:                      true;
+    background-color:            transparent;
+}
