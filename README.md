@@ -1,6 +1,6 @@
 # NixOS Dotfiles
 
-Personal dotfiles for a **NixOS + Hyprland** desktop environment, focused on customization, theming, terminal tools, and desktop utilities. Could work on Arch. Probably.
+Personal dotfiles for a **NixOS + Hyprland** desktop environment, focused on customization, theming, terminal tools, and desktop utilities.
 
 These dotfiles are managed with **GNU Stow**, making it easy to clone the repository, create symlinks, and keep the configuration synchronized across machines.
 
@@ -274,4 +274,192 @@ mkdir -p ~/Pictures/Wallpapers
 
 Then place your wallpapers inside it.
 
-> **Important:** If your wallp
+> **Important:** If your wallpapers are stored somewhere else, update the corresponding paths in the configuration.
+
+---
+
+# 🔧 Customizing the Configuration
+
+These dotfiles are meant to be customized.
+
+After installing them, you may want to change:
+
+* Wallpaper paths
+* Monitor configuration
+* Keybindings
+* Application launchers
+* Terminal settings
+* Waybar modules
+* Colors and themes
+* Fonts
+* User-specific paths
+* Startup applications
+* Scripts
+* Hyprland rules
+
+The main configuration directories are located under:
+
+```text
+~/.config/
+```
+
+Because these are symlinks, editing:
+
+```text
+~/.config/hypr/
+```
+
+will modify the files inside:
+
+```text
+~/dotfiles/.config/hypr/
+```
+
+This makes it easy to commit your changes back to Git.
+
+---
+
+# 🔄 Updating the Dotfiles
+
+On another machine, or after making changes to the repository, pull the latest version:
+
+```bash
+cd ~/dotfiles
+git pull
+```
+
+If the symlinks are already installed, the changes should be available immediately because your configuration directories point to the repository.
+
+If you removed the symlinks or installed the repository on a new machine, run:
+
+```bash
+stow .
+```
+
+---
+
+# 🗑️ Removing the Dotfiles
+
+If you want to remove the symlinks created by GNU Stow without deleting the repository:
+
+```bash
+cd ~/dotfiles
+stow -D .
+```
+
+This removes the symlinks managed by Stow.
+
+Your repository and its files will remain untouched.
+
+---
+
+# 🖥️ NixOS Configuration
+
+The **system-level NixOS configuration is maintained separately** from these dotfiles.
+
+This repository focuses on user-level configuration such as:
+
+* Hyprland
+* Waybar
+* Kitty
+* Rofi
+* SwayNC
+* Cava
+* Fastfetch
+* Matugen
+* Starship
+* Zsh
+* Wlogout
+* Theming
+* Desktop utilities
+
+System-level NixOS configuration is normally located at:
+
+```text
+/etc/nixos/
+```
+
+Your own NixOS configuration can therefore be used independently from these dotfiles.
+
+---
+
+# ⚠️ Troubleshooting
+
+## Stow says that a file already exists
+
+If you see an error similar to:
+
+```text
+WARNING! stowing ... would cause conflicts
+```
+
+or:
+
+```text
+ERROR: ... already exists
+```
+
+you probably already have a configuration in your home directory.
+
+Check the conflicting file:
+
+```bash
+ls -la ~/.config/
+```
+
+Back it up if necessary:
+
+```bash
+mv ~/.config/<directory> ~/.config/<directory>.backup
+```
+
+Then try again:
+
+```bash
+cd ~/dotfiles
+stow .
+```
+
+---
+
+## Check where a symlink points
+
+Use:
+
+```bash
+readlink -f ~/.config/hypr
+```
+
+You should see something similar to:
+
+```text
+/home/<your-user>/dotfiles/.config/hypr
+```
+
+---
+
+# 💡 Important Notes
+
+These dotfiles were created for my personal NixOS + Hyprland environment.
+
+They are provided as a starting point rather than a completely universal configuration.
+
+Before using them:
+
+1. **Read the configuration files.**
+2. **Check paths and usernames.**
+3. **Install the required dependencies.**
+4. **Check your monitor configuration.**
+5. **Check your wallpaper directory.**
+6. **Review scripts before executing them.**
+7. **Back up your existing configuration.**
+
+You are encouraged to modify the configuration to fit your own system.
+
+---
+
+# 📜 License
+
+Personal configuration files.
+
+Use, modify, and adapt them as you wish.
