@@ -187,15 +187,15 @@ GNU Stow will create symbolic links in your home directory.
 For example:
 
 ```text
-~/.config/hypr      -> ~/dotfiles/.config/hypr
-~/.config/waybar    -> ~/dotfiles/.config/waybar
-~/.config/kitty     -> ~/dotfiles/.config/kitty
-~/.config/rofi      -> ~/dotfiles/.config/rofi
-~/.config/cava      -> ~/dotfiles/.config/cava
-~/.config/swaync    -> ~/dotfiles/.config/swaync
-~/.config/matugen   -> ~/dotfiles/.config/matugen
-~/.config/fastfetch -> ~/dotfiles/.config/fastfetch
-~/.zshrc            -> ~/dotfiles/.zshrc
+~/.config/hypr       -> ~/dotfiles/.config/hypr
+~/.config/waybar     -> ~/dotfiles/.config/waybar
+~/.config/kitty      -> ~/dotfiles/.config/kitty
+~/.config/rofi       -> ~/dotfiles/.config/rofi
+~/.config/cava       -> ~/dotfiles/.config/cava
+~/.config/swaync     -> ~/dotfiles/.config/swaync
+~/.config/matugen    -> ~/dotfiles/.config/matugen
+~/.config/fastfetch  -> ~/dotfiles/.config/fastfetch
+~/.zshrc             -> ~/dotfiles/.zshrc
 ```
 
 You can verify the links with:
@@ -302,15 +302,45 @@ Replace any paths, usernames, or commands that do not exist on your system.
 
 # 🎨 Waybar Themes
 
-The repository includes multiple Waybar themes.
+This repository provides **two different ways to use Waybar**.
 
-They are located in:
+### Default Waybar + Matugen
+
+The default Waybar configuration is designed to work with **Matugen**.
+
+Matugen generates the Waybar colors dynamically based on your selected wallpaper.
+
+The default Waybar setup uses a Matugen template similar to:
+
+```toml
+[templates.waybar]
+input_path  = "/home/oozenix/.config/matugen/templates/waybar.css"
+output_path = "/home/oozenix/.config/waybar/style.css"
+post_hook   = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
+```
+
+> **⚠️ Important:** The paths above contain the original username from this configuration. If your username is different, change `/home/oozenix/` to your own home directory.
+
+For a more portable configuration, you can use:
+
+```toml
+[templates.waybar]
+input_path  = "/home/<your-user>/.config/matugen/templates/waybar.css"
+output_path = "/home/<your-user>/.config/waybar/style.css"
+post_hook   = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
+```
+
+---
+
+## 🎨 Alternative Waybar Themes
+
+Additional Waybar themes are available inside:
 
 ```text
 .config/waybar/themes/
 ```
 
-You can view the available themes with:
+You can view them with:
 
 ```bash
 cd ~/dotfiles/.config/waybar/themes
@@ -329,9 +359,57 @@ Run it with:
 ./.config/waybar/themes/waybar-theme-switcher.sh
 ```
 
-The script allows you to switch between the available Waybar themes without manually editing the Waybar configuration.
+### ⚠️ Matugen and Alternative Themes
 
-Feel free to modify the existing themes or add your own.
+The themes inside `.config/waybar/themes/` are **not designed to work with Matugen**.
+
+They are static themes and are intended to be used independently from the Matugen-generated Waybar style.
+
+If the following Matugen template is enabled:
+
+```toml
+[templates.waybar]
+input_path  = "/home/<your-user>/.config/matugen/templates/waybar.css"
+output_path = "/home/<your-user>/.config/waybar/style.css"
+post_hook   = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
+```
+
+Matugen will continue generating:
+
+```text
+~/.config/waybar/style.css
+```
+
+This means that using an alternative theme while the Matugen Waybar template is enabled can cause the theme to be **overwritten by Matugen**.
+
+### Using the Alternative Themes
+
+If you want to use one of the static themes from:
+
+```text
+.config/waybar/themes/
+```
+
+you have two options:
+
+**Option 1 — Disable the Waybar Matugen template**
+
+Remove or comment out the `[templates.waybar]` section from your Matugen configuration:
+
+```toml
+# [templates.waybar]
+# input_path  = "/home/<your-user>/.config/matugen/templates/waybar.css"
+# output_path = "/home/<your-user>/.config/waybar/style.css"
+# post_hook   = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
+```
+
+This prevents Matugen from overwriting your Waybar theme.
+
+**Option 2 — Modify the theme manually**
+
+Keep the Matugen integration enabled, but manually modify the corresponding Waybar files so they work with the generated `style.css`.
+
+> **Recommended:** If you want to use the included alternative themes as they are, disable the `[templates.waybar]` Matugen template.
 
 ---
 
@@ -373,6 +451,7 @@ After installing them, you may want to change:
 * Startup applications
 * Scripts
 * Hyprland rules
+* Matugen templates
 
 The main configuration directories are located under:
 
@@ -528,6 +607,34 @@ Then run it again:
 
 ---
 
+## Waybar theme keeps being overwritten
+
+If you selected a theme from:
+
+```text
+.config/waybar/themes/
+```
+
+but Waybar keeps reverting to the Matugen-generated style, check your Matugen configuration.
+
+Look for:
+
+```toml
+[templates.waybar]
+```
+
+If it is enabled, Matugen will generate:
+
+```text
+~/.config/waybar/style.css
+```
+
+and can overwrite the static theme.
+
+To use the alternative themes, disable the Waybar template in your Matugen configuration.
+
+---
+
 ## Check where a symlink points
 
 Use:
@@ -561,6 +668,7 @@ Before using them:
 5. **Check your wallpaper directory.**
 6. **Review scripts before executing them.**
 7. **Back up your existing configuration.**
+8. **Check the Matugen configuration if you want to use the alternative Waybar themes.**
 
 Some scripts or configurations may reference applications that are not installed by default on your system.
 
