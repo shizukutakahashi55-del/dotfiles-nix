@@ -206,6 +206,8 @@ If you don't like the Waybar default, you can use a .sh on Waybar folder, I have
 
 These are dotfiles for my main system with NixOS, remember to verify all the files and change folder names, or links.
 
+To use the Wallpapershell verify you have your wallpapers on $HOME/Pictures/Wallpapers
+
 ---
 
 ## 📜 License

@@ -14,19 +14,36 @@ window {
     transparency:       "real";
     location:           center;
     anchor:             center;
-    width:              540px;
+    width:              1000px;
+    height:             460px;
     border-radius:      20px;
-    border:             1px solid;
+    border:             2px solid;
     border-color:       @outline;
     background-color:   @base;
     cursor:             "default";
     padding:            0px;
+    children:           [ "imagebox" ];
+}
+
+/*****----- Imagebox (panel lateral) -----*****/
+imagebox {
+    orientation:        horizontal;
+    spacing:            0px;
+    background-color:   transparent;
+    children:           [ "dummy", "mainbox" ];
+}
+
+dummy {
+    expand:             true;
+    background-color:   transparent;
 }
 
 /*****----- Mainbox -----*****/
 mainbox {
+    expand:             false;
+    width:              460px;
     spacing:            0px;
-    background-color:   transparent;
+    background-color:   @base;
     children:           [ "inputbar", "listview" ];
 }
 
@@ -34,7 +51,7 @@ mainbox {
 inputbar {
     padding:            14px 18px;
     background-color:   @surface;
-    border-radius:      20px 20px 0px 0px;
+    border-radius:      0px 20px 0px 0px;
     children:           [ "prompt", "entry", "case-indicator" ];
     spacing:            10px;
     border:             0px 0px 1px 0px;
@@ -46,7 +63,7 @@ prompt {
     background-color:   transparent;
     text-color:         @primary;
     vertical-align:     0.5;
-    str:                " ";
+    str:                "<3";
 }
 
 entry {
@@ -54,7 +71,7 @@ entry {
     background-color:   transparent;
     text-color:         @on-p-cont;
     vertical-align:     0.5;
-    placeholder:        "Escribe para buscar…";
+    placeholder:        "Type to search...";
     placeholder-color:  @subtext;
     cursor:             text;
 }
@@ -74,7 +91,7 @@ listview {
     scrollbar:          false;
     lines:              8;
     fixed-height:       false;
-    border-radius:      0px 0px 20px 20px;
+    border-radius:      0px 0px 20px 0px;
 }
 
 /*****----- Elements -----*****/

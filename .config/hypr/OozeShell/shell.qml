@@ -13,7 +13,7 @@ ShellRoot {
   Process {
     id: initColors
     command: ["bash", "-c",
-      "WP=$(cat /home/oozenix/.cache/awww/last 2>/dev/null); " +
+      "WP=$(cat ~/.cache/awww/last 2>/dev/null); " +
       "if [ -n \"$WP\" ] && [ -f \"$WP\" ]; then " +
       "  matugen image \"$WP\" --source-color-index 0 --json hex | sed -n '/^{/,/^}/p' > /tmp/matugen-colors.json; " +
       "fi"

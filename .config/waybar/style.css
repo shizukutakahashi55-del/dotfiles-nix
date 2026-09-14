@@ -3,23 +3,23 @@
  * Estilo: Pastel Pop · Islands Edition (Custom Darker)
  * ============================================================ */
 
-@define-color base        #1d1012;
-@define-color mantle      #170b0d;
-@define-color surface     #2a1c1e;
-@define-color text        #f7dcdf;
-@define-color subtext     #dac0c3;
-@define-color primary     #ffb2be;
-@define-color secondary   #f5b8af;
-@define-color tertiary    #ffb695;
-@define-color p_container #900038;
-@define-color s_container #673b35;
-@define-color t_container #6d391f;
-@define-color on_primary  #660026;
-@define-color on_p_cont   #ffd9de;
-@define-color on_s_cont   #ffdad5;
-@define-color on_t_cont   #ffdbcc;
+@define-color base        #1c1014;
+@define-color mantle      #170b0f;
+@define-color surface     #2a1c20;
+@define-color text        #f5dce3;
+@define-color subtext     #d8c1c7;
+@define-color primary     #ffb0cb;
+@define-color secondary   #f3b7bf;
+@define-color tertiary    #ffb3ae;
+@define-color p_container #8d0050;
+@define-color s_container #653a41;
+@define-color t_container #6f3633;
+@define-color on_primary  #640037;
+@define-color on_p_cont   #ffd9e4;
+@define-color on_s_cont   #ffd9dd;
+@define-color on_t_cont   #ffdad7;
 @define-color error       #ffb4ab;
-@define-color outline     #544245;
+@define-color outline     #534247;
 
 * {
     font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", monospace;

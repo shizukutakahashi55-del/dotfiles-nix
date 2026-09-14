@@ -13,7 +13,7 @@
 local programs = {
     terminal    = "kitty",
     fileManager = "dolphin",
-    menu        = "/home/oozenix/.config/rofi/launcher.sh",
+    menu        = "~/.config/rofi/launcher.sh",
 }
 
 return programs
