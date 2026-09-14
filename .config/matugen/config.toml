@@ -15,6 +15,6 @@ output_path = "/home/oozenix/.config/swaync/style.css"
 post_hook   = "swaync-client --reload-css"
 
 [templates.rofi]
-input_path  = "/home/oozenix/.config/matugen/templates/colors-ML.rasi"
-output_path = "/home/oozenix/.config/rofi/colors-ML.rasi"
+input_path  = "/home/oozenix/.config/matugen/templates/colors.rasi"
+output_path = "/home/oozenix/.config/rofi/colors.rasi"
 

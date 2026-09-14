@@ -18,7 +18,7 @@ hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(programs.terminal))
 local closeWindowBind = hl.bind(mainMod .. " + C", hl.dsp.window.close())
 
 -- closeWindowBind:set_enabled(false)
-hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
+--hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu))
@@ -34,7 +34,9 @@ hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call toggleWalls handle"
 ))
 
-
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(
+  "~/.config/rofi/powermenu.sh"
+))
 
 -- Move focus with mainMod + arrow keys
 hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))

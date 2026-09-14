@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 dir="$HOME/.config/rofi"
-theme='style-ML'
+theme='MainStyle'
 
 WALL=$(awww query | grep -oP '(?<=image: ).*' | head -n1)
 [ -z "$WALL" ] && WALL="$HOME/.config/rofi/fallback.jpg"

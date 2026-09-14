@@ -1,0 +1,20 @@
+/* Auto-generado por matugen — NO editar manualmente */
+* {
+    base:           #1a1112;
+    mantle:         #140c0c;
+    surface:        #271d1e;
+    ml-text:        #f0dede;
+    subtext:        #d7c1c2;
+    primary:        #ffb3b6;
+    secondary:      #e6bdbe;
+    tertiary:       #e7c08d;
+    p-container:    #723338;
+    s-container:    #5d3f40;
+    t-container:    #5c421a;
+    on-primary:     #561d23;
+    on-p-cont:      #ffdada;
+    on-s-cont:      #ffdada;
+    on-t-cont:      #ffddb2;
+    ml-error:       #ffb4ab;
+    outline:        #524343;
+}

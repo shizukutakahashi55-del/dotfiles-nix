@@ -1,0 +1,20 @@
+/* Auto-generado por matugen — NO editar manualmente */
+* {
+    base:           {{ colors.background.dark.hex }};
+    mantle:         {{ colors.surface_container_lowest.dark.hex }};
+    surface:        {{ colors.surface_container.dark.hex }};
+    ml-text:        {{ colors.on_background.dark.hex }};
+    subtext:        {{ colors.on_surface_variant.dark.hex }};
+    primary:        {{ colors.primary.dark.hex }};
+    secondary:      {{ colors.secondary.dark.hex }};
+    tertiary:       {{ colors.tertiary.dark.hex }};
+    p-container:    {{ colors.primary_container.dark.hex }};
+    s-container:    {{ colors.secondary_container.dark.hex }};
+    t-container:    {{ colors.tertiary_container.dark.hex }};
+    on-primary:     {{ colors.on_primary.dark.hex }};
+    on-p-cont:      {{ colors.on_primary_container.dark.hex }};
+    on-s-cont:      {{ colors.on_secondary_container.dark.hex }};
+    on-t-cont:      {{ colors.on_tertiary_container.dark.hex }};
+    ml-error:       {{ colors.error.dark.hex }};
+    outline:        {{ colors.outline_variant.dark.hex }};
+}

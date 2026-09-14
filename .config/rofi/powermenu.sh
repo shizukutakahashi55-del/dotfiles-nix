@@ -3,7 +3,7 @@
 ## Based on Dotfiles : Aditya Shakya (adi1090x)
 # Rutas absolutas para evitar errores
 dir="$HOME/.config/rofi/"
-theme='style-5'
+theme='WLStyle'
 icons="$dir/icons"
 conf_rasi="$dir/confirm.rasi" # Ruta al nuevo rasi
 
