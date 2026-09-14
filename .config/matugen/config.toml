@@ -18,3 +18,7 @@ post_hook   = "swaync-client --reload-css"
 input_path  = "/home/oozenix/.config/matugen/templates/colors.rasi"
 output_path = "/home/oozenix/.config/rofi/colors.rasi"
 
+[templates.hyprland]
+input_path  = "~/.config/matugen/templates/colors.lua"
+output_path = "~/.config/hypr/modules/colors.lua"
+post_hook   = "hyprctl reload"

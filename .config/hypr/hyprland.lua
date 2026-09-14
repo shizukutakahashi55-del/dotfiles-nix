@@ -29,3 +29,4 @@ require("modules.misc")         -- MISC: wallpaper / logo / other small toggles
 require("modules.input")        -- INPUT: keyboard, mouse, touchpad, gestures, per-device overrides
 require("modules.keybinds")     -- KEYBINDINGS: keyboard + mouse binds and dispatchers
 require("modules.windowrules")  -- WINDOWS AND WORKSPACES: window rules + layer rules
+
