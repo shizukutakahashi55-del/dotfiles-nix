@@ -36,6 +36,27 @@ dotfiles-nix/
 ```
 
 ---
+## Screenshots
+
+### Desktop
+
+![Desktop](screenshots/Desktop.png)
+
+### Rofi
+
+![Rofi](screenshots/Rofi.png)
+
+### Kitty
+
+![Kitty](screenshots/Kitty.png)
+
+### Waybar
+
+![Waybar](screenshots/waybar.png)
+
+### WallpaperShell
+
+![WalpaperShell](screenshots/WallpaperChanger.png)
 
 ## 🚀 Installation
 
@@ -116,37 +137,6 @@ After verifying everything works, the backup can be removed.
 
 ---
 
-## 🔄 Updating the dotfiles
-
-Because the configurations are symlinked, changes made to files in `~/.config` are automatically made inside the repository.
-
-Check changes:
-
-```bash
-cd ~/dotfiles
-git status
-```
-
-Review them:
-
-```bash
-git diff
-```
-
-Commit:
-
-```bash
-git add .
-git commit -m "Update dotfiles"
-```
-
-Push to GitHub:
-
-```bash
-git push
-```
-
----
 
 ## 🔁 Updating another machine
 
