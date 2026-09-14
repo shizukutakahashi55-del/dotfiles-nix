@@ -2,6 +2,11 @@
 
 Personal dotfiles for a **NixOS + Hyprland** desktop environment, focused on customization, theming, terminal tools, and desktop utilities.
 
+VERIFY IF YOU HAVE ALL THE PROGRAMS TO RUN HYPRLAND.
+Check the apps I used in this Rice on:
+nixos-config/modules/hyprland.nix
+https://github.com/shizukutakahashi55-del/nixos-config
+
 These dotfiles are managed with **GNU Stow**, making it easy to clone the repository, create symlinks, and keep the configuration synchronized across machines.
 
 > **⚠️ Important:** These configurations were originally created for my personal system. They may require adjustments depending on your hardware, installed packages, usernames, paths, and system configuration.
