@@ -32,17 +32,16 @@ window {
     anchor:                      center;
     fullscreen:                  true;
     cursor:                      "default";
-    background-color:            #000000aa; 
+    background-color:            #00000088; 
 }
 
-/*****----- Mainbox -----*****/
 mainbox {
     enabled:                     true;
     spacing:                     20px;
     margin:                      0px;
     padding:                     0px;
     background-color:            transparent;
-    children:                    [ "dummy", "userimage-box", "inputbar", "message", "listview", "dummy" ];
+    children:                    [ "dummy", "inputbar", "message", "listview", "dummy" ];
 }
 
 /*****----- User Image -----*****/

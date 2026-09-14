@@ -25,7 +25,7 @@ confirm_exit() {
 # Menú principal
 chosen=$(echo -e "$sdown\n$reboot\n$susp\n$log\n$hiber" | rofi -dmenu \
     -p "Goodbye ${USER}" \
-    -mesg "󱑂 Uptime: $(uptime -p | sed 's/up //g')" \
+    -mesg "󱑂 Uptime: $(uptime | grep -oP '(?<=up ).*?(?=,)')" \
     -theme "${dir}/${theme}.rasi" \
     -markup-rows)
 

@@ -1,13 +1,13 @@
-@define-color base        #1c1014;
-@define-color mantle      #170b0f;
-@define-color surface     #2a1c20;
-@define-color text        #f5dce3;
-@define-color primary     #ffb0cb;
-@define-color tertiary    #ffb3ae;
-@define-color t_container #6f3633;
-@define-color on_primary  #640037;
-@define-color on_t_cont   #ffdad7;
-@define-color outline     #534247;
+@define-color base        #12131c;
+@define-color mantle      #0c0e17;
+@define-color surface     #1e1f29;
+@define-color text        #e2e1ef;
+@define-color primary     #bbc3ff;
+@define-color tertiary    #d8bbf3;
+@define-color t_container #533d6b;
+@define-color on_primary  #001c95;
+@define-color on_t_cont   #efdbff;
+@define-color outline     #454651;
 
 :root {
   --border-radius: 22px;
