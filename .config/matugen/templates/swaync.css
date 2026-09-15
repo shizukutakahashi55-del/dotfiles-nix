@@ -1,21 +1,25 @@
-@define-color base        {{ colors.background.dark.hex }};
-@define-color mantle      {{ colors.surface_container_lowest.dark.hex }};
-@define-color surface     {{ colors.surface_container.dark.hex }};
-@define-color text        {{ colors.on_background.dark.hex }};
-@define-color primary     {{ colors.primary.dark.hex }};
-@define-color tertiary    {{ colors.tertiary.dark.hex }};
-@define-color t_container {{ colors.tertiary_container.dark.hex }};
-@define-color on_primary  {{ colors.on_primary.dark.hex }};
-@define-color on_t_cont   {{ colors.on_tertiary_container.dark.hex }};
-@define-color outline     {{ colors.outline_variant.dark.hex }};
+@define-color base        #0e141c;
+@define-color mantle      #090e17;
+@define-color surface     #1b2029;
+@define-color text        #dee2ef;
+@define-color primary     #a5c8ff;
+@define-color tertiary    #c5c1f9;
+@define-color t_container #444171;
+@define-color on_primary  #00315e;
+@define-color on_t_cont   #e3dfff;
+@define-color outline     #424751;
 
 :root {
   --border-radius: 22px;
   --cc-bg: transparent;
-  --widget-background: alpha(@surface, 0.85);   /* antes: rgba(0,0,0,0.7) */
+  --widget-background: alpha(@surface, 0.98);
   --noti-bg-alpha: 0.6;
   --padding: calc(var(--border-radius) / 2);
 }
+
+/* =========================================
+ * Control Center
+ * ========================================= */
 
 .control-center {
   border-radius: 0;
@@ -27,8 +31,16 @@
   min-height: 100px;
 }
 
+.control-center-list-placeholder {
+  padding: var(--border-radius);
+}
+
+/* =========================================
+ * Widgets
+ * ========================================= */
+
 .widget-title > button {
-  color: @on_primary;                           /* antes: black */
+  color: @on_primary;
   background: @primary;
 }
 
@@ -38,55 +50,60 @@
   background: var(--widget-background);
   border-radius: var(--border-radius);
   padding: calc(var(--border-radius) / 2);
-  border: 1px solid alpha(@outline, 0.40);      /* antes: var(--border) indefinido */
-  color: @text;                                 /* antes: white */
+  border: 1px solid alpha(@outline, 0.40);
+  color: @text;
 }
 
-.control-center-list-placeholder {
-  padding: var(--border-radius);
-}
+/* =========================================
+ * Notification Groups
+ * ========================================= */
 
 .notification-group {
   border-radius: var(--border-radius);
   padding: 8px;
 }
 
-/* ✅ Mpris unido: mismo fondo que los demás, sin separación */
+/* =========================================
+ * MPRIS
+ * ========================================= */
+
 .widget.widget-mpris {
   background: var(--widget-background);
-  border-radius: none;
+  border-radius: 0;
   padding: var(--padding);
-  border: 1px solid alpha(@outline, 0.40);      /* antes: var(--border) indefinido */
+  border: 1px solid alpha(@outline, 0.40);
   margin-top: 0;
   min-height: 140px;
 }
 
-.widget.widget-mpris > carouselindicatordots {
+.widget-mpris > carouselindicatordots {
   --dots-padding: 4px;
+
   padding: var(--dots-padding);
   padding-left: var(--dots-padding);
   padding-right: calc(6px + var(--dots-padding));
+
   margin: 0;
   margin-top: var(--padding);
+
   border: none;
 }
 
 .widget-mpris > box > button {
-  color: @text;                                 /* antes: white */
-  border: none;
-  box-shadow: none;
-  outline: none;
-}
-
-.widget-mpris > box > button:hover {
-  background: alpha(@tertiary, 0.25);           /* antes: rgb(0,0,0) */
   color: @text;
   border: none;
   box-shadow: none;
   outline: none;
 }
 
-/* ✅ El player interno sin bordes/sombras duplicados */
+.widget-mpris > box > button:hover {
+  background: alpha(@tertiary, 0.25);
+  color: @text;
+  border: none;
+  box-shadow: none;
+  outline: none;
+}
+
 .widget-mpris-player {
   box-shadow: none;
   border: none;
@@ -96,4 +113,64 @@
 
 .widget-mpris-player:only-child {
   margin: 0;
+}
+
+/* =========================================
+ * Hyprland Layout Notification
+ * ========================================= */
+
+/* Fondo */
+.notification {
+  background: alpha(@surface, 0.96);
+  border: 1px solid alpha(@outline, 0.40);
+  border-radius: var(--border-radius);
+  color: @text;
+}
+
+/* Título */
+.notification .summary {
+  color: @primary;
+  font-weight: 700;
+}
+
+/* Texto */
+.notification .body {
+  color: @text;
+}
+
+/* Icono */
+.notification image {
+  color: @primary;
+}
+
+/* Hover */
+.notification:hover {
+  background: alpha(@tertiary, 0.12);
+  border-color: alpha(@primary, 0.55);
+}
+
+/* =========================================
+ * Layout OSD
+ * ========================================= */
+
+.notification.low {
+  background: alpha(@surface, 0.94);
+  border: 1px solid alpha(@primary, 0.50);
+  border-radius: var(--border-radius);
+
+  box-shadow:
+    0 8px 30px alpha(@base, 0),
+    0 0 20px alpha(@primary, 0);
+}
+
+.notification.low .summary {
+  color: @primary;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.notification.low .body {
+  color: @text;
+  font-size: 20px;
+  font-weight: 700;
 }

@@ -1,20 +1,20 @@
 /* Auto-generado por matugen — NO editar manualmente */
 * {
-    base:           #1a1112;
-    mantle:         #140c0c;
-    surface:        #271d1e;
-    ml-text:        #f0dede;
-    subtext:        #d7c1c2;
-    primary:        #ffb3b6;
-    secondary:      #e6bdbe;
-    tertiary:       #e7c08d;
-    p-container:    #723338;
-    s-container:    #5d3f40;
-    t-container:    #5c421a;
-    on-primary:     #561d23;
-    on-p-cont:      #ffdada;
-    on-s-cont:      #ffdada;
-    on-t-cont:      #ffddb2;
+    base:           #19120c;
+    mantle:         #130d07;
+    surface:        #251e17;
+    ml-text:        #eee0d5;
+    subtext:        #d5c4b5;
+    primary:        #fbba73;
+    secondary:      #e0c1a3;
+    tertiary:       #becc9b;
+    p-container:    #683d00;
+    s-container:    #58432c;
+    t-container:    #3f4b25;
+    on-primary:     #492900;
+    on-p-cont:      #ffdcbc;
+    on-s-cont:      #feddbe;
+    on-t-cont:      #dae9b6;
     ml-error:       #ffb4ab;
-    outline:        #524343;
+    outline:        #50453a;
 }

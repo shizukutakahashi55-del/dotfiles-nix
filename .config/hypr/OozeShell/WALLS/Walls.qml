@@ -10,6 +10,7 @@ Item {
 
   property bool open: false
   property int currentIndex: 0
+  property string targetScreen: "DP-3"
   signal closeRequested()
 
   // ─── Config ─────────────────────────────────────────────────
@@ -155,7 +156,7 @@ Item {
   // ─── Panel ───────────────────────────────────────────────────
   PanelWindow {
     id: wallsPanel
-    screen: Quickshell.screens[0]
+    screen: Quickshell.screens.find(s => s.name === wallsRoot.targetScreen) ?? Quickshell.screens[0]
     anchors { left: true; right: true; top: true; bottom: true }
     color: "transparent"
     exclusiveZone: -1

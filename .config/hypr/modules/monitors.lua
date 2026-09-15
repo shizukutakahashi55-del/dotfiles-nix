@@ -16,14 +16,6 @@ hl.monitor({
     scale    = "auto",
 })
 
--- hl.monitor({
---     output   = "HDMI-A-1",
---     mode     = "preferred",
---     position = "auto",
---     scale    = "auto",
---     mirror   = "DP-3"
--- })
-
 hl.monitor({
     output    = "HDMI-A-1",
     mode      = "preferred",

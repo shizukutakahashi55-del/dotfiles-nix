@@ -18,7 +18,7 @@ hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(programs.terminal))
 local closeWindowBind = hl.bind(mainMod .. " + C", hl.dsp.window.close())
 
 -- closeWindowBind:set_enabled(false)
---hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
+-- hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu))
@@ -101,3 +101,86 @@ hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("grim -g \"$(slurp)\" - | wl-copy
 hl.bind(mainMod .. " + SHIFT + PRINT", hl.dsp.exec_cmd(
     "bash -c 'mkdir -p ~/Pictures/Screenshots && file=~/Pictures/Screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png && grim -g \"$(slurp)\" \"$file\" && wl-copy < \"$file\"'"
 ))
+
+-- Cycle layout for current workspace
+hl.bind("SUPER + K", function ()
+    local layouts = {
+        scrolling = "󰕰",
+        dwindle   = "󰕳",
+        master    = "󰓦",
+        monocle   = "󰖲",
+    }
+
+    local order = {
+        "scrolling",
+        "dwindle",
+        "master",
+        "monocle",
+    }
+
+    local workspace = hl.get_active_workspace()
+
+    if hl.get_active_special_workspace() then
+        workspace = hl.get_active_special_workspace()
+    end
+
+    if not workspace then
+        return
+    end
+
+    local next_layout = "dwindle"
+
+    for i = 1, #order do
+        if order[i] == workspace.tiled_layout then
+            local next_layout_idx = (i % #order) + 1
+            next_layout = order[next_layout_idx]
+            break
+        end
+    end
+
+    if workspace.special then
+        hl.workspace_rule({
+            workspace = tostring(workspace.name),
+            layout = next_layout
+        })
+    else
+        hl.workspace_rule({
+            workspace = tostring(workspace.id),
+            layout = next_layout
+        })
+    end
+
+    -- Notification
+hl.exec_cmd(
+    "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call -- notify show " ..
+    "'Layout: " .. layouts[next_layout] .. "  " .. next_layout .. "'"
+)
+end)
+
+-- Selector de monitor: elige en qué pantalla vive el shell (Walls/Notify/Mpris)
+hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(
+  "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call -- monitor togglePicker"
+))
+
+-- Reiniciar Shell -- 
+hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(
+  "pkill quickshell & sleep 1 && quickshell -p ~/.config/hypr/OozeShell/shell.qml"
+))
+
+-- Keybind Cheatsheet --
+hl.bind(mainMod .. " + I", hl.dsp.exec_cmd(
+  "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call keybinds toggle"
+))
+
+-- Minimize windows using special workspaces --
+--Note that one keybind can only handle one window.
+
+hl.bind("SUPER + X", function ()
+    if hl.get_workspace("special:minimized") then
+        hl.dispatch(hl.dsp.window.move({ workspace = hl.get_active_workspace(), window = "tag:minimized" }))
+        hl.dispatch(hl.dsp.window.clear_tags({ window = "tag:minimized" }))
+    else
+        hl.dispatch(hl.dsp.window.tag({ tag = "minimized", window = hl.get_active_window() }))
+        hl.dispatch(hl.dsp.window.move({ workspace = "special:minimized", follow = false }))
+    end
+end)

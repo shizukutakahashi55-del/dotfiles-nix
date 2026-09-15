@@ -11,6 +11,8 @@ Item {
   property bool open: false
   signal closeRequested()
 
+  property string targetScreen: "DP-3"
+
   // ─── Colores desde matugen ────────────────────────────────────
   property var colors: ({
     bg:      "#0d0e11",
@@ -162,6 +164,7 @@ Item {
   // ─── Un solo PanelWindow fullscreen ──────────────────────────
   PanelWindow {
     id: mainPanel
+    screen: Quickshell.screens.find(s => s.name === mprisRoot.targetScreen) ?? Quickshell.screens[0]
     visible: mprisRoot.open
     WlrLayershell.layer: WlrLayer.Overlay
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
