@@ -128,7 +128,7 @@ Item {
               spacing: 12
 
               Text {
-                text: "Elegí el monitor del shell"
+                text: "Choose Main Screen"
                 color: pickerRoot.colors.text
                 font.pixelSize: 13
                 font.bold: true

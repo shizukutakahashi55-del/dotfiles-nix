@@ -104,6 +104,10 @@ window#waybar {
     background: alpha(@t_container, 0.75);
 }
 
+#custom-spotify {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
+}
+
 /* ── ISLA 3: Cava ────────────────────────────────────────────── */
 #cava {
     background: @s_container;

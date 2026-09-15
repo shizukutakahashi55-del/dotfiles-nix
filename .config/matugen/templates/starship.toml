@@ -1,0 +1,65 @@
+# Plantilla corregida para Matugen (~/.config/matugen/templates/starship.toml)
+
+format = """
+[](fg:{{colors.primary.default.hex}})\
+$username\
+[](bg:{{colors.secondary.default.hex}} fg:{{colors.primary.default.hex}})\
+$hostname\
+[](bg:{{colors.tertiary.default.hex}} fg:{{colors.secondary.default.hex}})\
+$directory\
+[](fg:{{colors.tertiary.default.hex}} bg:{{colors.primary_container.default.hex}})\
+$git_branch\
+$git_status\
+[](fg:{{colors.primary_container.default.hex}})\
+$cmd_duration\
+$line_break\
+$character"""
+
+add_newline = true
+
+[username]
+show_always = true
+style_user = "bg:{{colors.primary.default.hex}} fg:{{colors.on_primary.default.hex}} bold"
+style_root = "bg:{{colors.error.default.hex}} fg:{{colors.on_error.default.hex}} bold"
+format = "[󱄅 $user]($style)"
+
+[hostname]
+ssh_only = false
+style = "bg:{{colors.secondary.default.hex}} fg:{{colors.on_secondary.default.hex}} bold"
+format = "[@$hostname]($style)"
+
+[directory]
+style = "bg:{{colors.tertiary.default.hex}} fg:{{colors.on_tertiary.default.hex}} bold"
+format = "[ 󰉋 $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = "󰊢 "
+style = "bg:{{colors.primary_container.default.hex}} fg:{{colors.on_primary_container.default.hex}} bold"
+format = "[ $symbol$branch]($style)"
+
+[git_status]
+style = "bg:{{colors.primary_container.default.hex}} fg:{{colors.on_primary_container.default.hex}} bold"
+format = "[($all_status$ahead_behind)]($style) "
+conflicted = "⚔ "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+untracked = "󰞋 "
+modified = "󰏫 "
+staged = "󰸞 "
+
+[cmd_duration]
+min_time = 2_000
+style = "bold {{colors.tertiary.default.hex}}"
+format = " 󱦟 [$duration]($style)"
+
+[time]
+disabled = false
+style = "bold {{colors.primary.default.hex}}"
+format = "󰥔 [$time]($style)"
+time_format = "%H:%M"
+
+[character]
+success_symbol = "[╭─ 󰅂](bold {{colors.primary.default.hex}}) "
+error_symbol = "[╭─ 󰅂](bold {{colors.error.default.hex}}) "

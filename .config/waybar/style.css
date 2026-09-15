@@ -3,23 +3,23 @@
  * Estilo: Pastel Pop · Islands Edition (Custom Darker)
  * ============================================================ */
 
-@define-color base        #19120c;
-@define-color mantle      #130d07;
-@define-color surface     #251e17;
-@define-color text        #eee0d5;
-@define-color subtext     #d5c4b5;
-@define-color primary     #fbba73;
-@define-color secondary   #e0c1a3;
-@define-color tertiary    #becc9b;
-@define-color p_container #683d00;
-@define-color s_container #58432c;
-@define-color t_container #3f4b25;
-@define-color on_primary  #492900;
-@define-color on_p_cont   #ffdcbc;
-@define-color on_s_cont   #feddbe;
-@define-color on_t_cont   #dae9b6;
+@define-color base        #1d1010;
+@define-color mantle      #180b0b;
+@define-color surface     #2b1c1c;
+@define-color text        #f8dcdc;
+@define-color subtext     #dbc0c1;
+@define-color primary     #ffb3b6;
+@define-color secondary   #f6b8a9;
+@define-color tertiary    #ffb68b;
+@define-color p_container #920028;
+@define-color s_container #663b30;
+@define-color t_container #6b3a18;
+@define-color on_primary  #68001a;
+@define-color on_p_cont   #ffdada;
+@define-color on_s_cont   #ffdbd2;
+@define-color on_t_cont   #ffdbc8;
 @define-color error       #ffb4ab;
-@define-color outline     #50453a;
+@define-color outline     #554243;
 
 * {
     font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", monospace;
@@ -102,6 +102,10 @@ window#waybar {
 
 #custom-spotify:hover {
     background: alpha(@t_container, 0.75);
+}
+
+#custom-spotify {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", sans-serif;
 }
 
 /* ── ISLA 3: Cava ────────────────────────────────────────────── */
