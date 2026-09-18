@@ -6,25 +6,25 @@
 
 /* ── Material You ───────────────────────────────────────────── */
 
-@define-color base         #1a120e;
-@define-color mantle       #140c09;
-@define-color surface      #271e1a;
-@define-color surface_alt  #322824;
+@define-color base         #0f1512;
+@define-color mantle       #090f0d;
+@define-color surface      #1b211e;
+@define-color surface_alt  #252b29;
 
-@define-color text         #f1dfd8;
-@define-color subtext      #d7c2ba;
+@define-color text         #dee4e0;
+@define-color subtext      #bfc9c3;
 
-@define-color primary      #ffb694;
-@define-color p_container  #713719;
+@define-color primary      #87d6bd;
+@define-color p_container  #005140;
 
-@define-color on_primary   #542105;
-@define-color on_p_cont    #ffdbcc;
+@define-color on_primary   #00382c;
+@define-color on_p_cont    #a2f2d8;
 
-@define-color tertiary     #d1c88f;
-@define-color t_container  #4d471b;
-@define-color on_t_cont    #eee4a9;
+@define-color tertiary     #a8cbe2;
+@define-color t_container  #284b5e;
+@define-color on_t_cont    #c4e7ff;
 
-@define-color outline      #52443d;
+@define-color outline      #3f4945;
 
 
 /* ============================================================

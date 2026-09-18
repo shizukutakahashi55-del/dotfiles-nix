@@ -37,11 +37,11 @@
     --app-font-roundness: 100;
 
 	/*****----- Acento (equivale a @primary en el rofi) -----*****/
-	--accent-hue: 19;
+	--accent-hue: 334;
 	--accent-saturation: 100%;
-	--accent-lightness: 79%;
-	--accent-text-color: #542105; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
-	--accent-button-action: #542105;
+	--accent-lightness: 84%;
+	--accent-text-color: #5c113b; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+	--accent-button-action: #5c113b;
 
 	/*****----- Alerta / error (equivale a @ml-error en el rofi) -----*****/
 	--alert-hue: 6;
@@ -51,10 +51,10 @@
 
 	/*****----- Advertencia (mapeado a tertiary, el 3er tono M3 ·
 	            equivale al rol que @secondary cumple en el rofi) -----*****/
-	--warning-hue: 51;
-    --warning-saturation: 41%;
-    --warning-lightness: 69%;
-	--warning-text-color: #363107; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+	--warning-hue: 19;
+    --warning-saturation: 100%;
+    --warning-lightness: 79%;
+	--warning-text-color: #542105; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
 
 	/* MESSAGE SETTINGS */
 	--message-radius: 18px;
@@ -71,7 +71,7 @@
 	/* BUTTON SETTINGS */
 	--button-height: 40px;
 	--button-padding: 16px;
-	--button-action-color: #542105;
+	--button-action-color: #5c113b;
 
 	/* INPUT SETTINGS */
 	--input-height: 40px;
@@ -82,8 +82,8 @@
 	--popout-radius-big: 18px;
 
 	/* TOOLTIP SETTINGS */
-	--tooltip-color: #322824;
-	--tooltip-text-color: #f1dfd8;
+	--tooltip-color: #36261f;
+	--tooltip-text-color: #f8ddd2;
 	--tooltip-font-size: 12px;
 	--tooltip-padding: 8px;
 	--tooltip-radius: 8px;

@@ -1,0 +1,54 @@
+# ══════════════════════════════════════════════════════════════
+# config-kde.toml — SOLO para la sesión de KDE
+#
+# Se invoca siempre de forma explícita con `matugen -c config-kde.toml ...`
+# (nunca es el config.toml por defecto), así que aunque algún día
+# canvies de sesión y olvides limpiar algo, nunca va a tocar
+# waybar/swaync/hyprctl. Ese config.toml de Hyprland se queda
+# intacto y solo se usa cuando corres matugen manualmente ahí.
+#
+# No incluye [templates.waybar/swaync/hyprland/wlogout]: en KDE no
+# existen esos binarios, y en el de Hyprland sí siguen estando.
+# Tampoco incluye swayosd (OSD exclusivo de compositores wlroots/Sway).
+# ══════════════════════════════════════════════════════════════
+
+[config]
+mode = "dark"
+version_check = false
+caching = false
+show_color_picker = false
+
+[templates.rofi]
+input_path  = "~/.config/matugen/templates/colors.rasi"
+output_path = "~/.config/rofi/colors.rasi"
+
+[templates.cava]
+input_path = '~/.config/matugen/templates/cava.ini'
+output_path = '~/.config/cava/themes/matugen'
+post_hook = 'pkill -USR2 -x cava || true'
+
+[templates.starship]
+input_path = '~/.config/matugen/templates/starship.toml'
+output_path = '~/.config/starship.toml'
+
+[templates.yazi]
+input_path = '~/.config/matugen/templates/theme.toml'
+output_path = '~/.config/yazi/theme.toml'
+
+# VS Code matugen extension
+[templates.vscode-raw]
+input_path = "./templates/vscode-colors"
+output_path = "~/.cache/matugen/vscode-colors"
+
+[templates.vscode-json]
+input_path = "./templates/vscode-colors.json"
+output_path = "~/.cache/matugen/vscode-colors.json"
+
+[templates.librewolf]
+input_path = "~/.config/matugen/templates/librewolf-colors.css"
+output_path = "~/.config/librewolf/librewolf/tjk2f543.default/chrome/colors.css"
+##Change tjk2f543 for name on your system in the same path
+
+[templates.vesktop]
+input_path = "~/.config/matugen/templates/vesktop.css"
+output_path = "~/.config/vesktop/themes/vesktop.css"
