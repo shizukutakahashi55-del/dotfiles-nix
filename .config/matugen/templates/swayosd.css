@@ -1,0 +1,94 @@
+/* ============================================================
+ * SWAYOSD — Generado por matugen
+ * Estilo: Dynamic Catppuccin · Pastel Pop · Islands
+ * ============================================================ */
+
+
+/* ============================================================
+ * PALETA MATUGEN
+ * ============================================================ */
+
+@define-color base         {{ colors.background.dark.hex }};
+@define-color mantle       {{ colors.surface_container_lowest.dark.hex }};
+@define-color surface      {{ colors.surface_container_low.dark.hex }};
+@define-color surface_alt  {{ colors.surface_container.dark.hex }};
+
+@define-color text          {{ colors.on_background.dark.hex }};
+@define-color subtext       {{ colors.on_surface_variant.dark.hex }};
+
+@define-color primary       {{ colors.primary.dark.hex }};
+@define-color p_container   {{ colors.primary_container.dark.hex }};
+@define-color on_primary    {{ colors.on_primary.dark.hex }};
+@define-color on_p_cont     {{ colors.on_primary_container.dark.hex }};
+
+@define-color error         {{ colors.error.dark.hex }};
+@define-color outline       {{ colors.outline_variant.dark.hex }};
+
+
+/* ============================================================
+ * WINDOW
+ * ============================================================ */
+
+window {
+    background: alpha(@surface, 0.96);
+
+    border-radius: 20px;
+    border: 2px solid alpha(@primary, 0.75);
+
+    color: @text;
+}
+
+
+/* ============================================================
+ * CONTAINER
+ * ============================================================ */
+
+#container {
+    margin: 16px;
+}
+
+
+/* ============================================================
+ * PROGRESS
+ * ============================================================ */
+
+progress {
+    background: alpha(@outline, 0.35);
+    color: @primary;
+
+    border-radius: 10px;
+
+    min-height: 10px;
+}
+
+
+/* ============================================================
+ * LABELS
+ * ============================================================ */
+
+label {
+    color: @text;
+}
+
+
+/* ============================================================
+ * BUTTONS
+ * ============================================================ */
+
+button {
+    background: transparent;
+    color: @text;
+
+    border: none;
+    border-radius: 8px;
+}
+
+button:hover {
+    background: alpha(@primary, 0.12);
+    color: @primary;
+}
+
+button:active {
+    background: alpha(@primary, 0.20);
+    color: @primary;
+}

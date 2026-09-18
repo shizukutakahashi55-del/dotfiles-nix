@@ -1,0 +1,323 @@
+/* ============================================================
+ * WAYBAR — Neon Punk · Islands Edition
+ * Electric glow, high contrast, cyber-street vibes
+ * ============================================================ */
+
+@define-color base         #050209;
+@define-color text         #ffffff;
+@define-color neon_pink    #ff007f;
+@define-color neon_cyan    #00fcfc;
+@define-color neon_purple  #bc00ff;
+@define-color neon_green   #39ff14;
+@define-color neon_yellow  #fff01f;
+@define-color neon_red     #ff003c;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    transition: all 0.2s ease-in-out;
+}
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ── ISLA 1: Power + Power Profile ───────────────────────────── */
+#custom-power,
+#power-profiles-daemon {
+    background: alpha(@base, 0.92);
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+#custom-power {
+    border-radius: 10px 0 0 10px;
+    margin-left: 4px;
+    padding-left: 14px;
+    color: @neon_red;
+    font-size: 14px;
+    border: 2px solid @neon_red;
+    border-right: none;
+    text-shadow: 0 0 12px @neon_red;
+    box-shadow: 0 0 8px alpha(@neon_red, 0.4);
+}
+
+#power-profiles-daemon {
+    border-radius: 0 10px 10px 0;
+    margin-right: 4px;
+    padding-right: 14px;
+    color: @neon_purple;
+    border: 2px solid @neon_purple;
+    border-left: none;
+    text-shadow: 0 0 8px alpha(@neon_purple, 0.8);
+    box-shadow: 0 0 8px alpha(@neon_purple, 0.4);
+}
+
+/* ── ISLA 2: Spotify ─────────────────────────────────────────── */
+#custom-spotify {
+    background: alpha(@base, 0.88);
+    border: 1px solid @neon_green;
+    border-radius: 10px;
+    color: @neon_green;
+    font-weight: 800;
+    padding: 1px 20px;
+    margin: 3px 4px;
+    min-width: 200px;
+    box-shadow: 0 0 10px alpha(@neon_green, 0.3), inset 0 0 10px alpha(@neon_green, 0.1);
+    text-shadow: 0 0 8px alpha(@neon_green, 0.8);
+}
+
+#custom-spotify:hover {
+    background: alpha(@neon_green, 0.16);
+    box-shadow: 0 0 16px alpha(@neon_green, 0.5);
+}
+
+/* ── ISLA 3: Cava ────────────────────────────────────────────── */
+#cava {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_pink;
+    border-radius: 10px;
+    color: @neon_pink;
+    padding: 1px 14px;
+    margin: 3px 4px;
+    font-size: 11px;
+    box-shadow: 0 0 8px alpha(@neon_pink, 0.4);
+}
+
+/* ── ISLA 4: Notificaciones ──────────────────────────────────── */
+#custom-notifications {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_pink;
+    border-radius: 10px;
+    color: @neon_pink;
+    padding: 1px 14px;
+    margin: 3px 4px;
+    text-shadow: 0 0 8px alpha(@neon_pink, 0.8);
+    box-shadow: 0 0 8px alpha(@neon_pink, 0.3);
+}
+
+#custom-notifications:hover {
+    background: alpha(@neon_pink, 0.10);
+    box-shadow: 0 0 14px alpha(@neon_pink, 0.5);
+}
+
+/* ── ISLA 5: Workspaces ──────────────────────────────────────── */
+#workspaces {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_cyan;
+    border-radius: 10px;
+    padding: 2px 8px;
+    margin: 3px 4px;
+    box-shadow: 0 0 10px alpha(@neon_cyan, 0.4);
+}
+
+#workspaces button {
+    color: alpha(@text, 0.2);
+    font-size: 16px;
+    background: transparent;
+    border-radius: 6px;
+    padding: 2px 7px;
+    border: none;
+    transition: all 0.15s ease;
+}
+
+#workspaces button:hover {
+    color: alpha(@text, 0.7);
+    background: alpha(@neon_cyan, 0.08);
+}
+
+#workspaces button.active {
+    color: @neon_yellow;
+    text-shadow: 0 0 10px @neon_yellow, 0 0 20px alpha(@neon_yellow, 0.5);
+}
+
+#workspaces button.urgent {
+    color: @neon_red;
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker { 50% { opacity: 0.3; } }
+
+/* ── ISLA 6: Clock ───────────────────────────────────────────── */
+#clock {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_cyan;
+    border-radius: 10px;
+    color: @neon_cyan;
+    font-weight: 800;
+    padding: 1px 16px;
+    margin: 3px 4px;
+    text-shadow: 0 0 8px alpha(@neon_cyan, 0.8);
+    box-shadow: 0 0 10px alpha(@neon_cyan, 0.4);
+}
+
+#clock:hover {
+    background: alpha(@neon_cyan, 0.08);
+    box-shadow: 0 0 16px alpha(@neon_cyan, 0.6);
+}
+
+/* ── ISLA 7: Monitores (CPU + RAM + GPU) ─────────────────────── */
+#cpu {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_green;
+    border-radius: 10px 0 0 10px;
+    color: @neon_green;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 4px;
+    border-right: none;
+    text-shadow: 0 0 8px alpha(@neon_green, 0.7);
+    box-shadow: 0 0 8px alpha(@neon_green, 0.3);
+}
+
+#memory {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_green;
+    color: @neon_yellow;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-left: none;
+    border-right: none;
+    text-shadow: 0 0 8px alpha(@neon_yellow, 0.7);
+}
+
+#custom-gpu {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_green;
+    border-radius: 0 10px 10px 0;
+    color: @neon_green;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-right: 4px;
+    border-left: none;
+    text-shadow: 0 0 8px alpha(@neon_green, 0.7);
+    box-shadow: 0 0 8px alpha(@neon_green, 0.3);
+}
+
+#cpu:hover, #memory:hover, #custom-gpu:hover {
+    background: alpha(@neon_green, 0.08);
+}
+
+/* ── ISLA 8: Audio + Bluetooth + Red ─────────────────────────── */
+#pulseaudio {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_pink;
+    border-radius: 10px 0 0 10px;
+    color: @neon_pink;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 4px;
+    border-right: none;
+    text-shadow: 0 0 8px alpha(@neon_pink, 0.7);
+    box-shadow: 0 0 8px alpha(@neon_pink, 0.3);
+}
+
+#bluetooth {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_pink;
+    color: @neon_cyan;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-left: none;
+    border-right: none;
+    text-shadow: 0 0 8px alpha(@neon_cyan, 0.7);
+}
+
+#network {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_pink;
+    border-radius: 0 10px 10px 0;
+    color: @neon_purple;
+    padding: 1px 12px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-right: 4px;
+    border-left: none;
+    text-shadow: 0 0 8px alpha(@neon_purple, 0.8);
+    box-shadow: 0 0 8px alpha(@neon_pink, 0.3);
+}
+
+#pulseaudio:hover { background: alpha(@neon_pink, 0.08); }
+#bluetooth:hover  { background: alpha(@neon_cyan, 0.08); }
+#network:hover    { background: alpha(@neon_purple, 0.08); }
+
+/* ── ISLA 9: Privacy + Taskbar + Tray ────────────────────────── */
+#privacy {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_purple;
+    border-radius: 10px 0 0 10px;
+    padding: 1px 10px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 4px;
+    border-right: none;
+    box-shadow: 0 0 8px alpha(@neon_purple, 0.3);
+}
+
+#privacy-item.screenshare { color: @neon_red; }
+#privacy-item.audio-in    { color: @neon_yellow; }
+#privacy-item.video-in    { color: @neon_purple; }
+
+#taskbar {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_purple;
+    padding: 1px 8px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    border-left: none;
+    border-right: none;
+}
+
+#taskbar button {
+    background: transparent;
+    border-radius: 6px;
+    padding: 2px 4px;
+    border: none;
+    transition: all 0.15s ease;
+}
+
+#taskbar button:hover {
+    background: alpha(@neon_purple, 0.12);
+}
+
+#taskbar button.active {
+    background: alpha(@neon_purple, 0.18);
+    border: 1px solid alpha(@neon_purple, 0.5);
+    box-shadow: 0 0 6px alpha(@neon_purple, 0.4);
+}
+
+#tray {
+    background: alpha(@base, 0.92);
+    border: 2px solid @neon_purple;
+    border-radius: 0 10px 10px 0;
+    padding: 1px 10px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-right: 4px;
+    border-left: none;
+    box-shadow: 0 0 8px alpha(@neon_purple, 0.3);
+}
+
+#tray > .passive         { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }

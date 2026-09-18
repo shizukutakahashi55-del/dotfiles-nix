@@ -1,0 +1,508 @@
+/* ============================================================
+ * WAYBAR — Generado por matugen
+ * Estilo: Dynamic Catppuccin · Pastel Pop · Islands
+ *
+ * Filosofía:
+ *   - Pocos colores
+ *   - Fondos derivados del wallpaper
+ *   - Primary como acento principal
+ *   - Secondary/Tertiary no se usan como decoración
+ *   - Error reservado para estados importantes
+ * ============================================================ */
+
+
+/* ============================================================
+ * PALETA MATUGEN
+ * ============================================================ */
+
+/* Fondos dinámicos */
+@define-color base         #1a120e;
+@define-color mantle       #140c09;
+@define-color surface      #221a16;
+@define-color surface_alt  #271e1a; 
+
+/* Texto */
+@define-color text         #f1dfd8;
+@define-color subtext      #d7c2ba;
+
+/* Acento principal */
+@define-color primary      #ffb694;
+@define-color p_container  #713719;
+@define-color on_primary   #542105;
+@define-color on_p_cont    #ffdbcc;
+
+/* Estados */
+@define-color error        #ffb4ab;
+
+/* Bordes */
+@define-color outline      #52443d;
+
+
+/* ============================================================
+ * GLOBAL
+ * ============================================================ */
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font", monospace;
+    font-size: 11.5px;
+    font-weight: 700;
+
+    border: none;
+    border-radius: 0;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+
+    min-height: 0;
+    box-shadow: none;
+}
+
+
+/* ============================================================
+ * WAYBAR
+ * ============================================================ */
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: transparent;
+    border: none;
+
+    padding: 0;
+    margin: 0;
+}
+
+
+/* ============================================================
+ * ISLA 1 — POWER + POWER PROFILE
+ * ============================================================ */
+
+#custom-power,
+#power-profiles-daemon {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border: 1px solid alpha(@outline, 0.28);
+
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#custom-power {
+    border-radius: 10px 0 0 10px;
+    margin-left: 4px;
+
+    background: @primary;
+    color: @on_primary;
+
+    border-right: none;
+}
+
+#power-profiles-daemon {
+    border-radius: 0 10px 10px 0;
+    margin-right: 4px;
+
+    border-left: none;
+}
+
+#custom-power:hover {
+    background: alpha(@primary, 0.85);
+}
+
+#power-profiles-daemon:hover {
+    background: alpha(@surface_alt, 0.95);
+    color: @primary;
+}
+
+
+/* ============================================================
+ * LANGUAGE
+ * ============================================================ */
+
+#language {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px;
+
+    padding: 1px 14px;
+    margin: 2px 4px;
+}
+
+#language:hover {
+    background: @surface_alt;
+    color: @primary;
+}
+
+
+/* ============================================================
+ * ISLA 2 — SPOTIFY
+ * ============================================================ */
+
+#custom-mpris {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px;
+
+    padding: 1px 10px;
+    margin: 2px 4px;
+
+    min-width: 200px;
+    font-weight: 800;
+
+    font-family:
+        "JetBrainsMono Nerd Font",
+        "Symbols Nerd Font",
+        sans-serif;
+}
+
+#custom-mpris:hover {
+    background: @surface_alt;
+    color: @primary;
+}
+
+
+/* ============================================================
+ * ISLA 3 — CAVA
+ * ============================================================ */
+
+#cava {
+    background: alpha(@surface, 0.92);
+    color: @primary;
+
+    border: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px;
+
+    padding: 1px 12px;
+    margin: 2px 4px;
+
+    font-size: 10px;
+}
+
+
+/* ============================================================
+ * ISLA 4 — NOTIFICACIONES
+ * ============================================================ */
+
+#custom-notifications {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px;
+
+    padding: 1px 10px;
+    margin: 2px 4px;
+}
+
+#custom-notifications:hover {
+    background: @surface_alt;
+    color: @primary;
+}
+
+#custom-notifications.none {
+    color: @subtext;
+}
+
+
+/* ============================================================
+ * ISLA 5 — WORKSPACES
+ * ============================================================ */
+
+#workspaces {
+    background: alpha(@surface, 0.92);
+
+    border: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px;
+
+    padding: 1px 4px;
+    margin: 2px 4px;
+}
+
+#workspaces button {
+    background: transparent;
+    color: alpha(@text, 0.48);
+
+    border-radius: 6px;
+
+    font-size: 14px;
+    padding: 0 4px;
+}
+
+#workspaces button:hover {
+    background: alpha(@text, 0.08);
+    color: @text;
+}
+
+#workspaces button.active {
+    background: @p_container;
+    color: @on_p_cont;
+
+    border-radius: 6px;
+}
+
+#workspaces button.occupied {
+    color: @text;
+}
+
+#workspaces button.persistent {
+    color: alpha(@text, 0.30);
+}
+
+#workspaces button.urgent {
+    background: alpha(@error, 0.18);
+    color: @error;
+}
+
+
+/* ============================================================
+ * ISLA 6 — CLOCK
+ * ============================================================ */
+
+#clock {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px;
+
+    font-weight: 700;
+
+    padding: 1px 14px;
+    margin: 2px 4px;
+}
+
+#clock:hover {
+    background: @surface_alt;
+    color: @primary;
+}
+
+
+/* ============================================================
+ * ISLA 7 — CPU + RAM + GPU
+ * ============================================================ */
+
+#cpu,
+#memory,
+#custom-gpu {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border-top: 1px solid alpha(@outline, 0.28);
+    border-bottom: 1px solid alpha(@outline, 0.28);
+
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#cpu {
+    border-left: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px 0 0 10px;
+
+    margin-left: 4px;
+}
+
+#memory {
+    border-left: none;
+    border-right: none;
+}
+
+#custom-gpu {
+    border-right: 1px solid alpha(@outline, 0.28);
+    border-radius: 0 10px 10px 0;
+
+    margin-right: 4px;
+}
+
+#cpu:hover,
+#memory:hover,
+#custom-gpu:hover {
+    background: @surface_alt;
+}
+
+#cpu:hover,
+#custom-gpu:hover {
+    color: @primary;
+}
+
+
+/* ============================================================
+ * ISLA 8 — AUDIO + BLUETOOTH + KEYBOARD + NETWORK
+ * ============================================================ */
+
+#pulseaudio,
+#bluetooth,
+#keyboard-state,
+#network {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border-top: 1px solid alpha(@outline, 0.28);
+    border-bottom: 1px solid alpha(@outline, 0.28);
+
+    padding: 1px 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+#pulseaudio {
+    border-left: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px 0 0 10px;
+
+    margin-left: 4px;
+}
+
+#bluetooth,
+#keyboard-state {
+    border-left: none;
+    border-right: none;
+}
+
+#network {
+    border-right: 1px solid alpha(@outline, 0.28);
+    border-radius: 0 10px 10px 0;
+
+    margin-right: 4px;
+}
+
+#pulseaudio:hover,
+#bluetooth:hover,
+#keyboard-state:hover,
+#network:hover {
+    background: @surface_alt;
+    color: @primary;
+}
+
+
+/* ============================================================
+ * CAPS LOCK
+ * ============================================================ */
+
+#keyboard-state.capslock.locked {
+    background: @primary;
+    color: @on_primary;
+}
+
+
+/* ============================================================
+ * ISLA 9 — PRIVACY
+ * ============================================================ */
+
+#privacy {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border: 1px solid alpha(@outline, 0.28);
+    border-radius: 10px;
+
+    padding: 1px 8px;
+
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-left: 4px;
+    margin-right: 4px;
+}
+
+
+/* ============================================================
+ * PRIVACY STATES
+ * ============================================================ */
+
+#privacy-item.screenshare {
+    color: @error;
+}
+
+#privacy-item.audio-in,
+#privacy-item.video-in {
+    color: @primary;
+}
+
+#privacy:hover {
+    background: @surface_alt;
+    color: @primary;
+}
+
+
+/* ============================================================
+ * ISLA 10 — TASKBAR + TRAY
+ * ============================================================ */
+
+#taskbar,
+#tray {
+    background: alpha(@surface, 0.92);
+    color: @text;
+
+    border-top: 1px solid alpha(@outline, 0.28);
+    border-bottom: 1px solid alpha(@outline, 0.28);
+
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+
+/* ============================================================
+ * TASKBAR
+ * ============================================================ */
+
+#taskbar {
+    border-left: 1px solid alpha(@outline, 0.28);
+    border-right: none;
+    border-radius: 10px 0 0 10px;
+
+    padding: 1px 6px;
+
+    margin-left: 4px;
+}
+
+#taskbar button {
+    background: transparent;
+    color: @text;
+
+    border-radius: 6px;
+    padding: 2px 4px;
+}
+
+#taskbar button:hover {
+    background: alpha(@text, 0.08);
+}
+
+#taskbar button.active {
+    background: @p_container;
+    color: @on_p_cont;
+
+    border-radius: 6px;
+}
+
+
+/* ============================================================
+ * TRAY
+ * ============================================================ */
+
+#tray {
+    border-left: none;
+    border-right: 1px solid alpha(@outline, 0.28);
+    border-radius: 0 10px 10px 0;
+
+    padding: 1px 8px;
+
+    margin-right: 4px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+}

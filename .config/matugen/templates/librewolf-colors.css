@@ -1,0 +1,9 @@
+/* Generado automáticamente por Matugen */
+:root {
+  --my-bg: {{colors.background.dark.hex}};
+  --my-surface: {{colors.surface_container.dark.hex}};
+  --my-accent: {{colors.primary.dark.hex}};
+  --my-text: {{colors.on_background.dark.hex}};
+  --my-subtext: {{colors.secondary.dark.hex}};
+  --my-border: rgba(255, 255, 255, 0.1);
+}

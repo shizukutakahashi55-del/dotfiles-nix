@@ -1,0 +1,220 @@
+/*****----- Material You · Main Config-----*****/
+
+
+@import "colors.rasi"
+
+/*****----- Configuration -----*****/
+configuration {
+	modi:                       "drun,run,filebrowser,window";
+    show-icons:                 false;
+    display-drun:               "";
+    display-run:                "";
+    display-filebrowser:        "";
+    display-window:             "";
+	drun-display-format:        "{name}";
+	window-format:              "{w} · {c} · {t}";
+}
+
+/*****----- Global -----*****/
+* {
+    background-color:   transparent;
+    text-color:         @ml-text;
+}
+
+/*****----- Window -----*****/
+window {
+    transparency:       "real";
+    location:           center;
+    anchor:             center;
+    width:              1000px;
+    height:             460px;
+    border-radius:      20px;
+    border:             2px solid;
+    border-color:       @outline;
+    background-color:   @base;
+    cursor:             "default";
+    padding:            0px;
+    children:           [ "imagebox" ];
+}
+
+/*****----- Imagebox (panel lateral) -----*****/
+imagebox {
+    orientation:        horizontal;
+    spacing:            0px;
+    background-color:   transparent;
+    children:           [ "dummy", "mainbox" ];
+}
+
+dummy {
+    expand:             true;
+    background-color:   transparent;
+}
+
+/*****----- Mainbox -----*****/
+mainbox {
+    expand:             false;
+    width:              470px;
+    spacing:            0px;
+    background-color:   @base;
+    children:           [ "inputbar", "listview", "mode-switcher" ];
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    padding:            14px 18px;
+    background-color:   @surface;
+    border-radius:      0px 20px 0px 0px;
+    children:           [ "prompt", "entry", "case-indicator" ];
+    spacing:            10px;
+    border:             0px 0px 1px 0px;
+    border-color:       @outline;
+}
+
+prompt {
+    font:               "JetBrainsMono Nerd Font Bold 13";
+    background-color:   transparent;
+    text-color:         @primary;
+    vertical-align:     0.5;
+    horizontal-align:   0.5;
+    str:                "<3";
+    padding:            0px 7px 0px 0px;
+}
+
+entry {
+    font:               "JetBrainsMono Nerd Font 13";
+    background-color:   transparent;
+    text-color:         @on-p-cont;
+    vertical-align:     0.5;
+    placeholder:        "Type to search...";
+    placeholder-color:  @subtext;
+    cursor:             text;
+}
+
+case-indicator {
+    font:               "JetBrainsMono Nerd Font Bold 10";
+    background-color:   transparent;
+    text-color:         @subtext;
+    vertical-align:     0.5;
+}
+
+/*****----- Listview -----*****/
+listview {
+    padding:            10px;
+    spacing:            3px;
+    background-color:   transparent;
+    scrollbar:          false;
+    lines:              8;
+    fixed-height:       false;
+    border-radius:      0px 0px 20px 0px;
+}
+
+/*****----- Elements -----*****/
+element {
+    padding:            10px 14px;
+    border-radius:      12px;
+    background-color:   transparent;
+    text-color:         @subtext;
+    cursor:             pointer;
+    spacing:            12px;
+    orientation:        horizontal;
+}
+
+element-icon {
+    size:               22px;
+    background-color:   transparent;
+    cursor:             inherit;
+    vertical-align:     0.5;
+}
+
+element-text {
+    font:               "JetBrainsMono Nerd Font 13";
+    background-color:   transparent;
+    text-color:         inherit;
+    cursor:             inherit;
+    vertical-align:     0.5;
+    highlight:          bold;
+}
+
+/* ── Estados ── */
+element normal.normal   { background-color: transparent;  text-color: @subtext;    }
+element normal.urgent   { background-color: transparent;  text-color: @ml-error;   }
+element normal.active   { background-color: @surface;     text-color: @on-p-cont;  }
+
+element selected.normal {
+    background-color:   @p-container;
+    text-color:         @on-p-cont;
+    border:             1px solid;
+    border-color:       @primary;
+    border-radius:      12px;
+}
+element selected.urgent {
+    background-color:   @ml-error;
+    text-color:         @base;
+    border:             1px solid;
+    border-color:       @ml-error;
+    border-radius:      12px;
+}
+element selected.active {
+    background-color:   @s-container;
+    text-color:         @on-s-cont;
+    border:             1px solid;
+    border-color:       @secondary;
+    border-radius:      12px;
+}
+
+element alternate.normal  { background-color: transparent; text-color: @subtext;   }
+element alternate.urgent  { background-color: transparent; text-color: @ml-error;  }
+element alternate.active  { background-color: @surface;    text-color: @on-p-cont; }
+
+/*****----- Scrollbar -----*****/
+scrollbar {
+    width:              4px;
+    border:             0px;
+    handle-color:       @subtext;
+    handle-width:       4px;
+    padding:            0px;
+    background-color:   @surface;
+    border-radius:      4px;
+}
+
+/*****----- Message -----*****/
+message {
+    padding:            8px 16px;
+    background-color:   @surface;
+    text-color:         @subtext;
+    border-radius:      0px;
+    border:             0px 0px 1px 0px;
+    border-color:       @outline;
+}
+
+textbox {
+    font:               "JetBrainsMono Nerd Font 11";
+    background-color:   transparent;
+    text-color:         inherit;
+    horizontal-align:   0.0;
+    vertical-align:     0.5;
+}
+
+/*****----- Mode Switcher -----*****/
+mode-switcher {
+    spacing:            3px;
+    padding:            10px 10px 10px 10px;
+    background-color:   transparent;
+    border-radius:      0px 0px 20px 0px;
+}
+
+button {
+    padding:            12px;
+    border-radius:      10px;
+    background-color:   @surface;
+    text-color:         @subtext;
+    cursor:             pointer;
+    font:               "JetBrainsMono Nerd Font Bold 11";
+}
+
+button selected {
+    background-color:   @p-container;
+    text-color:         @on-p-cont;
+    border:             1px solid;
+    border-color:       @primary;
+}

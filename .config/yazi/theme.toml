@@ -1,0 +1,79 @@
+# Auto-generado por matugen — NO editar manualmente
+
+[flavor]
+dark = "matugen"
+
+[manager]
+cwd = { fg = "{{ colors.primary.dark.hex }}" }
+
+# Directorios
+hovered = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
+preview_hovered = { fg = "{{ colors.on_secondary_container.dark.hex }}", bg = "{{ colors.secondary_container.dark.hex }}" }
+
+# Texto
+find_keyword = { fg = "{{ colors.primary.dark.hex }}", bold = true }
+find_position = { fg = "{{ colors.tertiary.dark.hex }}", bold = true }
+
+# Tablas
+marker_copied = { fg = "{{ colors.tertiary.dark.hex }}", bg = "{{ colors.tertiary_container.dark.hex }}" }
+marker_cut = { fg = "{{ colors.error.dark.hex }}", bg = "{{ colors.surface_container.dark.hex }}" }
+marker_marked = { fg = "{{ colors.secondary.dark.hex }}", bg = "{{ colors.secondary_container.dark.hex }}" }
+
+# Indicadores
+tab_active = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
+tab_inactive = { fg = "{{ colors.on_surface_variant.dark.hex }}", bg = "{{ colors.surface_container_lowest.dark.hex }}" }
+
+# Borde
+border_symbol = "│"
+border_style = { fg = "{{ colors.outline_variant.dark.hex }}" }
+
+# Estado
+count_copied = { fg = "{{ colors.on_tertiary_container.dark.hex }}", bg = "{{ colors.tertiary_container.dark.hex }}" }
+count_cut = { fg = "{{ colors.on_error_container.dark.hex }}", bg = "{{ colors.error_container.dark.hex }}" }
+count_selected = { fg = "{{ colors.on_secondary_container.dark.hex }}", bg = "{{ colors.secondary_container.dark.hex }}" }
+
+[status]
+separator_open = ""
+separator_close = ""
+
+progress_label = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
+progress_normal = { fg = "{{ colors.primary.dark.hex }}", bg = "{{ colors.surface_container.dark.hex }}" }
+progress_error = { fg = "{{ colors.on_error.dark.hex }}", bg = "{{ colors.error.dark.hex }}" }
+
+[which]
+mask = { bg = "{{ colors.surface_container_lowest.dark.hex }}" }
+cand = { fg = "{{ colors.primary.dark.hex }}" }
+rest = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
+desc = { fg = "{{ colors.on_background.dark.hex }}" }
+separator = "  "
+separator_style = { fg = "{{ colors.outline_variant.dark.hex }}" }
+
+[confirm]
+border = { fg = "{{ colors.primary.dark.hex }}" }
+title = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
+body = { fg = "{{ colors.on_background.dark.hex }}" }
+list = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
+btn_yes = { fg = "{{ colors.on_primary.dark.hex }}", bg = "{{ colors.primary.dark.hex }}" }
+btn_no = { fg = "{{ colors.on_error.dark.hex }}", bg = "{{ colors.error.dark.hex }}" }
+
+[spot]
+border = { fg = "{{ colors.primary.dark.hex }}" }
+title = { fg = "{{ colors.on_background.dark.hex }}" }
+tbl_col = { fg = "{{ colors.primary.dark.hex }}" }
+tbl_cell = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
+
+[completion]
+border = { fg = "{{ colors.outline_variant.dark.hex }}" }
+active = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
+inactive = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
+
+[tasks]
+border = { fg = "{{ colors.outline_variant.dark.hex }}" }
+title = { fg = "{{ colors.on_background.dark.hex }}" }
+hovered = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
+
+[input]
+border = { fg = "{{ colors.primary.dark.hex }}" }
+title = { fg = "{{ colors.on_background.dark.hex }}" }
+value = { fg = "{{ colors.on_surface.dark.hex }}" }
+selected = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }

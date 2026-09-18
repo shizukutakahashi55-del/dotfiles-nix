@@ -1,0 +1,71 @@
+# ~/.config/yazi/yazi.toml
+
+[manager]
+# Proporción de las 3 columnas: [Padre, Actual, Vista Previa]
+ratio          = [1, 3, 4]
+show_hidden    = true
+show_symlink   = true
+scrolloff      = 5
+mouse_events   = ["click", "scroll"]
+title_format   = "Yazi: {cwd}"
+
+# Ordenación predeterminada
+sort_by        = "natural"
+sort_sensitive = false
+sort_reverse   = false
+sort_dir_first = true
+
+# Modo de línea derecha (size, mtime, permissions, owner, none)
+linemode       = "size"
+
+[preview]
+tab_size        = 2
+max_width       = 1000
+max_height      = 1000
+cache_dir       = ""
+image_filter    = "triangle"
+image_quality   = 75
+sixel_fraction  = 15
+ueberzug_scale  = 1
+ueberzug_offset = [0, 0, 0, 0]
+
+[opener]
+edit = [
+	{ run = '${EDITOR:-nvim} "$@"', block = true,  for = "unix" }
+]
+open = [
+	{ run = 'xdg-open "$@"', desc = "Open", for = "unix" }
+]
+play = [
+	{ run = 'mpv "$@"', orphan = true, for = "unix" }
+]
+
+[open]
+rules = [
+	{ mime = "text/*", use = "edit" },
+	{ mime = "video/*", use = "play" },
+	{ mime = "audio/*", use = "play" },
+	{ mime = "inode/directory", use = "open" },
+	{ mime = "*", use = "open" }
+]
+
+[tasks]
+micro_workers    = 10
+macro_workers    = 5
+bizarre_retry    = 5
+image_alloc      = 536870912  # 512MB
+image_bound      = [0, 0]
+
+[input]
+# Posicionamiento centrado de cuadros de entrada
+cursor_blink = false
+
+[confirm]
+# Desactivar confirmación al eliminar para mayor rapidez
+trash_title 	= "Trash {n} selected file(s)?"
+trash_origin 	= "center"
+trash_offset 	= [0, 0, 70, 20]
+
+delete_title 	= "Delete {n} selected file(s) permanently?"
+delete_origin 	= "center"
+delete_offset 	= [0, 0, 70, 20]

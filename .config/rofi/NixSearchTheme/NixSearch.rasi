@@ -1,0 +1,268 @@
+
+/*****----- Material You · Nix Search -----*****/
+
+@import "colors.rasi"
+
+/*****----- Configuration -----*****/
+configuration {
+    show-icons:                 false;
+}
+
+/*****----- Global -----*****/
+* {
+    background-color:            transparent;
+    text-color:                  @ml-text;
+}
+
+/*****----- Window -----*****/
+window {
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+
+    width:                       1100px;
+
+    border-radius:               28px;
+
+    border:                      2px solid;
+    border-color:                @outline;
+
+    background-color:            @base;
+
+    cursor:                       "default";
+
+    padding:                     28px;
+
+    children:                    [ "mainbox" ];
+}
+
+/*****----- Mainbox -----*****/
+mainbox {
+    enabled:                     true;
+
+    spacing:                     18px;
+    padding:                     0px;
+
+    background-color:            transparent;
+
+    children:                    [
+        "inputbar",
+        "message",
+        "listview"
+    ];
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    enabled:                     true;
+
+    padding:                     12px 18px;
+
+    background-color:            @surface;
+
+    border-radius:               18px;
+
+    border:                      1px solid;
+    border-color:                @outline;
+
+    spacing:                     10px;
+
+    children:                    [
+        "prompt",
+        "entry"
+    ];
+}
+
+/*****----- Prompt -----*****/
+prompt {
+    enabled:                     true;
+
+    font:                        "JetBrainsMono Nerd Font Bold 15";
+
+    background-color:            transparent;
+    text-color:                  @primary;
+
+    vertical-align:              0.5;
+    horizontal-align:            0.5;
+
+    padding:                     0px 8px 0px 0px;
+}
+
+/*****----- Entry -----*****/
+entry {
+    enabled:                     true;
+
+    font:                        "JetBrainsMono Nerd Font 13";
+
+    background-color:            transparent;
+    text-color:                  @on-p-cont;
+
+    vertical-align:              0.5;
+
+    placeholder:                 "Search nixpkgs packages...";
+    placeholder-color:           @subtext;
+
+    cursor:                      text;
+}
+
+/*****----- Message -----*****/
+message {
+    enabled:                     true;
+
+    padding:                     4px 8px;
+
+    background-color:            transparent;
+
+    text-color:                  @subtext;
+}
+
+textbox {
+    font:                        "JetBrainsMono Nerd Font 10";
+
+    background-color:            transparent;
+    text-color:                  inherit;
+
+    horizontal-align:            0.0;
+    vertical-align:              0.5;
+}
+
+/*****----- Listview -----*****/
+listview {
+    enabled:                     true;
+
+    columns:                     1;
+    lines:                       12;
+
+    cycle:                       true;
+    dynamic:                     true;
+
+    scrollbar:                   false;
+
+    layout:                      vertical;
+
+    spacing:                     8px;
+
+    padding:                     0px;
+
+    background-color:            transparent;
+
+    fixed-height:                true;
+    fixed-columns:               true;
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:                     true;
+
+    padding:                     12px 16px;
+
+    margin:                      0px;
+
+    border-radius:               16px;
+
+    background-color:            transparent;
+
+    text-color:                  @subtext;
+
+    cursor:                      pointer;
+
+    spacing:                     12px;
+
+    orientation:                 horizontal;
+}
+
+/*****----- Element Text -----*****/
+element-text {
+    enabled:                     true;
+
+    font:                        "JetBrainsMono Nerd Font 11";
+
+    background-color:            transparent;
+
+    text-color:                  inherit;
+
+    cursor:                      inherit;
+
+    vertical-align:              0.5;
+
+    highlight:                   bold;
+}
+
+/*****----- Normal -----*****/
+element normal.normal {
+    background-color:            transparent;
+    text-color:                  @subtext;
+}
+
+element normal.urgent {
+    background-color:            transparent;
+    text-color:                  @ml-error;
+}
+
+element normal.active {
+    background-color:            @surface;
+    text-color:                  @on-p-cont;
+}
+
+/*****----- Selected -----*****/
+element selected.normal {
+    background-color:            @p-container;
+    text-color:                  @on-p-cont;
+
+    border:                      1px solid;
+    border-color:                @primary;
+
+    border-radius:               16px;
+}
+
+element selected.urgent {
+    background-color:            @ml-error;
+    text-color:                  @base;
+
+    border:                      1px solid;
+    border-color:                @ml-error;
+
+    border-radius:               16px;
+}
+
+element selected.active {
+    background-color:            @s-container;
+    text-color:                  @on-s-cont;
+
+    border:                      1px solid;
+    border-color:                @secondary;
+
+    border-radius:               16px;
+}
+
+/*****----- Alternate -----*****/
+element alternate.normal {
+    background-color:            transparent;
+    text-color:                  @subtext;
+}
+
+element alternate.urgent {
+    background-color:            transparent;
+    text-color:                  @ml-error;
+}
+
+element alternate.active {
+    background-color:            @surface;
+    text-color:                  @on-p-cont;
+}
+
+/*****----- Scrollbar -----*****/
+scrollbar {
+    width:                       4px;
+
+    border:                      0px;
+
+    handle-color:                @subtext;
+    handle-width:                4px;
+
+    padding:                     0px;
+
+    background-color:            @surface;
+
+    border-radius:               4px;
+}

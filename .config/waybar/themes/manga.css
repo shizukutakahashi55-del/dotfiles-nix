@@ -1,0 +1,326 @@
+/* ============================================================
+ * WAYBAR — Manga · Ink & Paper Edition
+ * Halftone blacks, paper whites, ink lines
+ * ============================================================ */
+
+@define-color paper      #f0ece4;
+@define-color paper2     #e8e3d8;
+@define-color paper3     #d4cfc4;
+@define-color ink        #1a1714;
+@define-color ink2       #2d2926;
+@define-color ink3       #4a4540;
+@define-color inkfade    #6e6860;
+@define-color screentone #b8b0a4;
+@define-color accent     #1a1714;
+@define-color red_ink    #8b1a1a;
+@define-color red_bright #cc2222;
+@define-color sepia      #7a6a5a;
+@define-color sepia2     #a08878;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    border: none;
+    border-radius: 0;
+    min-height: 0;
+    transition: all 0.1s steps(3);
+}
+
+window#waybar {
+    background: transparent;
+    color: @ink;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* ── ISLA 1: Power + Power Profile ───────────────────────────── */
+#custom-power,
+#power-profiles-daemon {
+    background: alpha(@paper, 0.95);
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+}
+
+#custom-power {
+    margin-left: 2px;
+    color: @red_bright;
+    border-left: 2px solid @ink;
+    border-right: none;
+    padding-left: 10px;
+    box-shadow: inset 0 0 0 1px alpha(@red_ink, 0.2);
+}
+
+#power-profiles-daemon {
+    margin-right: 2px;
+    color: @ink;
+    border-right: 2px solid @ink;
+    border-left: 1px solid alpha(@ink, 0.3);
+}
+
+#custom-power:hover        { background: @red_ink; color: @paper; }
+#power-profiles-daemon:hover { background: alpha(@ink, 0.1); }
+
+/* ── ISLA 2: Spotify ─────────────────────────────────────────── */
+#custom-spotify {
+    background: alpha(@paper2, 0.92);
+    color: @ink;
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 3px solid @ink;
+    border-right: 2px solid @inkr;
+    padding: 0px 14px;
+    margin: 0px 2px;
+    font-style: italic;
+    font-weight: 900;
+    min-width: 180px;
+    box-shadow: 2px 0 0 0 alpha(@ink, 0.15);
+}
+
+#custom-spotify:hover {
+    background: @ink;
+    color: @paper;
+}
+
+/* ── ISLA 3: Cava ────────────────────────────────────────────── */
+#cava {
+    background: alpha(@paper, 0.88);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 2px solid @ink;
+    border-right: 2px solid @ink;
+    color: @ink3;
+    padding: 0px 12px;
+    margin: 0px 2px;
+    font-size: 9px;
+}
+
+/* ── ISLA 4: Notificaciones ──────────────────────────────────── */
+#custom-notifications {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 2px solid @ink;
+    border-right: 2px solid @ink;
+    color: @ink;
+    padding: 0px 10px;
+    margin: 0px 2px;
+}
+
+#custom-notifications:hover {
+    background: @ink;
+    color: @paper;
+}
+
+/* ── ISLA 5: Workspaces ──────────────────────────────────────── */
+#workspaces {
+    background: alpha(@paper, 0.95);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 2px solid @ink;
+    border-right: 2px solid @ink;
+    padding: 0;
+    margin: 0px 2px;
+}
+
+#workspaces button {
+    color: @ink;
+    padding: 0px 8px;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    border-right: 1px solid alpha(@ink, 0.25);
+    font-weight: 900;
+}
+
+#workspaces button:hover {
+    background: alpha(@ink, 0.08);
+    color: @ink;
+}
+#workspaces button.active {
+    background: @ink;
+    color: @paper;
+}
+#workspaces button.urgent {
+    background: @red_ink;
+    color: @paper;
+}
+#workspaces button.persistent {
+    color: alpha(@screentone, 0.5);
+}
+
+/* ── ISLA 6: Clock ───────────────────────────────────────────── */
+#clock {
+    background: alpha(@paper2, 0.95);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 2px solid @ink;
+    border-right: 2px solid @ink;
+    color: @ink;
+    font-weight: 900;
+    font-size: 12px;
+    padding: 0px 14px;
+    margin: 0px 2px;
+}
+
+#clock:hover {
+    background: @ink;
+    color: @paper;
+}
+
+/* ── ISLA 7: Monitores ───────────────────────────────────────── */
+#cpu {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 2px solid @ink;
+    border-right: 1px solid alpha(@ink, 0.25);
+    color: @ink;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 2px;
+}
+
+#memory {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: none;
+    border-right: 1px solid alpha(@ink, 0.25);
+    color: @ink;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#custom-gpu {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: none;
+    border-right: 2px solid @ink;
+    color: @ink;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 2px;
+}
+
+#cpu:hover    { background: @ink; color: @paper; }
+#memory:hover { background: alpha(@ink, 0.08); }
+#custom-gpu:hover { background: @ink; color: @paper; }
+
+/* ── ISLA 8: Audio + Bluetooth + Red ────────────────────────── */
+#pulseaudio {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 2px solid @ink;
+    border-right: 1px solid alpha(@ink, 0.25);
+    color: @ink;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 2px;
+}
+
+#bluetooth {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: none;
+    border-right: 1px solid alpha(@ink, 0.25);
+    color: @ink;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#network {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: none;
+    border-right: 2px solid @ink;
+    color: @ink;
+    padding: 0px 10px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 2px;
+}
+
+#pulseaudio:hover { background: @ink; color: @paper; }
+#bluetooth:hover  { background: alpha(@ink, 0.08); }
+#network:hover    { background: @ink; color: @paper; }
+
+#pulseaudio.muted    { color: @screentone; }
+#network.disconnected { color: @red_bright; }
+#bluetooth.off       { color: @screentone; }
+
+/* ── ISLA 9: Privacy + Taskbar + Tray ───────────────────────── */
+#privacy {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: 2px solid @ink;
+    border-right: 1px solid alpha(@ink, 0.25);
+    color: @ink;
+    padding: 0px 6px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-left: 2px;
+}
+
+#privacy-item.screenshare { color: @red_bright; }
+#privacy-item.audio-in    { color: @sepia; }
+#privacy-item.video-in    { color: @ink3; }
+#privacy:hover { background: @ink; color: @paper; }
+
+#taskbar {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: none;
+    border-right: 1px solid alpha(@ink, 0.25);
+    padding: 0px 4px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
+
+#taskbar button {
+    background: transparent;
+    border-radius: 0;
+    padding: 0px 4px;
+    border: none;
+    color: @inkfade;
+}
+
+#taskbar button:hover  { background: alpha(@ink, 0.1); color: @ink; }
+#taskbar button.active { background: @ink; color: @paper; }
+
+#tray {
+    background: alpha(@paper, 0.90);
+    border-top: 2px solid @ink;
+    border-bottom: 2px solid @ink;
+    border-left: none;
+    border-right: 2px solid @ink;
+    padding: 0px 6px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    margin-right: 2px;
+}
+
+#tray > .passive         { -gtk-icon-effect: dim; }
+#tray > .needs-attention { -gtk-icon-effect: highlight; }

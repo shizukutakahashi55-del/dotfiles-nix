@@ -1,0 +1,94 @@
+/**
+ * @name Material You Discord · Matugen Edition
+ * @version 1.0.0
+ * @description Fork con paleta dinámica generada por Matugen (Material You),
+ *              pensado para coincidir con el theme de rofi del mismo setup.
+ * @base-theme Material Discord by CapnKitten
+ * @source-original https://github.com/CapnKitten/BetterDiscord/blob/master/Themes/Material-Discord/css/source.css
+ *
+ * Este archivo es una PLANTILLA de Matugen: las llaves dobles se reemplazan
+ * al ejecutar `matugen image <wallpaper>` (o `matugen color hex <color>`),
+ * generando el CSS final que carga BetterDiscord.
+ */
+
+@import url("https://capnkitten.github.io/BetterDiscord/Themes/Material-Discord/css/source.css");
+
+/* Material You addon */
+@import url("https://capnkitten.github.io/BetterDiscord/Themes/Material-Discord/css/addons/material-you/source.css");
+
+/* MATERIAL YOU DARK THEME SETTINGS */
+.theme-dark {
+    --saturation-modifier: 0.31;
+    --lightness-modifier: 0.225;
+    --text-lightness-modifier: 1.0;
+}
+
+/* MATERIAL YOU LIGHT THEME SETTINGS */
+.theme-light {
+    --saturation-modifier: 0.74;
+    --lightness-modifier: 2.125;
+    --text-lightness-modifier: 1.0;
+}
+
+:root {
+    /* APP FONT SETTINGS */
+    --app-font: "Google Sans Flex";
+    --app-font-width: 100;
+    --app-font-roundness: 100;
+
+	/*****----- Acento (equivale a @primary en el rofi) -----*****/
+	--accent-hue: 19;
+	--accent-saturation: 100%;
+	--accent-lightness: 79%;
+	--accent-text-color: #542105; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+	--accent-button-action: #542105;
+
+	/*****----- Alerta / error (equivale a @ml-error en el rofi) -----*****/
+	--alert-hue: 6;
+    --alert-saturation: 100%;
+    --alert-lightness: 83%;
+	--alert-text-color: #690005; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+
+	/*****----- Advertencia (mapeado a tertiary, el 3er tono M3 ·
+	            equivale al rol que @secondary cumple en el rofi) -----*****/
+	--warning-hue: 51;
+    --warning-saturation: 41%;
+    --warning-lightness: 69%;
+	--warning-text-color: #363107; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+
+	/* MESSAGE SETTINGS */
+	--message-radius: 18px;
+	--message-padding-top: 8px;
+	--message-padding-side: 12px;
+
+	/* MESSAGE MEDIA SETTINGS */
+	--media-radius: 10px;
+
+	/* CARD SETTINGS */
+	--card-radius: 8px;
+	--card-radius-big: 18px;
+
+	/* BUTTON SETTINGS */
+	--button-height: 40px;
+	--button-padding: 16px;
+	--button-action-color: #542105;
+
+	/* INPUT SETTINGS */
+	--input-height: 40px;
+	--input-padding: 12px;
+
+	/* POPOUT AND MODAL SETTINGS */
+	--popout-radius: 8px;
+	--popout-radius-big: 18px;
+
+	/* TOOLTIP SETTINGS */
+	--tooltip-color: #322824;
+	--tooltip-text-color: #f1dfd8;
+	--tooltip-font-size: 12px;
+	--tooltip-padding: 8px;
+	--tooltip-radius: 8px;
+
+	/* SCROLLBAR SETTINGS */
+	--scrollbar-width: 10px;
+	--scrollbar-thin-width: 6px;
+}

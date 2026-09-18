@@ -1,0 +1,131 @@
+
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+THEME="$HOME/.config/rofi/NixSearchTheme/NixSearch.rasi"
+
+# ─────────────────────────────────────────────
+# Buscar
+# ─────────────────────────────────────────────
+
+QUERY=$(rofi \
+    -dmenu \
+    -i \
+    -p "󰘧 Nix Search" \
+    -theme "$THEME")
+
+[[ -z "$QUERY" ]] && exit 0
+
+
+# ─────────────────────────────────────────────
+# Consultar nix-search
+#
+# --search = búsqueda equivalente a la web
+# --max-results 50 = hasta 50 resultados
+# ─────────────────────────────────────────────
+
+RESULTS=$(nix-search \
+    --json \
+    --max-results 50 \
+    --search "$QUERY" \
+    2>/dev/null || true)
+
+if [[ -z "$RESULTS" ]]; then
+    notify-send "Nix Search" \
+        "No se encontraron resultados para: $QUERY"
+    exit 0
+fi
+
+
+# ─────────────────────────────────────────────
+# Mostrar resultados
+# ─────────────────────────────────────────────
+
+SELECTED=$(
+    printf '%s\n' "$RESULTS" |
+    jq -r '
+        select(.type == "package") |
+        [
+            .package_attr_name,
+            .package_pversion,
+            .package_description
+        ] |
+        @tsv
+    ' |
+    awk -F '\t' '
+    {
+        printf "%-30s %-14s %s\n", $1, $2, $3
+    }' |
+    rofi \
+        -dmenu \
+        -i \
+        -p "󰘧 $QUERY" \
+        -theme "$THEME"
+)
+
+[[ -z "$SELECTED" ]] && exit 0
+
+
+# ─────────────────────────────────────────────
+# Obtener atributo seleccionado
+# ─────────────────────────────────────────────
+
+ATTR=$(printf '%s\n' "$SELECTED" | awk '{print $1}')
+
+NIXPKG="nixpkgs#$ATTR"
+
+
+# ─────────────────────────────────────────────
+# Acciones
+# ─────────────────────────────────────────────
+
+ACTION=$(printf '%s\n' \
+    "󰐥  Ejecutar temporalmente" \
+    "󰏗  Instalar permanentemente" \
+    "󰆏  Copiar nixpkgs#$ATTR" \
+    "󰖟  Abrir en search.nixos.org" |
+    rofi \
+        -dmenu \
+        -i \
+        -p "󰘧 $ATTR" \
+        -mesg "Selecciona una acción" \
+        -theme "$THEME"
+)
+
+[[ -z "$ACTION" ]] && exit 0
+
+
+# ─────────────────────────────────────────────
+# Ejecutar acción
+# ─────────────────────────────────────────────
+
+case "$ACTION" in
+
+    "󰐥  Ejecutar temporalmente")
+        foot -e bash -c "nix shell '$NIXPKG'; exec bash"
+        ;;
+
+    "󰏗  Instalar permanentemente")
+        nix profile install "$NIXPKG"
+        notify-send "Nix Search" "Instalado: $NIXPKG"
+        ;;
+
+    "󰆏  Copiar nixpkgs#$ATTR")
+        if command -v wl-copy >/dev/null 2>&1; then
+            printf '%s' "$NIXPKG" | wl-copy
+            notify-send "Nix Search" \
+                "Copiado al portapapeles: $NIXPKG"
+        else
+            notify-send "Nix Search" \
+                "No encuentro wl-copy. Instala wl-clipboard."
+        fi
+        ;;
+
+    "󰖟  Abrir en search.nixos.org")
+        xdg-open \
+            "https://search.nixos.org/packages?query=$QUERY"
+        ;;
+
+esac
+

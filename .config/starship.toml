@@ -1,0 +1,65 @@
+# Plantilla corregida para Matugen (~/.config/matugen/templates/starship.toml)
+
+format = """
+[](fg:#ffb694)\
+$username\
+[](bg:#e6bead fg:#ffb694)\
+$hostname\
+[](bg:#d1c88f fg:#e6bead)\
+$directory\
+[](fg:#d1c88f bg:#713719)\
+$git_branch\
+$git_status\
+[](fg:#713719)\
+$cmd_duration\
+$line_break\
+$character"""
+
+add_newline = true
+
+[username]
+show_always = true
+style_user = "bg:#ffb694 fg:#542105 bold"
+style_root = "bg:#ffb4ab fg:#690005 bold"
+format = "[󱄅 $user]($style)"
+
+[hostname]
+ssh_only = false
+style = "bg:#e6bead fg:#442a1f bold"
+format = "[@$hostname]($style)"
+
+[directory]
+style = "bg:#d1c88f fg:#363107 bold"
+format = "[ 󰉋 $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = "󰊢 "
+style = "bg:#713719 fg:#ffdbcc bold"
+format = "[ $symbol$branch]($style)"
+
+[git_status]
+style = "bg:#713719 fg:#ffdbcc bold"
+format = "[($all_status$ahead_behind)]($style) "
+conflicted = "⚔ "
+ahead = "⇡${count} "
+behind = "⇣${count} "
+untracked = "󰞋 "
+modified = "󰏫 "
+staged = "󰸞 "
+
+[cmd_duration]
+min_time = 2_000
+style = "bold #d1c88f"
+format = " 󱦟 [$duration]($style)"
+
+[time]
+disabled = false
+style = "bold #ffb694"
+format = "󰥔 [$time]($style)"
+time_format = "%H:%M"
+
+[character]
+success_symbol = "[╭─ 󰅂](bold #ffb694) "
+error_symbol = "[╭─ 󰅂](bold #ffb4ab) "

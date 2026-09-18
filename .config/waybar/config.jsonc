@@ -1,0 +1,358 @@
+{
+    "layer": "top",
+    "position": "top",
+    "mode": "dock",
+    "exclusive": true,
+    "passthrough": false,
+    "gtk-layer-shell": true,
+
+    "height": 30,
+    "margin-top": 1,
+    "margin-bottom": 1,
+    "margin-left": 8,
+    "margin-right": 8,
+
+    "modules-left": [
+        "custom/power",
+        "power-profiles-daemon",
+        "hyprland/language",
+        "custom/mpris",
+        "cava"
+    ],
+
+    "modules-center": [
+        "custom/notifications",
+        "hyprland/workspaces",
+        "clock"
+    ],
+
+    "modules-right": [
+        "cpu",
+        "memory",
+        "custom/gpu",
+        "pulseaudio",
+        "bluetooth",
+        "network",
+        "privacy",
+        "wlr/taskbar",
+        "tray"
+    ],
+
+    // ========================================================================
+    // MODULES-LEFT
+    // ========================================================================
+
+    "custom/power": {
+        "format": "⏻",
+        "on-click": "bash ~/.config/rofi/Powermenu/powermenu.sh",
+        "tooltip": true,
+        "tooltip-format": "Power Menu"
+    },
+
+    "power-profiles-daemon": {
+        "format": "{icon}",
+        "tooltip": true,
+        "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
+
+        "format-icons": {
+            "default": "",
+            "performance": "",
+            "balanced": "",
+            "power-saver": ""
+        }
+    },
+
+    "hyprland/language": {
+        "format": "󰌌 {}",
+        "format-en": "ENG",
+        "format-es": "ESP",
+        "keyboard-name": "by-tech-usb-gaming-keyboard",
+        "on-click": "hyprctl switchxkblayout by-tech-usb-gaming-keyboard next"
+    },
+
+    // ========================================================================
+    // MPRIS / PLAYERCTL
+    // ========================================================================
+
+    "custom/mpris": {
+        "format": "󰎈 {}",
+        "return-type": "plain",
+        "escape": true,
+        "max-length": 40,
+
+        "exec": "playerctl -F -f '{{ artist }} - {{ title }}' metadata",
+
+        "on-click": "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call mpris toggle",
+        "on-click-right": "playerctl next",
+
+        "on-scroll-up": "playerctl previous",
+        "on-scroll-down": "playerctl next",
+
+        "smooth-scrolling-threshold": 4
+    },
+
+    // ========================================================================
+    // CAVA
+    // ========================================================================
+
+    "cava": {
+        //"cava_config": "$XDG_CONFIG_HOME/cava/waybar_cava.conf",
+
+        "framerate": 60,
+        "autosens": 1,
+        //"sensitivity": 200,
+
+        "bars": 14,
+        "lower_cutoff_freq": 50,
+        "higher_cutoff_freq": 10000,
+
+        "method": "pulse",
+        "source": "auto",
+        "stereo": true,
+
+        "bar_delimiter": 0,
+        "noise_reduction": 0.77,
+        "input_delay": 2,
+
+        "hide_on_silence": true,
+
+        "format-icons": [
+            "▁",
+            "▂",
+            "▃",
+            "▄",
+            "▅",
+            "▆",
+            "▇",
+            "█"
+        ],
+
+        "actions": {
+            "on-click-right": "mode"
+        }
+    },
+
+    // ========================================================================
+    // MODULES-CENTER
+    // ========================================================================
+
+    "custom/notifications": {
+        "format": "󰂚 {}",
+        "return-type": "json",
+        "exec": "swaync-client -swb",
+        "exec-if": "which swaync-client",
+
+        "on-click": "swaync-client -t -sw",
+        "on-click-right": "swaync-client -d -sw",
+
+        "restart-interval": 1,
+        "escape": true,
+        "tooltip": false
+    },
+
+    // ========================================================================
+    // HYPRLAND WORKSPACES
+    // ========================================================================
+
+    "hyprland/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "active-only": false,
+
+        "on-click": "activate",
+        "format": "{icon}",
+
+        "format-icons": {
+            "1": "󰎤",
+            "2": "󰎧",
+            "3": "󰎪",
+            "4": "󰎭",
+            "5": "󰎱",
+
+            "urgent": "♡",
+            "active": "❄",
+            "default": "○"
+        },
+
+        "persistent-workspaces": {
+            "*": 4
+        }
+    },
+
+    // ========================================================================
+    // CLOCK
+    // ========================================================================
+
+    "clock": {
+        "format": "󱑂 {:%H:%M}",
+
+        "tooltip-format": "<span size='15000'><tt>{calendar}</tt></span>",
+
+        "calendar": {
+            "mode": "month",
+
+            "format": {
+                "months": "<b>{}</b>",
+                "today": "<b><u>{}</u></b>",
+                "weekdays": "<b>{}</b>"
+            }
+        }
+    },
+
+    // ========================================================================
+    // MODULES-RIGHT
+    // ========================================================================
+
+    // "user": {
+    //     "format": "{user}",
+    //     "interval": 60,
+    //     "height": 30,
+    //     "width": 30,
+    //     "icon": true,
+    // },
+
+    // ========================================================================
+    // CPU
+    // ========================================================================
+
+    "cpu": {
+        "format": "󰻠 {usage}%",
+        "interval": 2,
+        "tooltip": true
+    },
+
+    // ========================================================================
+    // MEMORY
+    // ========================================================================
+
+    "memory": {
+        "format": "󰍛 {percentage}%",
+        "interval": 2,
+        "tooltip-format": "{used:0.1f}GB / {total:0.1f}GB"
+    },
+
+    // ========================================================================
+    // NVIDIA GPU
+    // ========================================================================
+
+    "custom/gpu": {
+        "exec": "nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits | awk '{print $1\"%\"}'",
+        "interval": 2,
+
+        "format": "󰾲 {}",
+
+        "tooltip": true,
+
+        "exec-if": "command -v nvidia-smi",
+
+        "on-click": "nvidia-smi"
+    },
+
+    // ========================================================================
+    // AUDIO
+    // ========================================================================
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰖁 muted",
+
+        "format-icons": {
+            "default": [
+                "󰕿",
+                "󰖀",
+                "󰕾"
+            ]
+        },
+
+        "on-click": "pavucontrol",
+
+        "on-scroll-up": "swayosd-client --output-volume raise",
+        "on-scroll-down": "swayosd-client --output-volume lower",
+
+        "tooltip": false
+    },
+
+    // ========================================================================
+    // BLUETOOTH
+    // ========================================================================
+
+    "bluetooth": {
+        "format": "󰂯 {status}",
+
+        "format-connected": "󰂱 {device_alias}",
+        "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
+
+        "on-click": "bash ~/.config/rofi/Bluetooth/bluetooth.sh",
+
+        "tooltip-format": "{controller_alias}\n\n{num_connections} connected",
+
+        "tooltip-format-connected": "{controller_alias}\n\n{num_connections} connected\n\n{device_enumerate}",
+
+        "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}"
+    },
+
+    // ========================================================================
+    // NETWORK
+    // ========================================================================
+
+    "network": {
+        "format-wifi": "󰤨 {essid}",
+        "format-ethernet": "{ifname} ",
+        "format-disconnected": "󰤭 offline",
+
+        "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}",
+        "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
+
+        "max-length": 20
+    },
+
+    // ========================================================================
+    // PRIVACY
+    // ========================================================================
+
+    "privacy": {
+        "icon-spacing": 6,
+        "icon-size": 16,
+        "transition-duration": 250,
+
+        "modules": [
+            {
+                "type": "screenshare",
+                "tooltip": true,
+                "tooltip-icon-size": 24
+            },
+            {
+                "type": "audio-in",
+                "tooltip": true,
+                "tooltip-icon-size": 24
+            }
+        ]
+    },
+
+    // ========================================================================
+    // TASKBAR
+    // ========================================================================
+
+    "wlr/taskbar": {
+        "format": "{icon}",
+        "icon-size": 16,
+        "icon-theme": "Papirus-Dark",
+
+        "tooltip-format": "{title}",
+
+        "on-click": "activate",
+        "on-click-middle": "close",
+        "on-click-right": "minimize-raise",
+
+        "all-outputs": false
+    },
+
+    // ========================================================================
+    // SYSTEM TRAY
+    // ========================================================================
+
+    "tray": {
+        "icon-size": 18,
+        "spacing": 8
+    }
+}

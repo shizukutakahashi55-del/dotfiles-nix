@@ -1,0 +1,175 @@
+/*****----- Material You Fullscreen Edition · Cute Remix -----*****/
+
+configuration {
+    show-icons: true;
+}
+
+/* Importamos tus colores de Material You */
+@import "colors.rasi"
+
+/*****----- Global Properties -----*****/
+* {
+    font:                        "JetBrainsMono Nerd Font Bold 12";
+    background-color:            transparent;
+    text-color:                  @ml-text;
+
+    /* Mapeo de variables corregido */
+    accent:                      @primary;
+
+    /* Cambiamos 'surface' por una variable que sí exista en tu .rasi de colores */
+    bg-surface:                  @s-container;
+
+    border-col:                  @outline;
+    selected-bg:                 @p-container;
+    selected-fg:                 @on-p-cont;
+}
+
+/*****----- Window -----*****/
+window {
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+    fullscreen:                  true;
+    cursor:                      "default";
+    /* Un poco más de blur visual con overlay más suave */
+    background-color:            #14141c99;
+}
+
+mainbox {
+    enabled:                     true;
+    spacing:                     28px;
+    margin:                      0px;
+    padding:                     0px;
+    background-color:            transparent;
+    children:                    [ "dummy", "userimage-box", "inputbar", "message", "listview", "dummy" ];
+}
+
+/*****----- User Image -----*****/
+userimage-box {
+    background-color:            transparent;
+    orientation:                 horizontal;
+    children:                    [ "dummy", "userimage", "dummy" ];
+}
+
+userimage {
+    width:                       190px;
+    height:                      190px;
+    expand:                      false;
+    background-color:            @bg-surface;
+    background-image:            url("~/.config/rofi/images/user.png", height);
+    /* Doble borde tipo "halo" pastel */
+    border:                      6px solid;
+    border-color:                @p-container;
+    border-radius:               100%;
+}
+
+/*****----- Inputbar -----*****/
+inputbar {
+    enabled:                     true;
+    background-color:            transparent;
+    children:                    [ "dummy", "prompt", "dummy" ];
+}
+
+prompt {
+    enabled:                     true;
+    background-color:            transparent;
+    text-color:                  @primary;
+    font:                        "JetBrainsMono Nerd Font Bold 24";
+    /* Edita este texto a gusto; si tu script pasa -mesg o -p, eso pisa este valor */
+    str:                         "Goodbye ✧";
+}
+
+/*****----- Message -----*****/
+message {
+    enabled:                     true;
+    margin:                      0px 220px;
+    padding:                     12px 20px;
+    background-color:            @bg-surface;
+    border-radius:               999px;
+    border:                      1.5px solid;
+    border-color:                @primary;
+}
+
+textbox {
+    background-color:            transparent;
+    text-color:                  @subtext;
+    vertical-align:              0.5;
+    horizontal-align:            0.5;
+    font:                        "JetBrainsMono Nerd Font 11";
+}
+
+/*****----- Listview -----*****/
+listview {
+    enabled:                     true;
+    columns:                     5;
+    lines:                       1;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    layout:                      vertical;
+    reverse:                     false;
+    fixed-height:                true;
+    fixed-columns:               true;
+
+    spacing:                     18px;
+    margin:                      0px 120px;
+    background-color:            transparent;
+    cursor:                      "default";
+}
+
+/*****----- Elements -----*****/
+element {
+    enabled:                     true;
+    /* Botón más compacto y rectangular, menos "columna alta" */
+    spacing:                     10px;
+    margin:                      0px;
+    padding:                     20px 10px;
+    border:                      1.5px solid;
+    border-radius:               22px;
+    border-color:                @border-col;
+    background-color:            @bg-surface;
+    text-color:                  @subtext;
+    orientation:                 vertical;
+    cursor:                      pointer;
+}
+
+element-icon {
+    background-color:            transparent;
+    text-color:                  inherit;
+    /* Ícono un poco más chico para que respire dentro del botón bajito */
+    size:                        40px;
+    cursor:                      inherit;
+    horizontal-align:            0.5;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    highlight:                   inherit;
+    cursor:                      inherit;
+    vertical-align:              0.5;
+    horizontal-align:            0.5;
+    font:                        "JetBrainsMono Nerd Font Bold 11";
+}
+
+/*****----- States -----*****/
+element normal.normal {
+    background-color:            @bg-surface;
+    text-color:                  @subtext;
+    border-color:                @border-col;
+}
+
+element selected.normal {
+    /* Halo sutil al seleccionar, sin inflar tanto el radio */
+    background-color:            @selected-bg;
+    text-color:                  @selected-fg;
+    border:                      2.5px solid;
+    border-color:                @primary;
+    border-radius:               24px;
+}
+
+/*****----- Utilities -----*****/
+dummy {
+    expand:                      true;
+    background-color:            transparent;
+}
