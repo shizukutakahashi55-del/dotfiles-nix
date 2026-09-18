@@ -217,48 +217,60 @@ Still worth reviewing manually: NVIDIA/GPU settings, monitor config, keyboard la
 ## 📁 Repository Structure
 
 ```text
-dotfiles/
-│
-├── .config/
-│   ├── cava/
-│   ├── fastfetch/
-│   ├── hypr/
-│   │   ├── hyprland.lua
-│   │   ├── modules/
-│   │   │   ├── appearance/
-│   │   │   ├── hardware/
-│   │   │   ├── input/
-│   │   │   ├── rules/
-│   │   │   ├── startup/
-│   │   │   └── system/
-│   │   │
-│   │   └── OozeShell/
-│   │       ├── Keybinds/
-│   │       ├── LANG/
-│   │       ├── MONITOR/
-│   │       ├── MPRIS/          # wired in code, not yet bound to a keybind
-│   │       ├── NOTIFY/
-│   │       ├── WALLS/
-│   │       └── shell.qml
-│   │
-│   ├── kitty/
-│   ├── matugen/
-│   ├── rofi/
-│   ├── swaync/
-│   ├── swayosd/
-│   ├── waybar/
-│   │   └── themes/
-│   │       ├── waybar-theme-switcher.sh
-│   │       └── ...
-│   ├── yazi/
-│   └── starship.toml
-│
-├── .zshrc
-├── nix-rofi
-├── git-update
-├── setup-permissions.sh
-├── screenshots/
-└── README.md
+╭─ 󰅂  dotfiles/
+ 
+├──  .config
+│   ├──  cava/
+│   ├──  fastfetch/
+│   ├──  hypr/
+│   │   ├──  hyprland.lua
+│   │   └──  modules/
+│   │       ├──  appearance/
+│   │       ├──  hardware/
+│   │       ├──  input/
+│   │       ├──  rules/
+│   │       ├──  startup/
+│   │       └──  system/
+│   ├──  kitty/
+│   ├──  matugen/
+│   ├──  quickshell/
+│   │   ├──  OozeShell/    #Hyprland Version
+│   │   │   ├──  Keybinds/
+│   │   │   ├──  LANG/
+│   │   │   ├──  MONITOR/
+│   │   │   ├──  MPRIS/    #Working on click waybar/ still improving
+│   │   │   ├──  NOTIFY/
+│   │   │   ├──  shell.qml
+│   │   │   └──  WALLS/
+│   │   └──  OozeShell-KDE/
+│   │       ├──  binds.sh
+│   │       ├──  Keybinds/
+│   │       ├──  LANG/
+│   │       ├──  lang.sh
+│   │       ├──  launcher.sh
+│   │       ├──  oozerunner.sh
+│   │       ├──  pmenu-kde.sh
+│   │       ├──  shell.qml
+│   │       ├──  WALLS/
+│   │       └──  walls.sh
+│   ├──  rofi
+│   ├──  starship.toml
+│   ├──  swaync
+│   ├──  swayosd
+│   ├──  VK-Th/
+│   ├──  waybar/
+│   │   └──  themes/
+│   │       ├──  catppuccin-mocha.css
+│   │       ├──  ..........
+│   │       └──  waybar-theme-switcher.sh
+│   └──  yazi/
+│ 
+├── 󱆃 .zshrc
+├── 󰡯 git-update
+├── 󰡯 nix-rofi
+├── 󰂺 README.md
+├──  screenshots
+└──  setup-permissions.sh
 ```
 
 ---
