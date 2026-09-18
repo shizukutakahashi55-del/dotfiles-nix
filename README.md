@@ -92,8 +92,8 @@ System-level packages, drivers, and NixOS configuration are maintained in a sepa
    ~/.config/starship.toml -> ~/dotfiles/.config/starship.toml
    ~/.zshrc                -> ~/dotfiles/.zshrc
    ~/.local/bin/nix-rofi   -> ~/dotfiles/nix-rofi
-   ~/.config/quickshell"   -> ~/.config/quickshell
-   ~/.config/VK-Th"        -> ~/.config/Vesktop/Themes
+   ~/.config/quickshell"   -> ~/dotfiles/.config/quickshell
+   ~/.config/VK-Th"        -> ~/dotfiles/.config/Vesktop/Themes
    ```
 
    > **⚠️ The installer never overwrites existing files or directories** — existing targets are skipped. Back up your current config first if you want a clean install (see [Troubleshooting](#️-troubleshooting)).
