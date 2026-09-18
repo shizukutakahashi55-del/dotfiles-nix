@@ -264,32 +264,32 @@ end)
 -- Wallpaper selector
 -- SUPER + W
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(
-  "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call toggleWalls handle"
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call toggleWalls handle"
 ))
 
 -- Monitor selector
 -- Chooses which monitor displays the shell (Walls/Notify/Mpris)
 -- SUPER + L
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(
-  "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call -- monitor togglePicker"
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- monitor togglePicker"
 ))
 
 -- Restart Quickshell
 -- SUPER + SHIFT + P
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(
-  "pkill quickshell & sleep 1 && quickshell -p ~/.config/hypr/OozeShell/shell.qml"
+  "pkill quickshell & sleep 1 && quickshell -p ~/.config/quickshell/OozeShell/shell.qml"
 ))
 
 -- Keybind Cheatsheet
 -- SUPER + I
 hl.bind(mainMod .. " + I", hl.dsp.exec_cmd(
-  "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call keybinds toggle"
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call keybinds toggle"
 ))
 
 -- Keybind Translate Shell
 -- SUPER + G
 hl.bind(mainMod .. " + G", hl.dsp.exec_cmd(
-  "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call -- lang togglePicker"
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- lang togglePicker"
 ))
 
 -------------------------------------------------------------------------------

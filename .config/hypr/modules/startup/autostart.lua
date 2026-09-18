@@ -28,7 +28,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("swayosd-server")
     
     -- OozeShell
-    hl.exec_cmd("sleep 1 && quickshell -p ~/.config/hypr/OozeShell/shell.qml")
+    hl.exec_cmd("sleep 1 && quickshell -p ~/.config/quickshell/OozeShell/shell.qml")
 
     -- Applications
     --hl.exec_cmd("sleep 3 && steam")

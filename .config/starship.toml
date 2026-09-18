@@ -1,16 +1,16 @@
 # Plantilla corregida para Matugen (~/.config/matugen/templates/starship.toml)
 
 format = """
-[](fg:#ffafd1)\
+[](fg:#ffb694)\
 $username\
-[](bg:#ffb0d1 fg:#ffafd1)\
+[](bg:#efbc95 fg:#ffb694)\
 $hostname\
-[](bg:#ffb694 fg:#ffb0d1)\
+[](bg:#f1be7a fg:#efbc95)\
 $directory\
-[](fg:#ffb694 bg:#792952)\
+[](fg:#f1be7a bg:#7b2f00)\
 $git_branch\
 $git_status\
-[](fg:#792952)\
+[](fg:#7b2f00)\
 $cmd_duration\
 $line_break\
 $character"""
@@ -19,28 +19,28 @@ add_newline = true
 
 [username]
 show_always = true
-style_user = "bg:#ffafd1 fg:#5c113b bold"
+style_user = "bg:#ffb694 fg:#571f00 bold"
 style_root = "bg:#ffb4ab fg:#690005 bold"
 format = "[󱄅 $user]($style)"
 
 [hostname]
 ssh_only = false
-style = "bg:#ffb0d1 fg:#531d38 bold"
+style = "bg:#efbc95 fg:#48290c bold"
 format = "[@$hostname]($style)"
 
 [directory]
-style = "bg:#ffb694 fg:#542105 bold"
+style = "bg:#f1be7a fg:#452b00 bold"
 format = "[ 󰉋 $path ]($style)"
 truncation_length = 3
 truncation_symbol = "…/"
 
 [git_branch]
 symbol = "󰊢 "
-style = "bg:#792952 fg:#ffd8e6 bold"
+style = "bg:#7b2f00 fg:#ffdbcc bold"
 format = "[ $symbol$branch]($style)"
 
 [git_status]
-style = "bg:#792952 fg:#ffd8e6 bold"
+style = "bg:#7b2f00 fg:#ffdbcc bold"
 format = "[($all_status$ahead_behind)]($style) "
 conflicted = "⚔ "
 ahead = "⇡${count} "
@@ -51,15 +51,15 @@ staged = "󰸞 "
 
 [cmd_duration]
 min_time = 2_000
-style = "bold #ffb694"
+style = "bold #f1be7a"
 format = " 󱦟 [$duration]($style)"
 
 [time]
 disabled = false
-style = "bold #ffafd1"
+style = "bold #ffb694"
 format = "󰥔 [$time]($style)"
 time_format = "%H:%M"
 
 [character]
-success_symbol = "[╭─ 󰅂](bold #ffafd1) "
+success_symbol = "[╭─ 󰅂](bold #ffb694) "
 error_symbol = "[╭─ 󰅂](bold #ffb4ab) "

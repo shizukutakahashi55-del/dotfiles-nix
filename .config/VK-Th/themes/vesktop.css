@@ -37,11 +37,11 @@
     --app-font-roundness: 100;
 
 	/*****----- Acento (equivale a @primary en el rofi) -----*****/
-	--accent-hue: 334;
+	--accent-hue: 19;
 	--accent-saturation: 100%;
-	--accent-lightness: 84%;
-	--accent-text-color: #5c113b; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
-	--accent-button-action: #5c113b;
+	--accent-lightness: 79%;
+	--accent-text-color: #571f00; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+	--accent-button-action: #571f00;
 
 	/*****----- Alerta / error (equivale a @ml-error en el rofi) -----*****/
 	--alert-hue: 6;
@@ -51,10 +51,10 @@
 
 	/*****----- Advertencia (mapeado a tertiary, el 3er tono M3 ·
 	            equivale al rol que @secondary cumple en el rofi) -----*****/
-	--warning-hue: 19;
-    --warning-saturation: 100%;
-    --warning-lightness: 79%;
-	--warning-text-color: #542105; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+	--warning-hue: 34;
+    --warning-saturation: 80%;
+    --warning-lightness: 71%;
+	--warning-text-color: #452b00; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
 
 	/* MESSAGE SETTINGS */
 	--message-radius: 18px;
@@ -71,7 +71,7 @@
 	/* BUTTON SETTINGS */
 	--button-height: 40px;
 	--button-padding: 16px;
-	--button-action-color: #5c113b;
+	--button-action-color: #571f00;
 
 	/* INPUT SETTINGS */
 	--input-height: 40px;
