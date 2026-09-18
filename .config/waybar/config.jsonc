@@ -82,7 +82,7 @@
 
         "exec": "playerctl -F -f '{{ artist }} - {{ title }}' metadata",
 
-        "on-click": "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call mpris toggle",
+        "on-click": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call mpris toggle",
         "on-click-right": "playerctl next",
 
         "on-scroll-up": "playerctl previous",

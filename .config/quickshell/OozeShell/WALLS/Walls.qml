@@ -242,14 +242,14 @@ Item {
         anchors { top: parent.top; topMargin: 565; horizontalCenter: parent.horizontalCenter }
         width: Math.min(parent.width * 0.9, 560)
         height: schemeFlow.implicitHeight + 20
-        radius: 14
+        radius: 12
         color: wallsRoot.matugenColors.bg; border.color: wallsRoot.matugenColors.accent; border.width: 1.5; opacity: 1.0
         z: 300
 
         Flow {
           id: schemeFlow
           anchors { fill: parent; margins: 10 }
-          spacing: 8
+          spacing: 11
 
           Repeater {
             model: wallsRoot.schemes

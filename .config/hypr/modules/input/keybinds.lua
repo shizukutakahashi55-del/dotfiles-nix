@@ -298,6 +298,8 @@ hl.bind(mainMod .. " + G", hl.dsp.exec_cmd(
 
 -- Shutdown / exit
 --hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
+hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("hyprlock"))
+
 
 -- Custom power menu
 hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(

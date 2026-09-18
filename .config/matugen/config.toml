@@ -18,27 +18,34 @@ post_hook   = "swaync-client --reload-css"
 input_path  = "~/.config/matugen/templates/colors.rasi"
 output_path = "~/.config/rofi/colors.rasi"
 
+
 [templates.hyprland]
 input_path  = "~/.config/matugen/templates/colors.lua"
 output_path = "~/.config/hypr/modules/appearance/colors.lua"
 post_hook   = "hyprctl reload"
 
+[templates.spicetify]
+input_path = '~/.config/matugen/templates/spicetify.ini'
+output_path = '~/.config/spicetify/Themes/Sleek/color.ini'
+post_hook = 'spicetify apply'
+
 [templates.cava]
-input_path = '~/.config/matugen/templates/cava.ini'
-output_path = '~/.config/cava/themes/matugen'
+input_path = "~/.config/matugen/templates/cava.ini"
+output_path = "~/.config/cava/themes/matugen"
 post_hook = 'pkill -USR2 -x cava || true'
 
 [templates.starship]
-input_path = '~/.config/matugen/templates/starship.toml'
-output_path = '~/.config/starship.toml'
+input_path = "~/.config/matugen/templates/starship.toml"
+output_path = "~/.config/starship.toml"
 
 [templates.yazi]
-input_path = '~/.config/matugen/templates/theme.toml'
-output_path = '~/.config/yazi/theme.toml'
+input_path = "~/.config/matugen/templates/theme.toml"
+output_path = "~/.config/yazi/theme.toml"
 
 [templates.swayosd]
 input_path  = "~/.config/matugen/templates/swayosd.css"
 output_path = "~/.config/swayosd/style.css"
+post_hook   = "pkill swayosd-server; setsid -f swayosd-server >/dev/null 2>&1"
 
 # VS Code matugen extension
 [templates.vscode-raw]
@@ -57,3 +64,7 @@ output_path = "~/.config/librewolf/librewolf/tjk2f543.default/chrome/colors.css"
 [templates.vesktop]
 input_path = "~/.config/matugen/templates/vesktop.css"
 output_path = "~/.config/vesktop/themes/vesktop.css"
+
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprlock.conf'
+output_path = '~/.config/hypr/colors.conf'

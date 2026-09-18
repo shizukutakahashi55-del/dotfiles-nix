@@ -30,6 +30,9 @@ hl.on("hyprland.start", function()
     -- OozeShell
     hl.exec_cmd("sleep 1 && quickshell -p ~/.config/quickshell/OozeShell/shell.qml")
 
+    -- Hypridle
+    hl.exec_cmd("Hypridle")
+
     -- Applications
     --hl.exec_cmd("sleep 3 && steam")
     --hl.exec_cmd("sleep 6 && discord")
@@ -38,4 +41,3 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("systemctl --user start plasma-polkit-agent")
 
 end)
-

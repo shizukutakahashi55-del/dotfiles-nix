@@ -53,7 +53,7 @@ window {
  * ============================================================ */
 
 progress {
-    background: alpha(@outline, 0.35);
+    background: alpha(@outline, 0.7);
     color: @primary;
 
     border-radius: 10px;
