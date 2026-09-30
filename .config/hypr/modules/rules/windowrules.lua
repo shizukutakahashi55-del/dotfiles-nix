@@ -25,7 +25,9 @@ hl.layer_rule({
   ignore_alpha = 0.3,
 })
 
--- Animaciones en quickshell
+-- Animaciones de hyprland en quickshell, normalmente no debe haber problemas pero
+-- en EndeavourOS me dio un error, al encender quickshell heredaba las animaciones
+-- de hyprland pero en arch puro eso no pasa, probado en 2 pc y una laptop.
 hl.layer_rule({
   match        = { namespace = "oozeshell" },
   no_anim      = true,
@@ -66,7 +68,7 @@ hl.layer_rule({
 --------------------------------------------------
 -- STEAM RULES -----------------------------------
 --------------------------------------------------
--- Steam NO float
+-- Steam NO float.
 hl.window_rule({
     name = "steam-tile",
     match = { class = "^(steam)$", title = "^(Steam)$" },
@@ -102,35 +104,17 @@ hl.window_rule({
 -- GENERAL-RULES ---------------------------------
 --------------------------------------------------
 
+-- PersonalTaste Rules.
 -- Ghostty rules
 hl.window_rule({
   match = { class = "^com.mitchellh.ghostty$"},
   border_size = 0,
-  
 })
 
--- Codium rule
-hl.window_rule({
-  match = { class = "^codium$"},
-  border_size = 0,
-  
-})
 
 -- ============================================================================
 --  WORKSPACE RULES ----------------------------------------------
 -- ============================================================================
-
--- -- Coding Space
--- hl.workspace_rule({ 
---     workspace = "1", 
---     no_rounding = true,
---     no_border = true,
---     gaps_in = 1,
---     gaps_out = 1, 
---     monitor = "HDMI-A-1",
---     default_name = "Coding",
---     layout = "dwindle",
---   })
 
 -- WORKSPACE BY MONITOR----------------------------------------
 -- ── Monitor HDMI-A-1 (Workspaces 1 to 5) ────────────────────

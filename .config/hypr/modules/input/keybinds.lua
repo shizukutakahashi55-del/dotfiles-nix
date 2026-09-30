@@ -9,7 +9,9 @@
 
 local programs = require("modules.startup.programs")
 
-
+local loader = require("modules.appearance.loader")
+local theme  = loader.load("theme", loader.defaults.theme)
+local layouta = loader.load("layouta", loader.defaults.layouta)
 ---------------------
 ---- KEYBINDINGS ----
 ---------------------
@@ -37,6 +39,52 @@ local mainMod = "SUPER" -- Sets "Windows" key as main modifier
                 end
             end
         end
+
+ -- CODING WORKSPACE TOGGLE
+
+-- -- Coding Space
+
+local codingWorkspace = false
+
+local normalCoding = {
+    workspace = "1",
+    no_rounding = false,
+    no_border = false,
+    gaps_in = theme.gaps_in,
+    gaps_out = theme.gaps_out,
+    layout = layouta.layout,
+}
+
+local codingEnabled = {
+    workspace = "1",
+    no_rounding = true,
+    no_border = true,
+    gaps_in = 0,
+    gaps_out = 0,
+    layout = "dwindle",
+}
+
+local function toggleCodingWorkspace()
+
+    codingWorkspace = not codingWorkspace
+
+    if codingWorkspace then
+
+        hl.workspace_rule(codingEnabled)
+
+        hl.exec_cmd('notify-send -i vscode "Coding Workspace" "ON 💻"')
+
+    else
+
+        hl.workspace_rule(normalCoding)
+
+        hl.exec_cmd('notify-send -i vscode "Coding Workspace" "OFF 🏠"')
+
+    end
+
+end
+
+hl.bind(mainMod .. " + Q", function() toggleCodingWorkspace() end)
 
 
 -------------------------------------------------------------------------------
@@ -525,29 +573,34 @@ hl.bind(mainMod .. " + SHIFT + PRINT", hl.dsp.exec_cmd(
 -- Disable close window bind if needed
 -- closeWindowBind:set_enabled(false)
 
--------------------------------------------------------------------------------
--- AUDIO CONTROL
--------------------------------------------------------------------------------
--- SwayOSD volume controls
--------------------------------------------------------------------------------
+-- -------------------------------------------------------------------------------
+-- -- AUDIO CONTROL
+-- -------------------------------------------------------------------------------
+-- -- SwayOSD volume controls
+-- -------------------------------------------------------------------------------
 
--- Volume up
-hl.bind(
-    "XF86AudioRaiseVolume",
-    hl.dsp.exec_cmd("swayosd-client --output-volume raise"),
-    { repeating = true }
-)
+-- -- Volume up
+-- hl.bind(
+--     "XF86AudioRaiseVolume",
+--     hl.dsp.exec_cmd("swayosd-client --output-volume raise"),
+--     { repeating = true }
+-- )
 
--- Volume down
-hl.bind(
-    "XF86AudioLowerVolume",
-    hl.dsp.exec_cmd("swayosd-client --output-volume lower"),
-    { repeating = true }
-)
+-- -- Volume down
+-- hl.bind(
+--     "XF86AudioLowerVolume",
+--     hl.dsp.exec_cmd("swayosd-client --output-volume lower"),
+--     { repeating = true }
+-- )
 
--- Toggle mute
-hl.bind(
-    "XF86AudioMute",
-    hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle")
-)
+-- -- Toggle mute
+-- hl.bind(
+--     "XF86AudioMute",
+--     hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle")
+-- )
+
+-- Por ahora los WorkSpace no muestran el nombre, estoy revisando agregarlo sin que rompa
+-- lo que tengo en quickshell, lo intente pero se movia todo debido que las pills
+-- heredan los workspace de el modulo de barra, basicamente es un enlace.
+
 

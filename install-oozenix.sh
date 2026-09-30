@@ -18,6 +18,7 @@ INSTALL_LEGACY=false   # swaync / waybar / swayosd / wlogout / rofi
 IS_ARCH=false
 IS_UPDATE=false         # true si ~/.config/hypr ya apunta a este repo (re-ejecucion / actualizacion)
 HAS_NVIDIA=false        # solo Arch: activa las variables de entorno de Nvidia en env.lua
+SUWAYOMI_OK=false       # solo Arch: Suwayomi instalado + servicio/comando `tachidesk` listos
 AUR_HELPER=""
 FAILED=()              # paquetes que no se pudieron instalar (resumen final)
 
@@ -218,32 +219,93 @@ if $IS_ARCH; then
   }
 
   # ---- Suwayomi helpers ----------------------------------------------------
+  #
+  # Objetivo: que en Arch Suwayomi (AUR) se maneje IGUAL que en NixOS:
+  #   - servicio de usuario  tachidesk.service  (no arranca solo en el boot)
+  #   - comando `tachidesk {start|stop|restart|status|enable|disable}`
+  # OozeShell (Ajustes → Servicios) llama directamente a `tachidesk status` y
+  # `tachidesk <accion>` con el PATH del propio shell. Por eso el comando se
+  # instala en /usr/local/bin (siempre en el PATH de la sesion grafica, como en
+  # NixOS donde vive en el PATH del sistema) y no solo en ~/.local/bin, que
+  # muchas sesiones de Hyprland NO tienen en el PATH.
 
   SUWAYOMI_MD="$DOTFILES/SuwayomiSetup.md"
+  TACHIDESK_CTL_SYS="/usr/local/bin/tachidesk"
+  TACHIDESK_CTL_USER="$HOME/.local/bin/tachidesk"
+  TACHIDESK_UNIT="$HOME/.config/systemd/user/tachidesk.service"
 
   # Prints the absolute path of the Suwayomi executable, or fails.
   find_suwayomi_bin() {
-    local b f
+    local b f pkg
     for b in tachidesk-server suwayomi-server; do
       if command -v "$b" >/dev/null 2>&1; then command -v "$b"; return 0; fi
     done
-    f="$(pacman -Ql suwayomi-server-bin 2>/dev/null | awk '{print $2}' | grep -E '^/usr/bin/[^/]+$' | head -n1 || true)"
-    if [ -n "$f" ]; then echo "$f"; return 0; fi
+    # Fallback: mirar los archivos del paquete instalado
+    for pkg in suwayomi-server-bin suwayomi-server-preview-bin tachidesk; do
+      pacman -Qq "$pkg" >/dev/null 2>&1 || continue
+      f="$(pacman -Ql "$pkg" 2>/dev/null | awk '{print $2}' \
+            | grep -E '^/usr/bin/[^/]+$' | grep -Ei 'suwayomi|tachidesk' | head -n1 || true)"
+      if [ -n "$f" ]; then echo "$f"; return 0; fi
+    done
     return 1
   }
 
+  # Contenido del comando `tachidesk` (identico al writeShellScriptBin de NixOS)
+  tachidesk_ctl_body() {
+    cat << 'EOF'
+#!/usr/bin/env bash
+case "$1" in
+  start|stop|restart|enable|disable) systemctl --user "$1" tachidesk.service ;;
+  status) systemctl --user status tachidesk.service --no-pager ;;
+  *) echo "Usage: tachidesk {start|stop|restart|status|enable|disable}"; exit 1 ;;
+esac
+EOF
+  }
+
+  # Unidad de usuario (mismas opciones que systemd.user.services.tachidesk en
+  # NixOS). Se suma [Install] para que `tachidesk enable` funcione de verdad;
+  # sin eso systemd avisa "no installation config" y no habilita nada.
+  tachidesk_unit_body() {
+    cat << EOF
+[Unit]
+Description=Tachidesk Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=$1
+WorkingDirectory=%h/.local/share/Tachidesk
+# HOME explicito: sin esto la JVM no resuelve bien "user.home" dentro de la
+# unidad de usuario y el servidor cae en /tmp/Tachidesk.
+Environment=HOME=%h
+Restart=on-failure
+RestartSec=5
+# Apagado limpio: le da tiempo a la JVM a cerrar bien antes del kill.
+TimeoutStopSec=15
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=default.target
+EOF
+  }
+
   write_suwayomi_md() {
-    cat > "$SUWAYOMI_MD" << 'MDEOF'
+    {
+      cat << 'MDEOF'
 # Suwayomi server on Arch (manual setup)
 
 The installer skipped Suwayomi. These are the steps to install it later and
 control it like a service, with the same `tachidesk` command used on NixOS.
+OozeShell (Settings -> Services) uses that command, so once it is in place you
+can start/stop the server from the shell.
 
 ## 1. Install the package (AUR)
 
 ```bash
 paru -S suwayomi-server-bin      # or: yay -S suwayomi-server-bin
 ```
+
+It needs a Java runtime >= 21 (`sudo pacman -S jre21-openjdk` if you have none).
 
 ## 2. Find the executable name
 
@@ -258,7 +320,7 @@ Use that path as `ExecStart` in step 4.
 
 ```bash
 mkdir -p ~/.local/share/Tachidesk/extensions ~/.local/share/Tachidesk/backups
-mkdir -p ~/Manga/Downloads ~/.config/systemd/user ~/.local/bin
+mkdir -p ~/Manga/Downloads ~/.config/systemd/user
 ```
 
 ## 4. Create the user service
@@ -279,29 +341,33 @@ Restart=on-failure
 RestartSec=5
 TimeoutStopSec=15
 KillSignal=SIGTERM
+
+[Install]
+WantedBy=default.target
 ```
 
 ## 5. Create the `tachidesk` control command
 
-File: `~/.local/bin/tachidesk`
+Put it in `/usr/local/bin` (NOT only in `~/.local/bin`): OozeShell runs the
+command with its own PATH, and a Hyprland session usually does not include
+`~/.local/bin`.
+
+File: `/usr/local/bin/tachidesk`
 
 ```bash
-#!/usr/bin/env bash
-case "$1" in
-  start|stop|restart|enable|disable) systemctl --user "$1" tachidesk.service ;;
-  status) systemctl --user status tachidesk.service --no-pager ;;
-  *) echo "Usage: tachidesk {start|stop|restart|status|enable|disable}"; exit 1 ;;
-esac
+MDEOF
+      tachidesk_ctl_body
+      cat << 'MDEOF'
 ```
 
 ```bash
-chmod +x ~/.local/bin/tachidesk
+sudo install -Dm755 tachidesk /usr/local/bin/tachidesk   # from the file above
 systemctl --user daemon-reload
 ```
 
-Make sure `~/.local/bin` is in your `PATH`.
-
 ## 6. Use it
+
+From OozeShell: Settings -> Services, or from a terminal:
 
 ```bash
 tachidesk start
@@ -311,14 +377,45 @@ tachidesk stop
 
 The service is not enabled at boot. Run `tachidesk enable` if you want that.
 If Suwayomi is already running by hand, stop it first with
-`pkill -TERM -f -i suwayomi`, or the port will be busy.
+`pkill -TERM -f -i suwayomi`, or the port (4567) will be busy.
 MDEOF
+    } > "$SUWAYOMI_MD"
     echo "[✓] Steps saved to: $SUWAYOMI_MD"
   }
 
+  # Instala el comando `tachidesk` donde OozeShell lo pueda encontrar.
+  install_tachidesk_ctl() {
+    local tmp
+    tmp="$(mktemp)"
+    tachidesk_ctl_body > "$tmp"
+    chmod +x "$tmp"
+
+    if [ -e "$TACHIDESK_CTL_SYS" ] && ! cmp -s "$tmp" "$TACHIDESK_CTL_SYS"; then
+      sudo cp -f "$TACHIDESK_CTL_SYS" "${TACHIDESK_CTL_SYS}.bak-${STAMP}" || true
+    fi
+
+    if sudo install -Dm755 "$tmp" "$TACHIDESK_CTL_SYS"; then
+      echo "  [✓] Control command: $TACHIDESK_CTL_SYS  (tachidesk start|stop|restart|status|enable|disable)"
+      # Copia vieja de una ejecucion anterior del instalador: se aparta para
+      # que no haya dos comandos distintos en el PATH.
+      if [ -f "$TACHIDESK_CTL_USER" ] && [ ! -L "$TACHIDESK_CTL_USER" ]; then
+        mv -f "$TACHIDESK_CTL_USER" "${TACHIDESK_CTL_USER}.bak-${STAMP}"
+        echo "  [i] Old copy moved to ${TACHIDESK_CTL_USER}.bak-${STAMP}"
+      fi
+    else
+      echo "  [!] Could not write to $TACHIDESK_CTL_SYS (sudo failed); using ~/.local/bin instead."
+      mkdir -p "$(dirname "$TACHIDESK_CTL_USER")"
+      if [ -e "$TACHIDESK_CTL_USER" ]; then cp -f "$TACHIDESK_CTL_USER" "${TACHIDESK_CTL_USER}.bak-${STAMP}"; fi
+      install -m755 "$tmp" "$TACHIDESK_CTL_USER"
+      echo "  [✓] Control command: $TACHIDESK_CTL_USER"
+      echo "  [!] OozeShell only finds it if ~/.local/bin is in the PATH of your Hyprland session."
+      echo "      Otherwise the Services page will not be able to control the server."
+    fi
+    rm -f "$tmp"
+  }
+
   setup_suwayomi() {
-    local bin ctl="$HOME/.local/bin/tachidesk"
-    local unit="$HOME/.config/systemd/user/tachidesk.service"
+    local bin
 
     if ! bin="$(find_suwayomi_bin)"; then
       echo "  [!] Could not find the Suwayomi executable; skipping the service setup."
@@ -328,41 +425,41 @@ MDEOF
     echo "  [✓] Suwayomi executable: $bin"
 
     mkdir -p "$HOME/.local/share/Tachidesk/extensions" "$HOME/.local/share/Tachidesk/backups" \
-             "$HOME/Manga/Downloads" "$HOME/.config/systemd/user" "$HOME/.local/bin"
+             "$HOME/Manga/Downloads" "$HOME/.config/systemd/user"
 
-    if [ -e "$unit" ]; then cp -f "$unit" "${unit}.bak-${STAMP}"; fi
-    cat > "$unit" << EOF
-[Unit]
-Description=Tachidesk Server
-After=network-online.target
-Wants=network-online.target
+    if [ -e "$TACHIDESK_UNIT" ]; then cp -f "$TACHIDESK_UNIT" "${TACHIDESK_UNIT}.bak-${STAMP}"; fi
+    tachidesk_unit_body "$bin" > "$TACHIDESK_UNIT"
+    echo "  [✓] User service: $TACHIDESK_UNIT"
 
-[Service]
-ExecStart=$bin
-WorkingDirectory=%h/.local/share/Tachidesk
-Environment=HOME=%h
-Restart=on-failure
-RestartSec=5
-TimeoutStopSec=15
-KillSignal=SIGTERM
-EOF
-    echo "  [✓] User service: $unit"
+    install_tachidesk_ctl
 
-    if [ -e "$ctl" ]; then cp -f "$ctl" "${ctl}.bak-${STAMP}"; fi
-    cat > "$ctl" << 'EOF'
-#!/usr/bin/env bash
-case "$1" in
-  start|stop|restart|enable|disable) systemctl --user "$1" tachidesk.service ;;
-  status) systemctl --user status tachidesk.service --no-pager ;;
-  *) echo "Usage: tachidesk {start|stop|restart|status|enable|disable}"; exit 1 ;;
-esac
-EOF
-    chmod +x "$ctl"
-    echo "  [✓] Control command: $ctl  (tachidesk start|stop|restart|status|enable|disable)"
+    if systemctl --user daemon-reload 2>/dev/null; then
+      if systemctl --user cat tachidesk.service >/dev/null 2>&1; then
+        echo "  [✓] systemd sees tachidesk.service"
+        SUWAYOMI_OK=true
+      else
+        echo "  [!] systemd did not load tachidesk.service; check: systemctl --user cat tachidesk.service"
+      fi
+    else
+      echo "  [!] Could not reload the user systemd session; run 'systemctl --user daemon-reload' after logging in."
+      SUWAYOMI_OK=true   # los archivos estan bien; solo falta una sesion de usuario activa
+    fi
 
-    systemctl --user daemon-reload 2>/dev/null \
-      || echo "  [!] Could not reload the user systemd session; run 'systemctl --user daemon-reload' after logging in."
-    echo "  [i] Not started or enabled on boot. Run: tachidesk start"
+    # Una instancia lanzada a mano ocuparia el puerto 4567 y el servicio fallaria
+    if ! systemctl --user is-active --quiet tachidesk.service 2>/dev/null \
+       && pgrep -f -i 'java.*(suwayomi|tachidesk)' >/dev/null 2>&1; then
+      echo "  [!] A Suwayomi process is already running (started by hand?)."
+      echo "      Stop it before using the service, or the port will be busy:"
+      echo "        pkill -TERM -f -i suwayomi"
+    fi
+
+    echo "  [i] Not started or enabled on boot (same as NixOS)."
+    echo "      Control it from OozeShell (Settings -> Services) or with: tachidesk start"
+    if ask_yes_no "  Start Tachidesk now?"; then
+      tachidesk start || echo "  [!] 'tachidesk start' failed; see: tachidesk status"
+      sleep 2
+      tachidesk status 2>&1 | sed -n '1,6p' || true
+    fi
   }
 
   # ---- Base ------------------------------------------------------------------
@@ -438,7 +535,10 @@ EOF
 
   # --- Suwayomi (AUR, optional) ---
   echo
-  if ask_yes_no "Install Suwayomi server (suwayomi-server-bin, AUR)?"; then
+  if ask_yes_no "Install Suwayomi server (suwayomi-server-bin, AUR) and control it from OozeShell (same as on NixOS)?"; then
+    # El paquete exige java-runtime>=21. Se deja resuelto antes para que el
+    # helper de AUR no se detenga a preguntar que proveedor de Java usar.
+    install_first jre21-openjdk jdk21-openjdk jdk-openjdk jre-openjdk
     install_pkgs suwayomi-server-bin
     setup_suwayomi
   else
@@ -728,4 +828,7 @@ echo "       Oozenix installation complete!"
 echo "=========================================="
 if $IS_ARCH; then
   echo "Start it with:  quickshell -c OozeShell"
+  if $SUWAYOMI_OK; then
+    echo "Tachidesk:      OozeShell -> Settings -> Services, or:  tachidesk start|stop|restart|status|enable|disable"
+  fi
 fi

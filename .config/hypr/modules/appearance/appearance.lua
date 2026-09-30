@@ -3,7 +3,7 @@
 -- ============================================================================
 
 -- appearance.lua y animations.lua
-local colors = require("modules.appearance.colors")   -- esta se queda
+local colors = require("modules.appearance.colors")   -- esta se queda son los colores automaticos.  No cambiar estas lineas.
 local loader = require("modules.appearance.loader")
 local theme  = loader.load("theme", loader.defaults.theme)
 
