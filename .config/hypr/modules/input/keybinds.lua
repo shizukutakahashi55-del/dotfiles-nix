@@ -387,21 +387,21 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- menu toggle"
 ))
 
---Nix-Search
--- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
-hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle"))
-
 --Settings Call
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- settings toggle"))
 
  -- OozeLock
 hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock "))
 
--- NixSearch with Rofi
+--Nix-Search
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
+hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle"))
+
 -- Pacman/Paru OozeShell
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- pacsearch toggle"))
 
+-- NixSearch with Rofi
+-- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
 
 -------------------------------------------------------------------------------
 -- LEGACY SIDE

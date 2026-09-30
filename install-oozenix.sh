@@ -16,6 +16,7 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 
 INSTALL_LEGACY=false   # swaync / waybar / swayosd / wlogout / rofi
 IS_ARCH=false
+HAS_NVIDIA=false        # solo Arch: activa las variables de entorno de Nvidia en env.lua
 AUR_HELPER=""
 FAILED=()              # paquetes que no se pudieron instalar (resumen final)
 
@@ -226,10 +227,12 @@ if $IS_ARCH; then
     libnotify imagemagick wtype wev grim slurp cava pavucontrol fastfetch
     matugen
     ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-mono
+    ttf-silkscreen ttf-dotgothic16 ttf-vt323
   )
 
   echo "Installing base dependencies..."
   install_pkgs "${BASE[@]}"
+  fc-cache -f >/dev/null 2>&1 || true
   echo "Installing quickshell and awww (release or -git, whichever is available)..."
   install_first quickshell quickshell-git
   install_first awww awww-git
@@ -255,11 +258,8 @@ if $IS_ARCH; then
   echo
 
   # --- Package search ---
-  echo "[i] Package search (SUPER+U) uses paru/pacman + AUR on Arch; no Nix needed."
-  if [ -d "$DOTFILES/.config/hypr" ] && grep -rqs "nixsearch" "$DOTFILES/.config/hypr"; then
-    echo "[i] Your hypr config calls 'nixsearch': the Arch build of OozeShell keeps"
-    echo "    that IPC name as an alias for PacSearch, so the same bind keeps working."
-  fi
+  echo "[i] Package search (SUPER+U) uses PacSearch (paru/pacman + AUR) on Arch; no Nix needed."
+  echo "    The keybind will be switched from nixsearch to pacsearch after linking the configs."
   echo
 
   # --- Tools OozeShell replaces ---
@@ -281,6 +281,18 @@ if $IS_ARCH; then
     )
     install_pkgs "${EXTRAS[@]}"
     echo "[i] greetd and rtkit were installed but NOT configured/enabled; set them up by hand if you want them."
+  fi
+
+  # --- Suwayomi (AUR, optional) ---
+  echo
+  if ask_yes_no "Install Suwayomi server (suwayomi-server-bin, AUR)?"; then
+    install_pkgs suwayomi-server-bin
+  fi
+
+  # --- Nvidia (only affects env.lua) ---
+  echo
+  if ask_yes_no "Do you use an Nvidia GPU? (enables the Nvidia env vars in Hyprland's env.lua)"; then
+    HAS_NVIDIA=true
   fi
 
   echo
@@ -488,7 +500,45 @@ for script in "${scripts[@]}"; do
   fi
 done
 
-echo
+# ----------------------------------------------------------------------------
+# Arch only: SUPER+U -> PacSearch instead of NixSearch
+# ----------------------------------------------------------------------------
+if $IS_ARCH; then
+  KEYBINDS="$HOME/.config/hypr/modules/input/keybinds.lua"
+  if [ -f "$KEYBINDS" ]; then
+    cp -f "$KEYBINDS" "${KEYBINDS}.bak-${STAMP}"
+    # comment the active nixsearch bind (skip if already commented)
+    sed -i -E '/^hl\.bind\(mainMod \.\. " \+ U".*nixsearch toggle/ s/^/-- /' "$KEYBINDS"
+    # uncomment the pacsearch bind
+    sed -i -E 's/^--[[:space:]]*(hl\.bind\(mainMod \.\. " \+ U".*pacsearch toggle.*)$/\1/' "$KEYBINDS"
+    echo "  [✓] keybinds.lua: SUPER+U now opens PacSearch (backup: ${KEYBINDS}.bak-${STAMP})"
+  else
+    echo "  [✗] keybinds.lua not found: $KEYBINDS"
+  fi
+  echo
+fi
+
+# ----------------------------------------------------------------------------
+# Arch only: env.lua (Electron Wayland always, Nvidia vars only if requested)
+# ----------------------------------------------------------------------------
+if $IS_ARCH; then
+  ENVLUA="$HOME/.config/hypr/modules/system/env.lua"
+  if [ -f "$ENVLUA" ]; then
+    cp -f "$ENVLUA" "${ENVLUA}.bak-${STAMP}"
+    sed -i -E 's/^--[[:space:]]*(hl\.env\("ELECTRON_OZONE_PLATFORM_HINT", "auto"\).*)$/\1/' "$ENVLUA"
+    echo "  [✓] env.lua: ELECTRON_OZONE_PLATFORM_HINT enabled"
+    if $HAS_NVIDIA; then
+      sed -i -E 's/^--[[:space:]]*(hl\.env\("LIBVA_DRIVER_NAME", "nvidia"\).*)$/\1/' "$ENVLUA"
+      sed -i -E 's/^--[[:space:]]*(hl\.env\("__GLX_VENDOR_LIBRARY_NAME", "nvidia"\).*)$/\1/' "$ENVLUA"
+      echo "  [✓] env.lua: Nvidia variables enabled (LIBVA_DRIVER_NAME, __GLX_VENDOR_LIBRARY_NAME)"
+    fi
+    echo "      Backup: ${ENVLUA}.bak-${STAMP}"
+  else
+    echo "  [✗] env.lua not found: $ENVLUA"
+  fi
+  echo
+fi
+
 if [ "${#FAILED[@]}" -gt 0 ]; then
   echo "=========================================="
   echo "  [!] These packages/services were NOT installed:"
