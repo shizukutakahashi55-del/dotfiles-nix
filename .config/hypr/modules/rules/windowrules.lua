@@ -25,7 +25,7 @@ hl.layer_rule({
   ignore_alpha = 0.3,
 })
 
--- Animaciones en oozeshell
+-- Animaciones en quickshell
 hl.layer_rule({
   match        = { namespace = "oozeshell" },
   no_anim      = true,
@@ -66,127 +66,26 @@ hl.layer_rule({
 --------------------------------------------------
 -- STEAM RULES -----------------------------------
 --------------------------------------------------
--- 1. Pop-ups emergentes y menús sin título
+-- Steam NO float
 hl.window_rule({
-  match = { class = "^steam$", title = "^$" },
-  float = true,
-  no_focus = true,
-  no_anim = true,
+    name = "steam-tile",
+    match = { class = "^(steam)$", title = "^(Steam)$" },
+    float = false,
 })
 
--- 2. Diálogos, notificaciones y ofertas emergentes
+-- Force other Steam windows (Friends, Settings) to float
 hl.window_rule({
-  match = { class = "^steam$", title = ".*(Notification|Dialog|Offers|Ofertas|News|Noticias).*" },
-  float = true,
-  no_anim = true,
+    name = "steam-float",
+    match = { class = "^(steam)$", title = "negative:^(Steam)$" },
+    float = true,
+    no_anim = true,
+    no_blur = true,
+    border_size = 0,
 })
-
--- 3. Lista de amigos y chat flotantes (con tamaño definido)
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Friends List|Lista de amigos).*" },
-  float = true,
-  no_anim = true,
-  size = { 400, 700 },
-})
-
--- 4. Ventanas de ajustes, propiedades y capturas
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Settings|Configuración|Properties|Properties...|Propiedades|Screenshot Uploader).*" },
-  float = true,
-  no_anim = true,
-})
-
--- Desactivar el blur para todas las ventanas de Steam
-hl.window_rule({
-  match = { class = "^steam$" },
-  no_blur = true,
-  border_size = 0,
-  -- float      = true,
-  
-})
-
 
 --------------------------------------------------
 -- GAME-RULES ------------------------------------
 --------------------------------------------------
-
--- Overwatch Settings on Steam
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Overwatch®).*" },
-  float = true,
-  no_anim = true,
-  no_blur = true,
-  border_size = 0,
-})
-hl.window_rule({
-  match = { class = "^steam_app_2357570$", title = ".*(Overwatch).*" },
-  float        = false,
-  no_anim      = true,
-  no_blur      = true,
-  border_size  = 0,
-  fullscreen   = true,
-})
-
--- DBD Settings on Steam
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Dead by Daylight).*" },
-  float = true,
-  no_anim = true,
-  no_blur = true,
-  border_size = 0,
-})
-hl.window_rule({
-  match = { class = "^steam_app_381210$", title = ".*(DeadByDaylight).*" },
-  float = false,
-  no_anim = true,
-  no_blur = true,
-  border_size = 0,
-})
-
--- Warframe 
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Warframe).*" },
-  float = true,
-  no_anim = true,
-  no_blur = true,
-  border_size = 0,
-  
-})
--- hl.window_rule({
---   match = { class = "^steam_app_230410$", title = ".*(Warframe).*" },
---   float =true,
---   no_anim = true,
---   no_blur = true,
---   border_size = 0,
---   fullscreen   = false,
--- })
-
--- StardewValley 
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Stardew Valley).*" },
-  float = true,
-  no_anim = true,
-  no_blur = true,
-  border_size = 0,
-})
-
--- Wuthering Waves
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Wuthering Waves).*" },
-  float = true,
-  no_anim = true,
-  no_blur = true,
-  border_size = 0,
-})
-
--- Left4Dead2
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Left 4 Dead 2).*" },
-  float = true,
-  no_anim = true,
-  no_blur = true,
-  border_size = 0,
-})
 
 -- Tohou Fuujinroku
 hl.window_rule({
@@ -198,15 +97,6 @@ hl.window_rule({
   fullscreen = false,
 })
 
--- Deadlock configuration
-hl.window_rule({
-  match = { class = "^steam$", title = ".*(Deadlock).*" },
-  float = true,
-  no_anim = false,
-  no_blur = true,
-  border_size = 0,
-  fullscreen = false,
-})
 
 --------------------------------------------------
 -- GENERAL-RULES ---------------------------------

@@ -36,4 +36,4 @@ hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 -----------------------------------------------------------------
 ---- Native Wayland Support for Electron Apps -------------------
 -----------------------------------------------------------------
-hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
+-- hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")

@@ -3,16 +3,16 @@
 # Unicode nativo — sin Nerd Fonts ni emojis dependientes de la fuente
 
 format = """
-[█](fg:#e2b6ff)\
+[█](fg:#90d889)\
 $username\
-[█](bg:#d2c1d9 fg:#e2b6ff)\
+[█](bg:#baccb3 fg:#90d889)\
 $hostname\
-[█](bg:#f4b7ba fg:#d2c1d9)\
+[█](bg:#a0cfd4 fg:#baccb3)\
 $directory\
-[█](fg:#f4b7ba bg:#5f3280)\
+[█](fg:#a0cfd4 bg:#075315)\
 $git_branch\
 $git_status\
-[█](fg:#5f3280)\
+[█](fg:#075315)\
 $cmd_duration\
 $time\
 $line_break\
@@ -28,7 +28,7 @@ add_newline = true
 [username]
 show_always = true
 
-style_user = "bg:#e2b6ff fg:#471868 bold"
+style_user = "bg:#90d889 fg:#00390a bold"
 style_root = "bg:#ffb4ab fg:#690005 bold"
 
 format = "[✦ $user]($style)"
@@ -41,7 +41,7 @@ format = "[✦ $user]($style)"
 [hostname]
 ssh_only = false
 
-style = "bg:#d2c1d9 fg:#372c3f bold"
+style = "bg:#baccb3 fg:#253423 bold"
 
 format = "[@$hostname]($style)"
 
@@ -51,7 +51,7 @@ format = "[@$hostname]($style)"
 # ─────────────────────────────────────────────
 
 [directory]
-style = "bg:#f4b7ba fg:#4c2528 bold"
+style = "bg:#a0cfd4 fg:#00363b bold"
 
 format = "[ ◈ $path ]($style)"
 
@@ -75,7 +75,7 @@ truncation_symbol = "…/"
 [git_branch]
 symbol = "⎇ "
 
-style = "bg:#5f3280 fg:#f3daff bold"
+style = "bg:#075315 fg:#abf5a3 bold"
 
 format = "[ $symbol$branch]($style)"
 
@@ -85,7 +85,7 @@ format = "[ $symbol$branch]($style)"
 # ─────────────────────────────────────────────
 
 [git_status]
-style = "bg:#5f3280 fg:#f3daff bold"
+style = "bg:#075315 fg:#abf5a3 bold"
 
 format = "[($all_status$ahead_behind)]($style)"
 
@@ -107,7 +107,7 @@ deleted = "− "
 [cmd_duration]
 min_time = 2_000
 
-style = "bold #f4b7ba"
+style = "bold #a0cfd4"
 
 format = " ⏱ [$duration]($style)"
 
@@ -119,7 +119,7 @@ format = " ⏱ [$duration]($style)"
 [time]
 disabled = false
 
-style = "bold #e2b6ff"
+style = "bold #90d889"
 
 format = " ⯈ [$time]($style)"
 
@@ -131,5 +131,5 @@ time_format = "%H:%M"
 # ─────────────────────────────────────────────
 
 [character]
-success_symbol = "[╭─ ⮞](bold #e2b6ff) "
+success_symbol = "[╭─ ⮞](bold #90d889) "
 error_symbol = "[╭─ ⮞](bold #ffb4ab) "

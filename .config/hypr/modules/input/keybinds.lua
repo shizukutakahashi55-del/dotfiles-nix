@@ -44,7 +44,7 @@ local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 -------------------------------------------------------------------------------
 
 -- Terminal
-hl.bind(mainMod .. " + Q", hl.dsp.exec_cmd(programs.terminal))
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(programs.terminal))
 
 -- File Manager
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
@@ -77,7 +77,10 @@ hl.bind(
     hl.dsp.window.fullscreen("toggle")
 )
 
-
+-- hl.bind(
+--     "SUPER + T",
+--     hl.dsp.window.fullscreen("toggle, mode:maximized")
+-- )
 -------------------------------------------------------------------------------
 -- MASTER / COLUMN LAYOUT
 -------------------------------------------------------------------------------
@@ -392,7 +395,7 @@ hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshe
 hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- settings toggle"))
 
  -- OozeLock
-hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock "))
+hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock "))
 
 -- NixSearch with Rofi
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))

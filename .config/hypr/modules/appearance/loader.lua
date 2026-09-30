@@ -44,7 +44,6 @@ M.defaults = {
         shadow = { enabled = false, range = 0, render_power = 1 },
     },
     layouta = { layout = "scrolling" },
-
     animprofile = { profile = "smooth" },
 
 }

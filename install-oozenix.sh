@@ -2,22 +2,22 @@
 
 # ============================================================================
 #  OOZENIX INSTALLER
-#  Derived from setup-permissions.sh: adds distro detection, dependency
-#  installation, and unzipping OozeShell BEFORE running the same
-#  symlink + permissions logic from the original installer.
-#
 #  Real support: Arch Linux and NixOS. Any other distro is treated as
 #  "non-Arch" and only gets the NixOSInstallation.md file with the
 #  dependency list to install by hand (or adapt to their distro).
 # ============================================================================
 
-set -e
+set -euo pipefail
 
 DOTFILES="$HOME/dotfiles"
 NIXOS_MD="$DOTFILES/NixOSInstallation.md"
 QS_DIR="$DOTFILES/.config/quickshell"
+STAMP="$(date +%Y%m%d-%H%M%S)"
 
 INSTALL_LEGACY=false   # swaync / waybar / swayosd / wlogout / rofi
+IS_ARCH=false
+AUR_HELPER=""
+FAILED=()              # paquetes que no se pudieron instalar (resumen final)
 
 # ----------------------------------------------------------------------------
 # Helpers
@@ -25,7 +25,8 @@ INSTALL_LEGACY=false   # swaync / waybar / swayosd / wlogout / rofi
 ask_yes_no() {
   local reply
   while true; do
-    read -r -p "$1 [y/n]: " reply
+
+    read -r -p "$1 [y/n]: " reply || { echo; return 1; }
     case "$reply" in
       [yY]*) return 0 ;;
       [nN]*) return 1 ;;
@@ -40,7 +41,7 @@ create_symlink() {
 
   if [ ! -e "$source" ]; then
     echo "  [✗] Source does not exist: $source"
-    return
+    return 0
   fi
 
   mkdir -p "$(dirname "$target")"
@@ -48,24 +49,51 @@ create_symlink() {
   if [ -L "$target" ]; then
     if [ "$(readlink "$target")" = "$source" ]; then
       echo "  [✓] Already linked: $target"
-      return
+      return 0
     fi
     echo "  [!] Replacing existing symlink: $target"
     rm "$target"
   elif [ -e "$target" ]; then
     echo "  [!] Target already exists (not a symlink): $target"
-    echo "      Skipping to avoid overwriting real files."
-    return
+    if ask_yes_no "      Move it to ${target}.bak-${STAMP} and link the dotfiles version?"; then
+      mv "$target" "${target}.bak-${STAMP}"
+      echo "  [✓] Backup: ${target}.bak-${STAMP}"
+    else
+      echo "      Skipped (real file kept)."
+      return 0
+    fi
   fi
 
   ln -s "$source" "$target"
   echo "  [✓] Linked: $target -> $source"
 }
 
+
+extract_oozeshell() {
+  local zip="$1" runner="${2:-}"
+  mkdir -p "$QS_DIR"
+  if [ -d "$QS_DIR/OozeShell" ]; then
+    mv "$QS_DIR/OozeShell" "$QS_DIR/OozeShell.bak-${STAMP}"
+    echo "  [✓] Previous OozeShell moved to $QS_DIR/OozeShell.bak-${STAMP}"
+  fi
+  if [ "$runner" = "nix" ]; then
+    nix-shell -p unzip --run "unzip -qo '$zip' -d '$QS_DIR'"
+  else
+    unzip -qo "$zip" -d "$QS_DIR"
+  fi
+}
+
 echo "=========================================="
 echo "      Installing Oozenix / OozeShell"
 echo "=========================================="
 echo
+
+if [ "$(id -u)" -eq 0 ]; then
+  echo "[✗] Do not run this installer as root (makepkg refuses, and symlinks"
+  echo "    would land in /root). Run it as your normal user; sudo is used"
+  echo "    only where needed."
+  exit 1
+fi
 
 if [ ! -d "$DOTFILES" ]; then
   echo "[✗] Dotfiles directory not found: $DOTFILES"
@@ -77,10 +105,22 @@ echo
 # ----------------------------------------------------------------------------
 # 1. Arch Linux?
 # ----------------------------------------------------------------------------
-IS_ARCH=false
 if ask_yes_no "Are you using Arch Linux?"; then
   IS_ARCH=true
+  if [ ! -f /etc/arch-release ] || ! command -v pacman >/dev/null 2>&1; then
+    echo "[!] This doesn't look like Arch (no /etc/arch-release or no pacman)."
+    ask_yes_no "    Continue with the Arch branch anyway?" || exit 1
+  fi
 fi
+
+
+if $IS_ARCH; then ZIP_FILE="$DOTFILES/OozeShell-arch.zip"; else ZIP_FILE="$DOTFILES/OozeShell.zip"; fi
+if [ ! -f "$ZIP_FILE" ]; then
+  echo "[✗] Could not find $ZIP_FILE"
+  echo "    Put it there and re-run the installer."
+  exit 1
+fi
+echo "[✓] Found $(basename "$ZIP_FILE")"
 
 # ============================================================================
 # 2a. ARCH BRANCH — installs real dependencies and unzips OozeShell-arch.zip
@@ -89,121 +129,170 @@ if $IS_ARCH; then
   echo
   echo "── Arch Linux ────────────────────────────────────────────────"
 
-  AUR_HELPER=""
   for h in paru yay; do
-    command -v "$h" >/dev/null 2>&1 && AUR_HELPER="$h" && break
+    if command -v "$h" >/dev/null 2>&1; then AUR_HELPER="$h"; break; fi
   done
 
   if [ -z "$AUR_HELPER" ]; then
-    echo "[!] No AUR helper found (paru/yay). Several packages"
-    echo "    (quickshell-git, hyprshot, matugen, etc.) only live in the AUR."
+    echo "[!] No AUR helper found (paru/yay). Some packages (matugen, mpvpaper,"
+    echo "    awww, etc.) may only live in the AUR."
     if ask_yes_no "Install 'paru' now?"; then
       sudo pacman -S --needed --noconfirm base-devel git
-      git clone https://aur.archlinux.org/paru-bin.git /tmp/paru-bin
-      (cd /tmp/paru-bin && makepkg -si --noconfirm)
+      PARU_TMP="$(mktemp -d)"
+      git clone https://aur.archlinux.org/paru-bin.git "$PARU_TMP/paru-bin"
+      (cd "$PARU_TMP/paru-bin" && makepkg -si --noconfirm)
+      rm -rf "$PARU_TMP"
       AUR_HELPER="paru"
     else
-      echo "    Continuing with official packages only; install the AUR ones by hand later."
+      echo "    Continuing with official packages only; AUR ones will be reported at the end."
     fi
   fi
   echo "[✓] AUR helper: ${AUR_HELPER:-none}"
   echo
 
-  install_pacman() { [ "$#" -eq 0 ] && return; sudo pacman -S --needed --noconfirm "$@"; }
-  install_aur() {
-    [ "$#" -eq 0 ] && return
-    if [ -n "$AUR_HELPER" ]; then
-      "$AUR_HELPER" -S --needed --noconfirm "$@"
-    else
-      echo "  [!] Skipped (needs AUR, no helper): $*"
+  if ask_yes_no "Run a full system update first (sudo pacman -Syu)? Recommended on an old install"; then
+    sudo pacman -Syu --noconfirm
+  fi
+  echo
+
+  # ---- installers ----------------------------------------------------------
+
+  pkg_installed() { pacman -Qq "$1" >/dev/null 2>&1; }
+
+  install_pkgs() {
+    local repo=() aur=() p
+    for p in "$@"; do
+      if pkg_installed "$p"; then
+        continue
+      elif pacman -Si "$p" >/dev/null 2>&1; then
+        repo+=("$p")
+      else
+        aur+=("$p")
+      fi
+    done
+
+    if [ "${#repo[@]}" -gt 0 ]; then
+      if ! sudo pacman -S --needed --noconfirm "${repo[@]}"; then
+        echo "  [!] Batch failed; retrying one by one..."
+        for p in "${repo[@]}"; do
+          sudo pacman -S --needed --noconfirm "$p" || FAILED+=("$p")
+        done
+      fi
+    fi
+
+    if [ "${#aur[@]}" -gt 0 ]; then
+      if [ -z "$AUR_HELPER" ]; then
+        for p in "${aur[@]}"; do FAILED+=("$p (AUR, no helper)"); done
+      else
+
+        if ! "$AUR_HELPER" -S --needed "${aur[@]}"; then
+          echo "  [!] Batch failed; retrying one by one..."
+          for p in "${aur[@]}"; do
+            "$AUR_HELPER" -S --needed "$p" || FAILED+=("$p")
+          done
+        fi
+      fi
     fi
   }
 
-  # --- Base: official repos ---
-  PACMAN_BASE=(
+
+  install_first() {
+    local p
+    for p in "$@"; do
+      if pkg_installed "$p"; then return 0; fi
+    done
+    for p in "$@"; do
+      if pacman -Si "$p" >/dev/null 2>&1; then
+        if sudo pacman -S --needed --noconfirm "$p"; then return 0; fi
+      elif [ -n "$AUR_HELPER" ] && "$AUR_HELPER" -Si "$p" >/dev/null 2>&1; then
+        if "$AUR_HELPER" -S --needed "$p"; then return 0; fi
+      fi
+    done
+    FAILED+=("$* (ninguna variante)")
+  }
+
+  # ---- Base ------------------------------------------------------------------
+
+  BASE=(
+    base-devel git curl unzip zip zsh jq
     hyprland hyprpaper hypridle hyprlock
-    qt6-base qt6-declarative qt6-quickcontrols2 qt6-svg qt6-shadertools qt6ct
-    wireplumber brightnessctl power-profiles-daemon networkmanager network-manager-applet
-    playerctl bluez bluez-utils blueman
-    mpv ffmpeg socat wl-clipboard
-    libnotify imagemagick wtype grim slurp cava pavucontrol
-  )
-
-  # --- Base: AUR only ---
-  # "Quickshell-Wrapper": per your confirmation, this isn't a separate
-  # package — it's quickshell-git plus the Qt Quick modules above. Not
-  # installed separately.
-  AUR_BASE=(
     hyprpolkitagent hyprshot hyprsunset hyprshutdown hyprsysteminfo
-    quickshell-git
-    ttf-jetbrains-mono-nerd
-    matugen mpvpaper
-    wev
-    awww-git   # current successor to swww, confirmed with you
+    qt6-base qt6-declarative qt6-svg qt6-shadertools qt6ct
+    pipewire pipewire-pulse wireplumber
+    brightnessctl power-profiles-daemon upower
+    networkmanager network-manager-applet
+    playerctl bluez bluez-utils blueman
+    mpv mpvpaper ffmpeg socat wl-clipboard xdg-utils
+    libnotify imagemagick wtype wev grim slurp cava pavucontrol fastfetch
+    matugen
+    ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-mono
   )
 
-  echo "Installing base dependencies (pacman)..."
-  install_pacman "${PACMAN_BASE[@]}"
-  echo "Installing base dependencies (AUR)..."
-  install_aur "${AUR_BASE[@]}"
+  echo "Installing base dependencies..."
+  install_pkgs "${BASE[@]}"
+  echo "Installing quickshell and awww (release or -git, whichever is available)..."
+  install_first quickshell quickshell-git
+  install_first awww awww-git
   echo
 
   # --- Terminal ---
   echo "Choose your terminal:"
   select TERM_CHOICE in foot kitty alacritty wezterm ghostty "Already installed"; do
     case "$TERM_CHOICE" in
-      foot|kitty|alacritty|wezterm) install_pacman "$TERM_CHOICE"; break ;;
-      ghostty) install_aur ghostty; break ;;
+      foot|kitty|alacritty|wezterm|ghostty) install_pkgs "$TERM_CHOICE"; break ;;
       "Already installed") break ;;
       *) echo "Invalid option." ;;
     esac
   done
   echo
 
-  # --- NixSearch (optional) ---
-  if ask_yes_no "Install NixSearch (nix + nix-search-cli, optional)?"; then
-    install_aur nix-search-cli
-    if ! command -v nix >/dev/null 2>&1; then
-      echo "  Installing Nix (official multi-user installer)..."
-      sh <(curl -L https://nixos.org/nix/install) --daemon
-    fi
+  # --- Servicios que OozeShell usa (nmcli, bluetoothctl, powerprofilesctl) ---
+  if ask_yes_no "Enable NetworkManager, bluetooth and power-profiles-daemon services now? (skip if you use iwd/other network stack)"; then
+    for svc in NetworkManager bluetooth power-profiles-daemon; do
+      sudo systemctl enable --now "$svc" || FAILED+=("service:$svc")
+    done
+  fi
+  echo
+
+  # --- Package search ---
+  echo "[i] Package search (SUPER+U) uses paru/pacman + AUR on Arch; no Nix needed."
+  if [ -d "$DOTFILES/.config/hypr" ] && grep -rqs "nixsearch" "$DOTFILES/.config/hypr"; then
+    echo "[i] Your hypr config calls 'nixsearch': the Arch build of OozeShell keeps"
+    echo "    that IPC name as an alias for PacSearch, so the same bind keeps working."
   fi
   echo
 
   # --- Tools OozeShell replaces ---
   if ask_yes_no "OozeShell already integrates the bar/notifications/launcher/logout. Install swaync, waybar, swayosd, wlogout and rofi anyway, in case you want them separately?"; then
     INSTALL_LEGACY=true
-    install_pacman swaync waybar rofi
-    install_aur wlogout swayosd
+    install_pkgs swaync waybar rofi wlogout swayosd
   fi
   echo
 
-  # --- Extras ("Continue next") ---
+  # --- Extras ---
   if ask_yes_no "Also install the extras bundle (dev tools, gaming, misc utilities)?"; then
-    PACMAN_EXTRA=(
-      greetd udisks2 rtkit flatpak zip unzip yazi neovim starship
-      fd ripgrep jq dolphin nomacs gamemode lutris mangohud wine
-      curl git github-cli jdk21-openjdk lazygit python python-pip tree
-      qt6-quick3d wget vim
+    EXTRAS=(
+      greetd greetd-tuigreet udisks2 rtkit flatpak yazi neovim starship
+      fd ripgrep dolphin nomacs gamemode lutris mangohud wine
+      github-cli jdk21-openjdk lazygit python python-pip tree
+      qt6-quick3d wget vim uv ruff
+      bibata-cursor-theme prismlauncher protonplus protontricks
+      goverlay vscodium-bin nixd nixfmt pw-viz
     )
-
-    AUR_EXTRA=(
-      greetd-tuigreet bibata-cursor-theme prismlauncher protonplus protontricks
-      goverlay vscodium-bin nixd nixfmt python-uv pw-viz ruff
-    )
-    install_pacman "${PACMAN_EXTRA[@]}"
-    install_aur "${AUR_EXTRA[@]}"
+    install_pkgs "${EXTRAS[@]}"
+    echo "[i] greetd and rtkit were installed but NOT configured/enabled; set them up by hand if you want them."
   fi
 
   echo
   echo "[✓] Unzipping OozeShell-arch.zip..."
-  mkdir -p "$QS_DIR"
-  if [ -f "$DOTFILES/OozeShell-arch.zip" ]; then
-    unzip -o "$DOTFILES/OozeShell-arch.zip" -d "$QS_DIR"
-  else
-    echo "  [✗] Could not find $DOTFILES/OozeShell-arch.zip"
-    echo "      Put it there and re-run the installer."
-    exit 1
+  extract_oozeshell "$ZIP_FILE"
+
+  FC_SRC="$QS_DIR/OozeShell/tools/fonts/99-oozeshell-pixel.conf"
+  if [ -f "$FC_SRC" ]; then
+    mkdir -p "$HOME/.config/fontconfig/conf.d"
+    cp -f "$FC_SRC" "$HOME/.config/fontconfig/conf.d/"
+    fc-cache -f >/dev/null 2>&1 || true
+    echo "[✓] fontconfig installed (icon fallback)"
   fi
 
 # ============================================================================
@@ -216,35 +305,21 @@ else
   echo "distro, the dependency list still lands in $NIXOS_MD for you to adapt."
   echo
 
-  HAVE_UNZIP=false
   if command -v unzip >/dev/null 2>&1; then
-    HAVE_UNZIP=true
-  fi
-
-  if ! $HAVE_UNZIP; then
+    echo "[✓] Unzipping OozeShell.zip..."
+    extract_oozeshell "$ZIP_FILE"
+  else
     echo "[!] I can't find 'unzip' installed."
+    if ! command -v nix-shell >/dev/null 2>&1; then
+      echo "  [✗] 'nix-shell' isn't available either (not NixOS / Nix not installed)."
+      echo "      Install 'unzip' with your package manager and re-run the installer."
+      exit 1
+    fi
     if ask_yes_no "Can I open a temporary nix-shell with unzip to extract it (installs nothing permanent)?"; then
-      mkdir -p "$QS_DIR"
-      if [ -f "$DOTFILES/OozeShell.zip" ]; then
-        nix-shell -p unzip --run "unzip -o '$DOTFILES/OozeShell.zip' -d '$QS_DIR'"
-        HAVE_UNZIP=true
-      else
-        echo "  [✗] Could not find $DOTFILES/OozeShell.zip — put it there and re-run the installer."
-        exit 1
-      fi
+      extract_oozeshell "$ZIP_FILE" nix
     else
       echo "  [✗] Without unzip I can't continue with this step."
       echo "      Extract OozeShell.zip by hand into $QS_DIR and re-run the installer."
-      exit 1
-    fi
-  else
-    echo "[✓] Unzipping OozeShell.zip..."
-    mkdir -p "$QS_DIR"
-    if [ -f "$DOTFILES/OozeShell.zip" ]; then
-      unzip -o "$DOTFILES/OozeShell.zip" -d "$QS_DIR"
-    else
-      echo "  [✗] Could not find $DOTFILES/OozeShell.zip"
-      echo "      Put it there and re-run the installer."
       exit 1
     fi
   fi
@@ -267,7 +342,6 @@ You can also skip all of this by using directly:
 
 - Ready-made system config: https://github.com/shizukutakahashi55-del/nix-home
 - User dotfiles ready for OozeShell: https://github.com/shizukutakahashi55-del/dotfiles-nix
- 
 
 ## Base
 
@@ -276,10 +350,11 @@ You can also skip all of this by using directly:
 - Quickshell (quickshell-git) — includes the Qt Quick wrapper/dependencies
 - Qt6: QtQuick, QtQuick.Controls, QtQuick.Layouts, QtQuick.Shapes,
   QtQuick.Effects, QtQml, qt6ct
-- Nerd Font: "JetBrainsMono Nerd Font"
-- wpctl (wireplumber)
+- Nerd Fonts: "JetBrainsMono Nerd Font" and "Symbols Nerd Font Mono"
+- wpctl, pw-dump, pw-link (pipewire + wireplumber)
 - brightnessctl
 - powerprofilesctl (power-profiles-daemon)
+- upower
 - nmcli (NetworkManager) + networkmanagerapplet
 - playerctl
 - bluetoothd (BlueZ) / Blueman
@@ -288,6 +363,9 @@ You can also skip all of this by using directly:
 - ffmpeg
 - socat
 - wl-copy (wl-clipboard)
+- xdg-utils (xdg-open)
+- jq
+- fastfetch
 - pgrep
 - A terminal: foot, kitty, alacritty, wezterm, or ghostty
 - libnotify
@@ -302,7 +380,7 @@ You can also skip all of this by using directly:
 
 ## Optional — NixSearch
 
-- nix-search / nix-search-cli
+- nix-search / nix-search-cli (search runs from OozeShell's NixSearch panel)
 - nix (nix shell / nix profile install from NixSearch)
 
 If not installed, the rest of OozeShell still works.
@@ -321,12 +399,12 @@ case you want to use them separately:
 
 ## Extras (dev tools, gaming, utilities)
 
-greetd, udisks2, pw-viz, rtkit, wireplumber, flatpak, zip, unzip, yazi,
-neovim, starship, fd, ripgrep, jq, dolphin, nomacs, Adwaita-style dark
+greetd, udisks2, pw-viz, rtkit, flatpak, zip, unzip, yazi,
+neovim, starship, fd, ripgrep, dolphin, nomacs, Adwaita-style dark
 theme, Bibata-Modern-Classic cursors, gamemode, lutris, mangohud,
 prismlauncher, protonplus, wine, protontricks, goverlay, curl, git, gh,
 jdk21, lazygit, python3, python3Packages.pip, vscodium-fhs, nixd,
-nixfmt-rfc-style, nix-search-cli, ruff, tree, qt6.qtquick3d,
+nixfmt-rfc-style, ruff, tree, qt6.qtquick3d,
 qt6.qtdeclarative, uv, wget, vim
 EOF
   echo "[✓] Done: $NIXOS_MD"
@@ -376,14 +454,21 @@ echo
 echo "Creating home & binary symlinks..."
 
 create_symlink "$DOTFILES/.zshrc" "$HOME/.zshrc"
-create_symlink "$DOTFILES/nix-rofi" "$HOME/.local/bin/nix-rofi"
+# nix-rofi depends on nix-search: only useful on the NixOS branch
+if ! $IS_ARCH; then
+  create_symlink "$DOTFILES/nix-rofi" "$HOME/.local/bin/nix-rofi"
+fi
 
 echo
 echo "Granting execution permissions..."
 
 scripts=(
-  "$DOTFILES/nix-rofi"
+  "$QS_DIR/OozeShell/OozeAudio/backend/audio.sh"
 )
+
+if ! $IS_ARCH; then
+  scripts+=("$DOTFILES/nix-rofi")
+fi
 
 if $INSTALL_LEGACY; then
   scripts+=(
@@ -404,6 +489,18 @@ for script in "${scripts[@]}"; do
 done
 
 echo
+if [ "${#FAILED[@]}" -gt 0 ]; then
+  echo "=========================================="
+  echo "  [!] These packages/services were NOT installed:"
+  for f in "${FAILED[@]}"; do echo "      - $f"; done
+  echo "  Check the names with: pacman -Ss <name>  /  ${AUR_HELPER:-paru} -Ss <name>"
+  echo "=========================================="
+  echo
+fi
+
 echo "=========================================="
 echo "       Oozenix installation complete!"
 echo "=========================================="
+if $IS_ARCH; then
+  echo "Start it with:  quickshell -c OozeShell"
+fi

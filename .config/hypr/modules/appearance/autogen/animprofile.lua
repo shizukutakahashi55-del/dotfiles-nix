@@ -1,6 +1,4 @@
--- Auto-generado por OozeShell (Ajustes avanzados → Apariencia → Perfil de animación).
--- No editar a mano: se pisa cada vez que cambias el perfil desde el panel.
--- Lo lee animations.lua para elegir de su tabla `perfiles`.
+-- Auto-generado por OozeShell (APPEARANCE). No editar a mano.
 return {
     profile = "smooth",
 }

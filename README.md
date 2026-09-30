@@ -1,247 +1,131 @@
-# NixOS Dotfiles
+# Oozenix Dotfiles
 
-Personal dotfiles for a **NixOS + Hyprland + NVIDIA** Wayland desktop, focused on customization, dynamic theming, desktop utilities, and a highly integrated **OozeShell** experience.
+Personal dotfiles for a **Hyprland** Wayland desktop on **NixOS** (main target) and **Arch Linux**, centered around **OozeShell**, a custom **Quickshell / Qt6** desktop shell.
 
-These dotfiles are centered around **OozeShell**, a custom QuickShell-based desktop shell that replaces or integrates several traditional desktop components such as the bar, launcher, notification interface, wallpaper selector, media controls, system controls, and more.
+OozeShell replaces the bar, launcher, notification center, lock screen, wallpaper selector, dock, media controls, power menu and most system panels with a single, themeable shell.
 
-> **⚠️ Highly recommended:** Use these dotfiles together with **Nix Home / NixOS configuration** to ensure all required packages, services, fonts, and system dependencies are available.
->
-> If you are not using the accompanying NixOS configuration, read the entire README and install the required dependencies manually.
+> **⚠️ Important:** This repository contains user-level configuration from my personal system. It is a starting point and may need adjustments for your hardware, usernames, monitors, GPU, paths and installed packages (the Hyprland config is written for an NVIDIA machine).
 
-> **⚠️ Important:** This repository contains user-level configuration from my personal system. It is provided as a starting point and may require adjustments for different hardware, usernames, paths, monitors, GPUs, installed packages, and desktop environments.
+> **💡 NixOS users:** the easiest path is to combine these dotfiles with my system configuration: [nix-home](https://github.com/shizukutakahashi55-del/nix-home). It already provides every package, service and font that OozeShell needs.
 
 ---
 
-## 📋 Requirements
+## 📑 Table of contents
 
-### Base
-
-* **NixOS**
-* **Wayland**
-* **Hyprland**
-* **NVIDIA GPU** recommended for the current configuration
-* **JetBrainsMono Nerd Font**
-* A supported terminal emulator:
-
-  * Foot
-  * Kitty
-  * Alacritty
-  * WezTerm
-  * Ghostty
-
-System-level packages, drivers, services, and NixOS configuration are maintained separately in:
-
-* [nix-home](https://github.com/shizukutakahashi55-del/nix-home)
-
-This repository is primarily responsible for **user-level configuration**.
+* [Supported systems](#-supported-systems)
+* [Quick start](#-quick-start)
+* [What the installer does](#-what-the-installer-does)
+* [Symlinks](#-symlinks-created-by-the-installer)
+* [Dependencies](#-dependencies)
+* [OozeShell](#-oozeshell)
+* [Controlling OozeShell (IPC)](#-controlling-oozeshell-ipc)
+* [Dynamic theming](#-dynamic-theming)
+* [Wallpapers](#-wallpapers)
+* [Legacy configs (Waybar, Rofi, SwayNC, SwayOSD)](#-legacy-configs)
+* [Repository structure](#-repository-structure)
+* [Screenshots](#-screenshots)
+* [Removing the dotfiles](#-removing-the-dotfiles)
+* [Troubleshooting](#-troubleshooting)
 
 ---
 
-## 🖥️ OozeShell Requirements
+## 🖥️ Supported systems
 
-OozeShell is the main component of these dotfiles and is built with **QuickShell / Qt6**.
-
-### QuickShell
-
-* **QuickShell** / `quickshell-git`
-* QuickShell wrapper/helper used by the configuration
-
-### Qt6 modules
-
-OozeShell requires Qt6 with the following components:
-
-* `QtQuick`
-* `QtQuick.Controls`
-* `QtQuick.Layouts`
-* `QtQuick.Shapes`
-* `QtQuick.Effects`
-* `QtQml`
-
-### System utilities used by OozeShell
-
-| Dependency         | Purpose                            |
-| ------------------ | ---------------------------------- |
-| `wpctl`            | WirePlumber / audio control        |
-| `brightnessctl`    | Brightness control                 |
-| `powerprofilesctl` | Power profile control              |
-| `nmcli`            | NetworkManager / Wi-Fi connections |
-| `playerctl`        | Media player / MPRIS control       |
-| `bluetoothd`       | Bluetooth through BlueZ / D-Bus    |
-| `matugen`          | Dynamic wallpaper-based theming    |
-| `mpvpaper`         | Wallpaper/video playback           |
-| `mpv`              | Backend for mpvpaper               |
-| `ffmpeg`           | Media processing                   |
-| `socat`            | IPC / communication utilities      |
-| `wl-copy`          | Wayland clipboard support          |
-| `pgrep`            | Process detection                  |
-
-### NixSearch
-
-The Nix package search functionality is **optional**.
-
-If you want to use the Nix package search integration:
-
-* `nix-search` / `nix-search-cli`
-* `nix`
-
-`wl-copy` is also used by the NixSearch interface for copying results.
-
-If NixSearch is not installed, the rest of OozeShell remains functional.
+| System                   | Support                                                                                                                          |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| **NixOS**                | Main target. Uses `OozeShell.zip`. Search panel is **NixSearch**.                                                                |
+| **Arch Linux**           | Supported. The installer installs the dependencies for you and uses `OozeShell-arch.zip`. Search panel is **PacSearch** (pacman + AUR). |
+| **Any other distro**     | Not officially supported. The installer treats it as "non-Arch" and generates `NixOSInstallation.md` with the dependency list to adapt by hand. |
 
 ---
 
-## 📦 Included
+## 🚀 Quick start
 
-| Component         | Purpose                               |
-| ----------------- | ------------------------------------- |
-| **Hyprland**      | Wayland compositor                    |
-| **OozeShell**     | Main QuickShell-based desktop shell   |
-| **QuickShell**    | Framework used by OozeShell           |
-| **Rofi**          | Launcher / utility fallback           |
-| **Waybar**        | Alternative bar configuration         |
-| **SwayNC**        | Notification daemon configuration     |
-| **SwayOSD**       | Volume / brightness OSD configuration |
-| **Kitty**         | Terminal configuration                |
-| **WezTerm**       | Terminal configuration                |
-| **Ghostty**       | Terminal configuration                |
-| **Foot**          | Terminal configuration                |
-| **Alacritty**     | Terminal configuration                |
-| **Yazi**          | Terminal file manager                 |
-| **Neovim**        | Editor configuration                  |
-| **Cava**          | Audio visualizer                      |
-| **Fastfetch**     | System information                    |
-| **Matugen**       | Dynamic color generation              |
-| **Starship**      | Shell prompt                          |
-| **Zsh**           | Shell configuration                   |
-| **nix-rofi**      | Nix package search utility            |
-| **git-update**    | Git commit/push helper                |
-| **Vesktop theme** | Custom Vesktop theme configuration    |
+### 1. Clone the repository into `~/dotfiles`
 
----
-
-# 🌸 OozeShell
-
-**OozeShell** is the main focus of this repository.
-
-It is a custom **QuickShell** desktop environment layer designed around Hyprland and integrates several desktop functions into a single shell.
-
-Current functionality includes:
-
-* Desktop bar
-* Application launcher
-* Notification center
-* Wallpaper selector
-* Media / MPRIS controls
-* Power controls
-* Bluetooth controls
-* Brightness controls
-* Network controls
-* Taskbar
-* Monitor selector
-* Appearance controls
-* Nix package search
-* Logout / power menu
-* Dynamic Matugen theming
-* Keyboard shortcut cheatsheet
-* Vim shortcuts tab
-* Language selector
-* Various system widgets and controls
-
-### Default keybind integrations
-
-Some functionality is exposed through Hyprland keybinds, including:
-
-| Keybind     | Function            |
-| ----------- | ------------------- |
-| `SUPER + I` | Keybinds cheatsheet |
-| `SUPER + L` | Monitor picker      |
-| `SUPER + G` | Language picker     |
-| `SUPER + U` | Nix package search  |
-
-The exact keybindings may change as OozeShell develops.
-
-### Language picker
-
-The current language selector includes:
-
-* English
-* Español
-* Bahasa Indonesia
-* 日本語
-
----
-
-# 🚀 Installation
-
-## 1. Clone the repository
-
-Clone the repository into your home directory:
+The installer expects the repository to live exactly at `~/dotfiles`.
 
 ```bash
-# SSH
-git clone git@github.com:shizukutakahashi55-del/dotfiles.git ~/dotfiles
-
 # HTTPS
-git clone https://github.com/shizukutakahashi55-del/dotfiles.git ~/dotfiles
+git clone https://github.com/shizukutakahashi55-del/dotfiles-nix.git ~/dotfiles
+
+# SSH
+git clone git@github.com:shizukutakahashi55-del/dotfiles-nix.git ~/dotfiles
 
 cd ~/dotfiles
 ```
 
----
-
-## 2. Review the configuration
-
-Before installing, review the configuration for your system.
+### 2. Review the configuration
 
 At minimum, check:
 
 * Username and paths
-* GPU / NVIDIA configuration
-* Monitor configuration
-* Keyboard layout
-* Input settings
+* NVIDIA / GPU environment variables
+* Monitor configuration (`hypr/modules/hardware`)
+* Keyboard layout and input settings
 * Wallpaper directory
-* Startup applications
-* Hyprland keybindings
-* Terminal configuration
-* Fonts
-* Matugen configuration
-* OozeShell paths
-* Installed applications
+* Startup applications and keybindings
+* Terminal choice
 
-Most paths use `$HOME` or `~`, so the configuration should not require replacing a hardcoded username.
+Most paths use `$HOME` or `~`, so no hardcoded username should be needed.
+
+### 3. Run the installer
+
+```bash
+chmod +x install-oozenix.sh
+./install-oozenix.sh
+```
+
+> Run it as your **normal user**, not as root. The installer refuses to run as root; `sudo` is used only where needed.
+
+### 4. Start OozeShell
+
+```bash
+quickshell -c OozeShell
+```
+
+Normally Hyprland starts it for you from its startup module. On Arch the installer prints the command above when it finishes.
 
 ---
 
-## 3. Run the installer
+## 🧰 What the installer does
 
-Make the installer executable:
+`install-oozenix.sh` is interactive and asks before doing anything invasive.
 
-```bash
-chmod +x setup-permissions.sh
-```
+**Common steps**
 
-Then run:
+1. Checks that it is not running as root and that `~/dotfiles` exists.
+2. Asks **"Are you using Arch Linux?"**
+3. Picks the right OozeShell archive from `~/dotfiles`:
+   * Arch → `OozeShell-arch.zip`
+   * Anything else → `OozeShell.zip`
+4. Extracts it into `~/dotfiles/.config/quickshell/OozeShell`. An existing `OozeShell` folder is **moved** to `OozeShell.bak-<timestamp>`, never deleted.
+5. Asks whether to also set up the legacy tools (swaync, waybar, swayosd, wlogout, rofi).
+6. Creates the symlinks and sets executable permissions (see below).
 
-```bash
-./setup-permissions.sh
-```
+**Arch branch**
 
-The installer:
+* Detects `paru` or `yay`; offers to install `paru` if neither exists.
+* Optionally runs `sudo pacman -Syu`.
+* Installs the base dependencies (repo packages via `pacman`, the rest via the AUR helper). If a batch fails it retries package by package and lists everything that failed at the end.
+* Installs `quickshell` and `awww` (release or `-git`, whichever is available).
+* Lets you choose a terminal: foot, kitty, alacritty, wezterm or ghostty (or "already installed").
+* Optionally enables the `NetworkManager`, `bluetooth` and `power-profiles-daemon` services.
+* Optionally installs the legacy tools and an **extras bundle** (dev tools, gaming, utilities). `greetd` and `rtkit` are installed but **not** configured.
+* Installs the pixel-font fallback config (`99-oozeshell-pixel.conf`) into `~/.config/fontconfig/conf.d/` and refreshes the font cache.
 
-* Creates `~/.config`
-* Creates `~/.local/bin`
-* Creates symbolic links for configuration directories
-* Links `.zshrc`
-* Links `nix-rofi`
-* Links the Vesktop theme directory
-* Applies executable permissions to required scripts
+**Non-Arch / NixOS branch**
+
+* Extracts `OozeShell.zip` (if `unzip` is missing, it can open a temporary `nix-shell -p unzip`; nothing permanent is installed).
+* Writes `~/dotfiles/NixOSInstallation.md` with the full dependency list, phrased as "what you need available" rather than exact Nix attribute names.
+* Links `nix-rofi` into `~/.local/bin`.
+* Does **not** install packages. Use [nix-home](https://github.com/shizukutakahashi55-del/nix-home) or your own Nix configuration for that.
 
 ---
 
 ## 🔗 Symlinks created by the installer
 
-The installer currently manages the following configuration paths:
+Always linked:
 
 ```text
 ~/.config/alacritty
@@ -254,309 +138,333 @@ The installer currently manages the following configuration paths:
 ~/.config/matugen
 ~/.config/nvim
 ~/.config/quickshell
+~/.config/wezterm
+~/.config/yazi
+~/.config/starship.toml
+
+~/.config/Vesktop/Themes   -> ~/dotfiles/.config/VK-Th
+~/.zshrc
+```
+
+Only when you answer **yes** to the legacy tools question:
+
+```text
 ~/.config/rofi
 ~/.config/swaync
 ~/.config/swayosd
 ~/.config/waybar
-~/.config/wezterm
-~/.config/yazi
-
-~/.config/starship.toml
-
-~/.config/Vesktop/Themes
-
-~/.zshrc
-
-~/.local/bin/nix-rofi
 ```
 
-For example:
+Only on the **non-Arch (NixOS)** branch:
 
 ```text
-~/.config/hypr
-    -> ~/dotfiles/.config/hypr
-
-~/.config/quickshell
-    -> ~/dotfiles/.config/quickshell
-
-~/.config/matugen
-    -> ~/dotfiles/.config/matugen
-
-~/.local/bin/nix-rofi
-    -> ~/dotfiles/nix-rofi
+~/.local/bin/nix-rofi      -> ~/dotfiles/nix-rofi
 ```
 
-Because these are symbolic links, editing:
+Example:
 
 ```text
-~/.config/hypr/
+~/.config/hypr        -> ~/dotfiles/.config/hypr
+~/.config/quickshell  -> ~/dotfiles/.config/quickshell
 ```
 
-actually modifies:
+Because everything is a symbolic link, editing `~/.config/hypr/` actually edits `~/dotfiles/.config/hypr/`. There is no sync step.
 
-```text
-~/dotfiles/.config/hypr/
-```
+### Existing files and links
 
-There is no separate synchronization step.
+| Situation at the target                              | What the installer does                                                         |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Nothing there                                        | Creates the link.                                                               |
+| Already a link to the right place                    | Leaves it alone.                                                                |
+| A link pointing somewhere else                       | Replaces the link.                                                              |
+| A real file or directory                             | **Asks** whether to move it to `<target>.bak-<timestamp>` and link the dotfiles version. Answer `n` to keep yours (that item is skipped). |
 
----
+### Executable permissions
 
-## ⚠️ Installer behavior
+The installer runs `chmod +x` on:
 
-The installer is designed to avoid overwriting existing configuration.
+* `OozeShell/OozeAudio/backend/audio.sh`
+* `nix-rofi` (NixOS branch only)
+* If legacy tools were enabled: the Rofi launcher / powermenu / bluetooth scripts and `waybar-theme-switcher.sh`
 
-If a target already exists as a **real file or directory**, it is skipped.
+### `git-update`
 
-If a target is already a symbolic link pointing to the correct dotfiles location, it is left unchanged.
-
-If a target is an existing symbolic link pointing somewhere else, the installer replaces that symbolic link.
-
-> **⚠️ Back up your configuration before installing if you want a clean setup.**
-
-For example:
+`git-update` is in the repository but is **not** linked automatically. Install it manually:
 
 ```bash
-mv ~/.config/hypr ~/.config/hypr.backup
-```
-
-Then run the installer again.
-
----
-
-## 🧩 `git-update`
-
-`git-update` is included in the repository but is **not currently linked automatically by `setup-permissions.sh`**.
-
-You can run it directly:
-
-```bash
-~/dotfiles/git-update
-```
-
-Or manually install the symlink:
-
-```bash
-ln -s ~/dotfiles/git-update ~/.local/bin/git-update
 chmod +x ~/dotfiles/git-update
+ln -s ~/dotfiles/git-update ~/.local/bin/git-update
+```
+
+Make sure `~/.local/bin` is in your `PATH`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
 ```
 
 ---
 
-## 🛠️ Utilities
+## 📦 Dependencies
 
-### `nix-rofi`
+On **Arch** the installer takes care of all of this. On **NixOS** use [nix-home](https://github.com/shizukutakahashi55-del/nix-home) or the generated `NixOSInstallation.md`.
 
-`nix-rofi` is a Rofi-based Nix package search utility.
+### Base
 
-It is installed through:
+| Group           | Packages / tools                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------------------ |
+| Compositor      | `hyprland`, `hyprpaper`, `hypridle`, `hyprlock`, `hyprpolkitagent`, `hyprshot`, `hyprsunset`, `hyprshutdown`, `hyprsysteminfo` |
+| Shell framework | `quickshell` (or `quickshell-git`)                                                                           |
+| Qt6             | QtQuick, QtQuick.Controls, QtQuick.Layouts, QtQuick.Shapes, QtQuick.Effects, QtQml, `qt6ct` (`qt6-base`, `qt6-declarative`, `qt6-svg`, `qt6-shadertools`) |
+| Audio           | `pipewire`, `pipewire-pulse`, `wireplumber` (`wpctl`, `pw-dump`, `pw-link`), `pavucontrol`                   |
+| Hardware        | `brightnessctl`, `power-profiles-daemon` (`powerprofilesctl`), `upower`                                      |
+| Network / BT    | `networkmanager` (`nmcli`) + applet, `bluez` / `bluez-utils` (`bluetoothd`), `blueman`                       |
+| Media           | `playerctl`, `mpv`, `mpvpaper`, `ffmpeg`, `cava`                                                             |
+| Wallpaper       | `awww` (successor to `swww`), `imagemagick`                                                                  |
+| Theming         | `matugen`                                                                                                    |
+| Utilities       | `socat`, `jq`, `wl-clipboard` (`wl-copy`), `xdg-utils`, `libnotify`, `wtype`, `wev`, `grim`, `slurp`, `fastfetch`, `pgrep` |
+| Fonts           | **JetBrainsMono Nerd Font**, **Symbols Nerd Font Mono**                                                      |
+| Terminal        | One of: foot, kitty, alacritty, wezterm, ghostty                                                             |
 
-```text
-~/.local/bin/nix-rofi
-```
+### Optional
 
-Run it with:
-
-```bash
-nix-rofi
-```
-
-The NixSearch integration is also available from OozeShell.
-
-It depends on the Nix search CLI being installed.
-
-If `nix-search` is unavailable, only the NixSearch functionality is affected.
-
----
-
-# 🎨 Dynamic Theming
-
-This configuration uses **Matugen** to generate colors dynamically from the current wallpaper.
-
-Matugen can generate themes for several applications, including:
-
-* Hyprland
-* Waybar
-* Rofi
-* SwayNC
-* SwayOSD
-* Cava
-* Starship
-* Yazi
-* Kitty
-* Other OozeShell components
-
-Templates are located in:
-
-```text
-~/.config/matugen/templates/
-```
-
-and the main configuration is:
-
-```text
-~/.config/matugen/config.toml
-```
+* **NixSearch** (NixOS): `nix-search` / `nix-search-cli` and `nix`. If missing, only that panel is affected.
+* **PacSearch** (Arch): uses `pacman` and `paru`/`yay`. No Nix needed. The Arch build keeps the `nixsearch` IPC name as an alias, so the same keybind keeps working.
+* **Pixel style fonts** for the CoOzey theme: Pixelify Sans, Jersey 10, Silkscreen, VT323, DotGothic16. See `OozeShell/tools/fonts/fonts.nix.example` for a NixOS snippet.
+* **Extras bundle** (Arch installer option): yazi, neovim, starship, fd, ripgrep, dolphin, nomacs, lazygit, gh, gamemode, lutris, mangohud, wine, prismlauncher, protonplus, and more.
 
 ---
 
-# 🎨 Waybar
+# 🌸 OozeShell
 
-Waybar is included as an alternative to OozeShell.
+**OozeShell** is the main component of these dotfiles: a Quickshell shell written in QML, built around Hyprland. Everything is shared between surfaces except where noted.
 
-It can be styled in two ways.
+### Interface modes
 
-### Matugen
+| Mode              | Description                                                                                       |
+| ----------------- | ------------------------------------------------------------------------------------------------- |
+| **Bar**           | Classic bar at the **top, bottom, left or right**, optionally **floating**, with optional screen-corner "frame". |
+| **Islands**       | No bar background; each popup grows out of its own island.                                        |
+| **Pill + Dashboard** | A compact pill (clock, workspaces, taskbar, tray, notifications) that opens a full **Dashboard**. |
 
-Matugen dynamically generates:
+Two visual styles are available: **OozeSoft** (flat, thin borders) and **CoOzey** (cozy pixel style), each with light/dark mode.
 
-```text
-~/.config/waybar/style.css
-```
+### Features
 
-using:
+* **Bar / Pill / Dock**: taskbar, tray, workspaces, clock, privacy indicators, battery and brightness modules, and a separate floating **Dock** with pinned and running apps (auto-hide, top/bottom position, auto-flips away from a horizontal bar).
+* **Dashboard**: overview, performance gauges, audio, calendar, media (MPRIS), power and quick access.
+* **Launcher**: modes for **apps**, **windows**, **run** and **files**, with a built-in calculator.
+* **Package search**: NixSearch (NixOS) / PacSearch (Arch).
+* **Overview**: workspace overview with live window previews.
+* **Notification center** with toasts and Do Not Disturb.
+* **Agenda**: calendar with a to-do list and alarms (right-click the clock).
+* **Wallpaper selector**: static images and **live video wallpapers** (`mpvpaper`), with palette extraction through Matugen.
+* **Media / MPRIS** controls with audio waves.
+* **Audio**: output/input selection, sliders, OSD, and **OozeAudio**, a separate window for routing/connections built on PipeWire.
+* **Network**, **Bluetooth** and **power profile** menus.
+* **Native lock screen (OozeLock)** using `ext-session-lock-v1` and PAM. Replaces `hyprlock`; background is the wallpaper at the moment of locking (or a custom image); includes a Caps Lock indicator.
+* **OSDs**: volume/microphone, Caps Lock and keyboard layout.
+* **Power menu** (logout, suspend, reboot, shutdown) as a full-screen modal.
+* **Screenshots**: area copy, area save and full save.
+* **Monitor selector and editor**, with automatic detection of the focused monitor.
+* **Keybinds cheatsheet** and Vim shortcuts tab.
+* **Advanced Settings**: Profile, General, Hyprland / Monitor, Appearance, Interface, Agenda, Services, Audio and About, with a searchable settings registry.
+* **Appearance controls** that generate Hyprland theme files (`autogen/theme.lua`, layout and animation profile: smooth, snappy, playful, minimal, dramatic, dramatic_side).
+* **Languages**: English, Español, Bahasa Indonesia, 日本語.
+* **Dynamic theming** through Matugen.
 
-```toml
-[templates.waybar]
+### Default keybind integrations
 
-input_path  = "~/.config/matugen/templates/waybar.css"
-output_path = "~/.config/waybar/style.css"
+Some functionality is bound in the Hyprland config:
 
-post_hook   = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
-```
+| Keybind     | Function            |
+| ----------- | ------------------- |
+| `SUPER + I` | Keybinds cheatsheet |
+| `SUPER + L` | Monitor picker      |
+| `SUPER + G` | Language picker     |
+| `SUPER + U` | Package search      |
 
-### Static themes
+The exact keybindings may change as OozeShell develops. Check `hypr/modules` for the current ones.
 
-Static themes are available in:
+### Lock screen and idle
 
-```text
-.config/waybar/themes/
-```
-
-List them with:
+OozeLock is called from both `hypridle` and a keybind through IPC:
 
 ```bash
-ls ~/dotfiles/.config/waybar/themes
+quickshell ipc -c OozeShell call lock lock
 ```
 
-The included theme switcher can be used with:
-
-```bash
-./.config/waybar/themes/waybar-theme-switcher.sh
-```
-
-### ⚠️ Matugen vs static themes
-
-These two methods are mutually exclusive because both can write to:
+### Project layout
 
 ```text
-~/.config/waybar/style.css
+OozeShell/
+├── shell.qml            # entry point, popups and all IPC handlers
+├── BAR/  PILL/  DOCK/  DASHBOARD/  MENU/
+├── AUDIO/  BLUETOOTH/  NETWORK/  POWER/  BATTERY/  BRIGHTNESS/  PRIVACY/
+├── Launcher/  NixSearch/  OVERVIEW/  NOTIFY/  AGENDA/  MPRIS/
+├── WALLS/  LOCK/  CAPS/  SCREENSHOT/  MONITOR/  Keybinds/
+├── SETTINGS/  APPEARANCE/  LANG/  COMMON/   # shared theme and widgets
+├── OozeAudio/           # standalone audio routing window
+├── native/              # AnimationController (C++ helper)
+├── assets/fonts/        # bundled Varela Round
+└── tools/               # check.sh, fonts
 ```
 
-If you want to use a static Waybar theme, disable the `[templates.waybar]` section in Matugen and restart Waybar.
+To sanity-check the shell after editing (page registry, translations in all four languages, `qmllint`):
+
+```bash
+cd ~/.config/quickshell/OozeShell
+bash tools/check.sh
+```
+
+---
+
+## 🎛️ Controlling OozeShell (IPC)
+
+Everything can be driven from a keybind or a script:
+
+```bash
+quickshell ipc -c OozeShell call <target> <function> [args]
+```
+
+| Target          | Functions (examples)                                                                         |
+| --------------- | -------------------------------------------------------------------------------------------- |
+| `bar`           | `position top\|bottom\|left\|right`, `togglePosition`, `floating true\|false`, `toggleFloating`, `islands`, `pill`, `togglePill`, `get` |
+| `corners`       | `toggle`, `set true\|false`, `get` (screen-corner frame)                                     |
+| `settings`      | `toggle`, `open`, `close`, `get` (opens Advanced Settings)                                   |
+| `theme`         | `mode light\|dark`, `toggle`, `style cozy\|soft`, `styleGet`, `softfont`                     |
+| `appearance`    | `toggle`, `get`, `set <key> <value>`                                                         |
+| `launcher`      | `toggle`, `open <apps\|windows\|run\|files>`, `close`                                        |
+| `nixsearch`     | `toggle`, `open <query>`, `close`                                                            |
+| `overview`      | `toggle`, `open`, `close`                                                                    |
+| `menu` / `network` / `bluetooth` / `mpris` / `keybinds` | `toggle`                                                     |
+| `audio`         | `toggle`, `raise`, `lower`, `mute`, `micToggle`, `micRaise`, `micLower`                      |
+| `notify`        | `toggle`, `show <text>`, `toggleDnd`, `enableDnd`, `disableDnd`, `isDnd`, `clear`            |
+| `agenda`        | `toggle`, `open`, `close`                                                                    |
+| `toggleWalls`   | `handle` (wallpaper selector)                                                                |
+| `screenshot`    | `areaCopy`, `areaSave`, `fullSave`                                                           |
+| `powermenu`     | `toggle`, `open`, `close`                                                                    |
+| `lock`          | `lock`, `locked`                                                                             |
+| `monitor`       | `set <name\|auto>`, `get`, `current`, `list`, `togglePicker`                                 |
+| `lang`          | `set <code>`, `get`, `list`, `togglePicker`                                                  |
+| `keyboardlayout`| `next`                                                                                       |
+| `caps` / `layoutosd` | `show` (used by Hyprland to trigger the OSDs)                                           |
+
+Example Hyprland binds:
+
+```lua
+-- Lock, open the launcher in "run" mode, take an area screenshot
+quickshell ipc -c OozeShell call lock lock
+quickshell ipc -c OozeShell call launcher open run
+quickshell ipc -c OozeShell call screenshot areaCopy
+```
+
+---
+
+# 🎨 Dynamic theming
+
+Colors are generated from the current wallpaper with **Matugen**. It can theme Hyprland, OozeShell, Waybar, Rofi, SwayNC, SwayOSD, Cava, Starship, Yazi, Kitty and more.
+
+```text
+~/.config/matugen/config.toml        # main configuration
+~/.config/matugen/templates/         # templates
+```
 
 ---
 
 # 🖼️ Wallpapers
 
-OozeShell expects wallpapers to be stored in:
+OozeShell reads wallpapers from:
 
 ```text
 ~/Pictures/Wallpapers
 ```
 
-Create the directory with:
-
 ```bash
 mkdir -p ~/Pictures/Wallpapers
 ```
 
-The wallpaper selector reads from this directory by default.
+Static wallpapers are set through **awww**. Video wallpapers use **mpvpaper** (with `mpv`, `ffmpeg` and `socat`); Matugen takes its palette from a single extracted frame.
 
-If you use another location, update:
+To use another folder, edit `wallpaperFolder` in:
 
 ```text
-.config/hypr/OozeShell/WALLS/Walls.qml
+~/.config/quickshell/OozeShell/WALLS/Walls.qml
 ```
+
+The lock screen wallpaper can be chosen in **Advanced Settings → General** (automatic, or a custom image path).
 
 ---
 
-# 🔍 User-Specific Paths
+# 🧩 Legacy configs
 
-The configuration generally uses:
+OozeShell already provides the bar, notifications, launcher and logout menu. The older configs remain in the repository in case you want them separately, and are **only linked if you say yes** to the installer's legacy question:
 
-```text
-~
-$HOME
+| Component  | Purpose                               |
+| ---------- | ------------------------------------- |
+| **Waybar** | Alternative bar                       |
+| **Rofi**   | Launcher / utilities                  |
+| **SwayNC** | Notification daemon                   |
+| **SwayOSD**| Volume / brightness OSD               |
+| **wlogout**| Logout menu (installed on Arch; no config is linked) |
+
+### Waybar styling
+
+Waybar can be styled in two mutually exclusive ways.
+
+**Matugen** generates `~/.config/waybar/style.css`:
+
+```toml
+[templates.waybar]
+input_path  = "~/.config/matugen/templates/waybar.css"
+output_path = "~/.config/waybar/style.css"
+post_hook   = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
 ```
 
-instead of hardcoded usernames or absolute paths.
-
-You can search for references to the original username with:
+**Static themes** live in `.config/waybar/themes/`:
 
 ```bash
-grep -RIn --exclude-dir=.git 'oozenix' ~/dotfiles
+ls ~/dotfiles/.config/waybar/themes
+./.config/waybar/themes/waybar-theme-switcher.sh
 ```
 
-The username may appear in cosmetic installer output and does not normally affect functionality.
-
-Still review the following manually:
-
-* GPU configuration
-* Monitor configuration
-* Keyboard layout
-* Wallpaper location
-* Startup applications
-* Hyprland keybindings
-* Terminal choice
-* File manager
-* Launcher
-* Installed applications
+> **⚠️** Both write to the same `style.css`. To use a static theme, disable the `[templates.waybar]` section in Matugen and restart Waybar.
 
 ---
 
-# 📁 Repository Structure
+# 📁 Repository structure
 
 ```text
 dotfiles/
 ├── .config/
-│   ├── alacritty/
-│   ├── cava/
-│   ├── fastfetch/
-│   ├── foot/
-│   ├── ghostty/
+│   ├── alacritty/  cava/  fastfetch/  foot/  ghostty/
 │   ├── hypr/
 │   │   ├── hyprland.lua
 │   │   └── modules/
-│   │       ├── appearance/
+│   │       ├── appearance/    # includes OozeShell's autogen theme files
 │   │       ├── hardware/
 │   │       ├── input/
 │   │       ├── rules/
 │   │       ├── startup/
 │   │       └── system/
-│   ├── kitty/
-│   ├── matugen/
-│   ├── nvim/
+│   ├── kitty/  matugen/  nvim/
 │   ├── quickshell/
-│   │   └── OozeShell/
-│   ├── rofi/
-│   ├── swaync/
-│   ├── swayosd/
-│   ├── VK-Th/
-│   ├── waybar/
+│   │   └── OozeShell/         # extracted by the installer
+│   ├── rofi/  swaync/  swayosd/   # legacy
+│   ├── VK-Th/                 # Vesktop theme
+│   ├── waybar/                # legacy
 │   │   └── themes/
-│   │       ├── catppuccin-mocha.css
-│   │       ├── ...
-│   │       └── waybar-theme-switcher.sh
-│   ├── wezterm/
-│   └── yazi/
+│   ├── wezterm/  yazi/
+│   └── starship.toml
 │
 ├── .zshrc
 ├── git-update
-├── nix-rofi
-├── README.md
+├── nix-rofi                   # NixOS only
+├── install-oozenix.sh         # main installer
+├── OozeShell.zip              # NixOS build
+├── OozeShell-arch.zip         # Arch build
+├── NixOSInstallation.md       # generated on non-Arch installs
 ├── screenshots/
-└── setup-permissions.sh
+└── README.md
 ```
 
 ---
@@ -573,219 +481,120 @@ dotfiles/
 
 ---
 
-# 🗑️ Removing the Dotfiles
+# 🗑️ Removing the dotfiles
 
-The configuration is installed using symbolic links, so removing a link does **not** remove the repository.
-
-Before removing anything, verify the target:
+Removing a symlink does **not** delete the repository. Verify the target first:
 
 ```bash
 readlink -f ~/.config/hypr
+# /home/<your-user>/dotfiles/.config/hypr
 ```
 
-Expected result:
-
-```text
-/home/<your-user>/dotfiles/.config/hypr
-```
-
-You can then remove the links:
+Then remove the links:
 
 ```bash
-rm ~/.config/alacritty \
-   ~/.config/cava \
-   ~/.config/fastfetch \
-   ~/.config/foot \
-   ~/.config/ghostty \
-   ~/.config/hypr \
-   ~/.config/kitty \
-   ~/.config/matugen \
-   ~/.config/nvim \
-   ~/.config/quickshell \
-   ~/.config/rofi \
-   ~/.config/swaync \
-   ~/.config/swayosd \
-   ~/.config/waybar \
-   ~/.config/wezterm \
-   ~/.config/yazi \
-   ~/.config/starship.toml \
-   ~/.config/Vesktop/Themes \
-   ~/.zshrc
+rm ~/.config/alacritty ~/.config/cava ~/.config/fastfetch ~/.config/foot \
+   ~/.config/ghostty ~/.config/hypr ~/.config/kitty ~/.config/matugen \
+   ~/.config/nvim ~/.config/quickshell ~/.config/wezterm ~/.config/yazi \
+   ~/.config/starship.toml ~/.config/Vesktop/Themes ~/.zshrc
+
+# Only if they exist (legacy tools / NixOS branch)
+rm -f ~/.config/rofi ~/.config/swaync ~/.config/swayosd ~/.config/waybar
+rm -f ~/.local/bin/nix-rofi
 ```
 
-And:
-
-```bash
-rm ~/.local/bin/nix-rofi
-```
-
-> **⚠️ Only remove paths that are actually symlinks to this repository.**
+> **⚠️ Only remove paths that are actually symlinks to this repository.** Backups made by the installer (`*.bak-<timestamp>`) are not touched, so you can restore them by renaming.
 
 ---
 
 # ⚠️ Troubleshooting
 
-### Existing configuration blocks installation
+### `Could not find OozeShell.zip` / `OozeShell-arch.zip`
 
-The installer skips existing real files and directories instead of overwriting them.
+The installer looks for the archive in `~/dotfiles`. Arch needs exactly `OozeShell-arch.zip`; every other system needs `OozeShell.zip`. Put the file there and run the installer again.
 
-Back up the existing configuration:
+### The installer refuses to run
+
+It will not run as root. Use your normal user account.
+
+### Permission denied
+
+```bash
+chmod +x install-oozenix.sh
+./install-oozenix.sh
+```
+
+### Existing configuration
+
+The installer asks before touching a real file or directory and can back it up as `<target>.bak-<timestamp>`. To start clean by hand:
 
 ```bash
 mv ~/.config/hypr ~/.config/hypr.backup
+./install-oozenix.sh
 ```
 
-Then run:
+### Some Arch packages were not installed
+
+The installer prints a list at the end. Check the names with:
 
 ```bash
-./setup-permissions.sh
+pacman -Ss <name>
+paru -Ss <name>
 ```
 
----
-
-### Permission denied when running the installer
-
-Run:
-
-```bash
-chmod +x setup-permissions.sh
-./setup-permissions.sh
-```
-
----
-
-### `nix-rofi` not found
-
-Check that the symlink exists:
-
-```bash
-ls -l ~/.local/bin/nix-rofi
-```
-
-Then check:
-
-```bash
-echo $PATH
-```
-
-If necessary:
-
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-Add the same line to `.zshrc` if you want it permanently.
-
----
-
-### `git-update` does not work
-
-`git-update` is not currently installed automatically by the installer.
-
-Install it manually:
-
-```bash
-ln -s ~/dotfiles/git-update ~/.local/bin/git-update
-chmod +x ~/dotfiles/git-update
-```
-
-Then verify:
-
-```bash
-which git-update
-```
-
----
-
-### NixSearch keybind does nothing
-
-The NixSearch integration requires the Nix search CLI.
-
-Check:
-
-```bash
-which nix-search
-```
-
-If it is not installed, install the required package or disable the NixSearch functionality.
-
-This does not affect the rest of OozeShell.
-
----
+Packages such as `matugen`, `mpvpaper` and `awww` may only exist in the AUR, so an AUR helper (`paru`/`yay`) is needed.
 
 ### OozeShell does not start
 
-First verify that QuickShell is available:
-
 ```bash
 which quickshell
+quickshell -c OozeShell
 ```
 
-Then verify the required dependencies listed in the **OozeShell Requirements** section.
+If it still fails, verify the [dependencies](#-dependencies) and run `bash tools/check.sh` from the OozeShell folder.
 
-You can also test the shell directly:
+### Icons show as empty squares
 
-```bash
-quickshell -p ~/.config/quickshell/OozeShell/shell.qml
-```
+Install **JetBrainsMono Nerd Font** and **Symbols Nerd Font Mono**. On Arch the installer copies the fontconfig fallback for you; on NixOS see `OozeShell/tools/fonts/fonts.nix.example`.
 
----
+### Package search keybind does nothing
+
+* NixOS: check `which nix-search` (NixSearch).
+* Arch: check that `pacman` and `paru`/`yay` are available (PacSearch).
+
+This does not affect the rest of OozeShell.
 
 ### Wallpaper selector does not find wallpapers
 
-Verify that the wallpaper directory exists:
-
 ```bash
 ls ~/Pictures/Wallpapers
-```
-
-Create it if necessary:
-
-```bash
 mkdir -p ~/Pictures/Wallpapers
 ```
 
-If you use another location, update the path in:
+For another location, edit `wallpaperFolder` in `.config/quickshell/OozeShell/WALLS/Walls.qml`.
 
-```text
-.config/hypr/OozeShell/WALLS/Walls.qml
+### Hyprland does not pick up appearance changes
+
+OozeShell regenerates files under `hypr/modules/appearance/autogen/`. If Hyprland does not reload them, reload the config manually (`hyprctl reload`); this is a Hyprland reload timing issue, not a Quickshell bug.
+
+### `nix-rofi` or `git-update` not found
+
+```bash
+ls -l ~/.local/bin/nix-rofi ~/.local/bin/git-update
+echo $PATH
 ```
+
+`nix-rofi` is only linked on the NixOS branch; `git-update` is never linked automatically (see [git-update](#git-update)). Add `~/.local/bin` to your `PATH` if needed.
+
+### Static Waybar theme keeps being overwritten
+
+Matugen is still generating `style.css`. Disable `[templates.waybar]` in `~/.config/matugen/config.toml` and restart Waybar.
 
 ---
 
-### Static Waybar theme keeps getting overwritten
+# 🖥️ NixOS configuration
 
-Matugen is probably still generating:
-
-```text
-~/.config/waybar/style.css
-```
-
-Disable the `[templates.waybar]` section in:
-
-```text
-~/.config/matugen/config.toml
-```
-
-Then restart Waybar.
-
----
-
-# 🖥️ NixOS Configuration
-
-System-level configuration is maintained separately in:
-
-* [nix-home](https://github.com/shizukutakahashi55-del/nix-home)
-
-That repository handles things such as:
-
-* NixOS system configuration
-* Packages
-* NVIDIA drivers
-* Hardware configuration
-* Services
-* Hyprland system integration
-* System-level dependencies
+System-level configuration is maintained separately in [nix-home](https://github.com/shizukutakahashi55-del/nix-home): NixOS system config, packages, NVIDIA drivers, hardware, services, Hyprland system integration and system-level dependencies.
 
 This repository focuses on **user-level dotfiles and desktop customization**.
 
@@ -793,6 +602,4 @@ This repository focuses on **user-level dotfiles and desktop customization**.
 
 # 📜 License
 
-Personal configuration files.
-
-Use, modify, and adapt them as you wish.
+Personal configuration files. Use, modify, and adapt them as you wish.

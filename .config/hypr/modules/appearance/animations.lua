@@ -23,7 +23,7 @@ local anim   = loader.load("animprofile", loader.defaults.animprofile)
 --    "dramatic_side"→ lento y marcado con slide fade
 -- ============================================================================
 
-local PERFIL = "anim.profile" -- Elige tu estilo
+local PERFIL = anim.profile -- Elige tu estilo
 
 local perfiles = {
     smooth = {
