@@ -8,9 +8,9 @@ return {
     rounding_power = 5,
     active_opacity = 1,
     inactive_opacity = 1,
-    animations = true,
+    animations = false,
     blur = {
-        enabled = true,
+        enabled = false,
         size = 2,
         passes = 2,
     },
