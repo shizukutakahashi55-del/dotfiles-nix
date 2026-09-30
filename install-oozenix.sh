@@ -16,6 +16,7 @@ STAMP="$(date +%Y%m%d-%H%M%S)"
 
 INSTALL_LEGACY=false   # swaync / waybar / swayosd / wlogout / rofi
 IS_ARCH=false
+IS_UPDATE=false         # true si ~/.config/hypr ya apunta a este repo (re-ejecucion / actualizacion)
 HAS_NVIDIA=false        # solo Arch: activa las variables de entorno de Nvidia en env.lua
 AUR_HELPER=""
 FAILED=()              # paquetes que no se pudieron instalar (resumen final)
@@ -101,6 +102,10 @@ if [ ! -d "$DOTFILES" ]; then
   exit 1
 fi
 echo "[✓] Dotfiles directory found: $DOTFILES"
+if [ -L "$HOME/.config/hypr" ] && [ "$(readlink "$HOME/.config/hypr")" = "$DOTFILES/.config/hypr" ]; then
+  IS_UPDATE=true
+  echo "[i] Existing install detected: running in update mode."
+fi
 echo
 
 # ----------------------------------------------------------------------------
@@ -212,6 +217,154 @@ if $IS_ARCH; then
     FAILED+=("$* (ninguna variante)")
   }
 
+  # ---- Suwayomi helpers ----------------------------------------------------
+
+  SUWAYOMI_MD="$DOTFILES/SuwayomiSetup.md"
+
+  # Prints the absolute path of the Suwayomi executable, or fails.
+  find_suwayomi_bin() {
+    local b f
+    for b in tachidesk-server suwayomi-server; do
+      if command -v "$b" >/dev/null 2>&1; then command -v "$b"; return 0; fi
+    done
+    f="$(pacman -Ql suwayomi-server-bin 2>/dev/null | awk '{print $2}' | grep -E '^/usr/bin/[^/]+$' | head -n1 || true)"
+    if [ -n "$f" ]; then echo "$f"; return 0; fi
+    return 1
+  }
+
+  write_suwayomi_md() {
+    cat > "$SUWAYOMI_MD" << 'MDEOF'
+# Suwayomi server on Arch (manual setup)
+
+The installer skipped Suwayomi. These are the steps to install it later and
+control it like a service, with the same `tachidesk` command used on NixOS.
+
+## 1. Install the package (AUR)
+
+```bash
+paru -S suwayomi-server-bin      # or: yay -S suwayomi-server-bin
+```
+
+## 2. Find the executable name
+
+```bash
+pacman -Ql suwayomi-server-bin | grep 'bin/'
+```
+
+It is probably `/usr/bin/tachidesk-server` or `/usr/bin/suwayomi-server`.
+Use that path as `ExecStart` in step 4.
+
+## 3. Create the directories
+
+```bash
+mkdir -p ~/.local/share/Tachidesk/extensions ~/.local/share/Tachidesk/backups
+mkdir -p ~/Manga/Downloads ~/.config/systemd/user ~/.local/bin
+```
+
+## 4. Create the user service
+
+File: `~/.config/systemd/user/tachidesk.service`
+
+```ini
+[Unit]
+Description=Tachidesk Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/tachidesk-server
+WorkingDirectory=%h/.local/share/Tachidesk
+Environment=HOME=%h
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillSignal=SIGTERM
+```
+
+## 5. Create the `tachidesk` control command
+
+File: `~/.local/bin/tachidesk`
+
+```bash
+#!/usr/bin/env bash
+case "$1" in
+  start|stop|restart|enable|disable) systemctl --user "$1" tachidesk.service ;;
+  status) systemctl --user status tachidesk.service --no-pager ;;
+  *) echo "Usage: tachidesk {start|stop|restart|status|enable|disable}"; exit 1 ;;
+esac
+```
+
+```bash
+chmod +x ~/.local/bin/tachidesk
+systemctl --user daemon-reload
+```
+
+Make sure `~/.local/bin` is in your `PATH`.
+
+## 6. Use it
+
+```bash
+tachidesk start
+tachidesk status
+tachidesk stop
+```
+
+The service is not enabled at boot. Run `tachidesk enable` if you want that.
+If Suwayomi is already running by hand, stop it first with
+`pkill -TERM -f -i suwayomi`, or the port will be busy.
+MDEOF
+    echo "[✓] Steps saved to: $SUWAYOMI_MD"
+  }
+
+  setup_suwayomi() {
+    local bin ctl="$HOME/.local/bin/tachidesk"
+    local unit="$HOME/.config/systemd/user/tachidesk.service"
+
+    if ! bin="$(find_suwayomi_bin)"; then
+      echo "  [!] Could not find the Suwayomi executable; skipping the service setup."
+      write_suwayomi_md
+      return 0
+    fi
+    echo "  [✓] Suwayomi executable: $bin"
+
+    mkdir -p "$HOME/.local/share/Tachidesk/extensions" "$HOME/.local/share/Tachidesk/backups" \
+             "$HOME/Manga/Downloads" "$HOME/.config/systemd/user" "$HOME/.local/bin"
+
+    if [ -e "$unit" ]; then cp -f "$unit" "${unit}.bak-${STAMP}"; fi
+    cat > "$unit" << EOF
+[Unit]
+Description=Tachidesk Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=$bin
+WorkingDirectory=%h/.local/share/Tachidesk
+Environment=HOME=%h
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+KillSignal=SIGTERM
+EOF
+    echo "  [✓] User service: $unit"
+
+    if [ -e "$ctl" ]; then cp -f "$ctl" "${ctl}.bak-${STAMP}"; fi
+    cat > "$ctl" << 'EOF'
+#!/usr/bin/env bash
+case "$1" in
+  start|stop|restart|enable|disable) systemctl --user "$1" tachidesk.service ;;
+  status) systemctl --user status tachidesk.service --no-pager ;;
+  *) echo "Usage: tachidesk {start|stop|restart|status|enable|disable}"; exit 1 ;;
+esac
+EOF
+    chmod +x "$ctl"
+    echo "  [✓] Control command: $ctl  (tachidesk start|stop|restart|status|enable|disable)"
+
+    systemctl --user daemon-reload 2>/dev/null \
+      || echo "  [!] Could not reload the user systemd session; run 'systemctl --user daemon-reload' after logging in."
+    echo "  [i] Not started or enabled on boot. Run: tachidesk start"
+  }
+
   # ---- Base ------------------------------------------------------------------
 
   BASE=(
@@ -287,6 +440,10 @@ if $IS_ARCH; then
   echo
   if ask_yes_no "Install Suwayomi server (suwayomi-server-bin, AUR)?"; then
     install_pkgs suwayomi-server-bin
+    setup_suwayomi
+  else
+    echo "[i] Skipping Suwayomi. Writing the manual steps for later..."
+    write_suwayomi_md
   fi
 
   # --- Nvidia (only affects env.lua) ---
@@ -537,6 +694,24 @@ if $IS_ARCH; then
     echo "  [✗] env.lua not found: $ENVLUA"
   fi
   echo
+fi
+
+# ----------------------------------------------------------------------------
+# Update only: ignore OozeShell's auto-generated Hyprland theme files
+# (not done on the first install, so the repo defaults are used as-is)
+# ----------------------------------------------------------------------------
+if $IS_UPDATE && git -C "$DOTFILES" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  AUTOGEN_REL=".config/hypr/modules/appearance/autogen"
+  if [ -n "$(git -C "$DOTFILES" ls-files "$AUTOGEN_REL")" ]; then
+    git -C "$DOTFILES" ls-files -z "$AUTOGEN_REL" \
+      | xargs -0 git -C "$DOTFILES" update-index --skip-worktree
+    EXCL="$(git -C "$DOTFILES" rev-parse --git-path info/exclude)"
+    mkdir -p "$(dirname "$EXCL")"
+    grep -qxF "$AUTOGEN_REL/" "$EXCL" 2>/dev/null || echo "$AUTOGEN_REL/" >> "$EXCL"
+    echo "  [✓] Git now ignores local changes in $AUTOGEN_REL (generated by OozeShell)"
+    echo "      Undo: git -C ~/dotfiles ls-files -z $AUTOGEN_REL | xargs -0 git -C ~/dotfiles update-index --no-skip-worktree"
+    echo
+  fi
 fi
 
 if [ "${#FAILED[@]}" -gt 0 ]; then

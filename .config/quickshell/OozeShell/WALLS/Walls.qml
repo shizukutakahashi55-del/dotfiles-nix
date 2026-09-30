@@ -1,0 +1,1675 @@
+import Quickshell
+import Quickshell.Io
+import Quickshell.Wayland
+import QtQuick
+import QtQuick.Layouts
+import QtQuick.Controls
+import "../LANG"
+import "../COMMON"
+
+
+Item {
+  id: wallsRoot
+
+  property bool open: false
+  property int currentIndex: 0
+  property string targetScreen: "DP-3"
+  signal closeRequested()
+
+  // ─── Vista previa (antes "Efectos") ─────────────────────────────
+  // Interruptor LOCAL de este módulo: prende/apaga los clips animados de
+  // Live, el brillo de carga (shimmer) y la elevación/realce al pasar el
+  // mouse. A propósito NO lee ni escribe Theme.effectsOn: el switch de
+  // Ajustes → General solo controla al Launcher.
+  property bool previewOn: true
+  onPreviewOnChanged: if (wallsRoot.previewOn && wallsRoot.liveMode) wallsRoot.startClipGen()
+
+  // ─── Fusión con el fondo de pantalla ────────────────────────────
+  // 1.0 = panel opaco. Se aplica sobre el propio color de matugen
+  // (wallsRoot.matugenColors.bg), así el "vidrio" además queda teñido con
+  // la paleta del wallpaper actual.
+  property real fusionAlpha: 1
+  function fuse(hexColor, alpha) {
+    const c = (typeof hexColor === "string") ? Qt.color(hexColor) : hexColor
+    return Qt.rgba(c.r, c.g, c.b, alpha)
+  }
+  property string wallpaperFolder: "$HOME/Pictures/Wallpapers"
+
+  // ─── Live wallpapers (video) ───────────────────────────────────────
+  // Modo "Live": el carrusel lista videos en vez de imágenes y al elegir uno
+  // se reproduce con mpvpaper (en bucle, sin audio). La paleta sigue igual:
+  // con ffmpeg se saca UN fotograma del video y matugen trabaja sobre ese
+  // fotograma, así que el selector de esquemas (vibrant, tonal…) funciona
+  // igual que con una imagen. Los fotogramas también sirven de miniatura.
+  //
+  // Videos: se buscan en wallpaperFolder y en liveFolder (mp4 mkv webm mov avi m4v).
+  property string liveFolder: wallpaperFolder + "/Live"
+  property bool liveMode: false
+  // Requiere: mpvpaper (trae mpv) + ffmpeg + socat (para pausar/reanudar
+  // por IPC; ver bloque "pausa automática" más abajo)
+  // Socket IPC de mpv (vía mpvpaper) para poder pausar/reanudar el video
+  // sin matar el proceso. Solo hay un video de fondo a la vez, así que un
+  // socket fijo alcanza.
+  // OJO: este nombre NO debe contener la palabra "mpvpaper" (ver killLiveCmd)
+  readonly property string liveIpcSocket: "/tmp/oozeshell-live.sock"
+  // Opciones de mpv. Sin `panscan` el video no llenaría la pantalla.
+  //
+  // El resto (cache=no + los dos demuxer-max-*) es para el consumo de RAM:
+  // sin esto, mpv arma un buffer de lectura adelantada (demuxer cache) que
+  // por default puede crecer bastante — con un video de varios GB (4K, alto
+  // bitrate) reproduciéndose en loop indefinido de fondo, eso se nota. Con
+  // un archivo LOCAL (no streaming) no hace falta ese colchón: el disco no
+  // tiene la latencia que el cache intenta esconder. `demuxer-max-back-bytes`
+  // igual queda con algo de margen (32MiB) para que el salto al reiniciar
+  // el loop no tenga que releer desde el arranque del archivo.
+  //
+  // Si de todas formas ves que la RAM sigue subiendo con el tiempo (no de
+  // entrada, sino que crece mientras el wallpaper sigue corriendo), es la
+  // fuga de memoria conocida de mpvpaper con reproducción en loop — mejora
+  // bastante en mpvpaper ≥1.9 ("Patched a bunch of minor memory leaks" +
+  // "potential temporary solution to mpv memory leaks"; revisá tu versión
+  // con `mpvpaper -v` y actualizá si estás en algo más viejo). Si sigue
+  // pasando incluso actualizado, el otro sospechoso es hwdec: probá con
+  // `hwdec=no` un rato para descartar una fuga del lado de la decodificación
+  // por GPU (VAAPI/NVDEC) — cuesta más CPU, pero si la RAM deja de crecer,
+  // confirma que el problema es el hwdec, no mpvpaper en sí.
+  property string mpvOptions:
+    "no-audio loop-file=inf hwdec=auto-safe panscan=1.0" +
+    " cache=no demuxer-max-bytes=32MiB demuxer-max-back-bytes=32MiB" +
+    // Optimización: `profile=fast` apaga los escaladores caros (todo bilinear,
+    // sin debanding/dither: en un fondo no se nota), pocos hilos de decodificación
+    // por software (cada hilo retiene fotogramas) y nada de scripts/ytdl/OSD.
+    " profile=fast vd-lavc-threads=2 load-scripts=no ytdl=no osd-level=0" +
+    " input-ipc-server=" + liveIpcSocket
+
+  // ─── Ahorro de memoria (ver docs/OPTIMIZACION.md) ──────────────────
+  // 1) Copia liviana: 1080p / 30 fps / H.264 en ~/.cache/oozeshell/live/opt.
+  //    Se genera sola en segundo plano (nice/ionice) con tools/live-optimize.sh
+  //    y mpvpaper la usa en el siguiente arranque (o al instante: liveOptSwap).
+  property bool liveOptimize: true
+  property bool liveOptSwap: true
+  property int liveOptMaxHeight: 1080
+  property int liveOptMaxFps: 30
+  readonly property string liveOptDir: Quickshell.env("HOME") + "/.cache/oozeshell/live/opt"
+  readonly property string liveOptScript:
+    decodeURIComponent(Qt.resolvedUrl("../tools/live-optimize.sh").toString().replace("file://", ""))
+  // 2) Video parado (proceso muerto = 0 RAM y 0 VRAM) mientras no se ve:
+  //    fullscreen encima o perfil power-saver. Al volver arranca de nuevo.
+  //    Con false se comporta como antes (solo pausa: la memoria queda ocupada).
+  property bool liveStopWhenHidden: true
+  // 3) Vigilante de fugas: si mpvpaper pasa de este tope de RAM, se relanza.
+  //    0 = desactivado.
+  property int liveRamLimitMB: 900
+  property bool liveStopped: false
+  // "bottom" queda POR ENCIMA de la capa de awww (background) sin taparte
+  // ventanas ni barra. Si prefieres, "background".
+  property string liveLayer: "bottom"
+  // Imagen que usa matugen: la del wallpaper estático, o el fotograma del video
+  property string paletteSource: ""
+  // Video que estaba activo al arrancar ("" = wallpaper estático)
+  property string liveActivePath: ""
+  property bool liveRestored: false
+  // Sube cada vez que una miniatura queda lista (fuerza a las tarjetas a releer)
+  property int thumbRev: 0
+  // Cada modo recuerda su propio índice
+  property var indexMemory: ({ stat: 0, live: 0 })
+
+  readonly property string liveCacheDir: Quickshell.env("HOME") + "/.cache/oozeshell/live"
+  readonly property string liveStateFile: Quickshell.env("HOME") + "/.cache/oozeshell/live-active"
+
+  ListModel { id: liveModel }
+  // Lo que muestra el carrusel según el modo
+  readonly property var activeModel: wallsRoot.liveMode ? liveModel : wallpaperModel
+
+  function frameFor(videoPath) {
+    return wallsRoot.liveCacheDir + "/" + Qt.md5(videoPath) + ".jpg"
+  }
+
+  // Mini clip (GIF, 3 s / ~320 px / 12 fps) para la vista previa de la
+  // tarjeta central. Vive en la misma carpeta que los fotogramas.
+  function clipFor(videoPath) {
+    return wallsRoot.liveCacheDir + "/" + Qt.md5(videoPath) + "-preview.gif"
+  }
+
+  // Saca un fotograma (seg. 1; si el video es más corto, el primero)
+  function frameCmd(video, frame) {
+    const v = wallsRoot.shQuote(video), f = wallsRoot.shQuote(frame)
+    const ff = "ffmpeg -nostdin -y -v error -i " + v +
+               " -frames:v 1 -vf scale=1280:-2 -q:v 2 " + f + " 2>/dev/null"
+    const ffSeek = "ffmpeg -nostdin -y -v error -ss 1 -i " + v +
+               " -frames:v 1 -vf scale=1280:-2 -q:v 2 " + f + " 2>/dev/null"
+    return "[ -s " + f + " ] || " + ffSeek + "; [ -s " + f + " ] || " + ff + "; "
+  }
+
+  // Mata mpvpaper por PATRÓN (cubre wrappers como .mpvpaper-wrapped) y, si
+  // no cierra con SIGTERM en ~0.8 s, lo remata con SIGKILL. `[m]pvpaper` es
+  // para que pkill/pgrep -f no se encuentren a sí mismos en su propia línea
+  // de comandos. (Antes: `pkill -x mpvpaper`, que no alcanzaba si el proceso
+  // tenía otro nombre o no atendía el SIGTERM: el video seguía tapando todo.)
+  readonly property string killLiveCmd:
+    "pkill -f '[m]pvpaper'; " +
+    "for i in 1 2 3 4 5 6 7 8; do pgrep -f '[m]pvpaper' >/dev/null || break; sleep 0.1; done; " +
+    "pkill -9 -f '[m]pvpaper'; "
+
+  // OJO: `mpv""paper` es a propósito. Bash lo une en `mpvpaper`, pero la línea
+  // de comandos de ESTE script ya no contiene esa palabra suelta, así que el
+  // `pkill -f` de arriba no puede matar al propio script que lanza el video.
+  //
+  // Antes de lanzar: se borra el socket IPC viejo (si mpv se mató con -9,
+  // no le da tiempo de limpiarlo él solo, y bind() falla si el archivo ya
+  // existe → mpv muere al toque y el video nunca aparece, aunque el resto
+  // del script siga "de fiesta" como si hubiera ido bien). El stderr real
+  // de mpv va a un log en vez de /dev/null, para poder diagnosticar.
+  // OJO: sin la palabra "mpvpaper" en el nombre (ver killLiveCmd). Antes se
+  // llamaba mpvpaper.log y el `pkill -f` mataba al propio script que lanzaba
+  // el video (su línea de comandos incluía ese nombre), por eso nunca
+  // llegaba a lanzar mpvpaper ni a crear el log.
+  readonly property string liveLogFile: wallsRoot.liveCacheDir + "/live-player.log"
+  // Fragmento de shell: parte de $V (video original) y, si existe su copia
+  // liviana, deja en $V la ruta de la copia. Misma clave que live-optimize.sh.
+  function optResolveCmd() {
+    if (!wallsRoot.liveOptimize) return ""
+    return "O=" + wallsRoot.shQuote(wallsRoot.liveOptDir) + "/$(printf %s \"$V\" | md5sum | cut -d' ' -f1).mp4; " +
+           "[ -s \"$O\" ] && V=\"$O\"; "
+  }
+
+  function mpvLaunchCmd(video) {
+    return "V=" + wallsRoot.shQuote(video) + "; " + wallsRoot.optResolveCmd() +
+           "mkdir -p " + wallsRoot.shQuote(wallsRoot.liveCacheDir) + "; " +
+           "rm -f " + wallsRoot.shQuote(wallsRoot.liveIpcSocket) + "; " +
+           "setsid -f mpv\"\"paper -p -l " + wallsRoot.liveLayer +
+           " -o " + wallsRoot.shQuote(wallsRoot.mpvOptions) +
+           " '*' \"$V\" >>" + wallsRoot.shQuote(wallsRoot.liveLogFile) + " 2>&1"
+  }
+
+  // Mata y vuelve a lanzar el video activo (vigilante, copia liviana lista,
+  // o vuelta tras estar parado por fullscreen/ahorro).
+  Process {
+    id: relaunchLive
+    property string video: ""
+    command: ["bash", "-c", wallsRoot.killLiveCmd + wallsRoot.mpvLaunchCmd(video)]
+    running: false
+    onRunningChanged: if (!running && video !== "") liveSyncDelay.restart()
+  }
+  function relaunchLiveNow() {
+    if (wallsRoot.liveActivePath === "" || relaunchLive.running) return
+    relaunchLive.video = wallsRoot.liveActivePath
+    relaunchLive.running = true
+  }
+
+  // ─── Pausa automática del video de fondo ───────────────────────────
+  // Se pausa (no se mata: sigue de fondo, listo para reanudar sin
+  // parpadeo) cuando: (a) una ventana está en fullscreen en la pantalla
+  // del live wallpaper, o (b) el perfil de energía es "power-saver" (por
+  // batería). En "balanced" y "performance", y sin fullscreen, corre normal
+  // (si querés que "performance" también lo pause, agregalo a
+  // pausePowerProfiles).
+  readonly property var liveScreen:
+    Quickshell.screens.find(s => s.name === wallsRoot.targetScreen) ?? Quickshell.screens[0]
+  property var pausePowerProfiles: ["power-saver"]
+  property string powerProfile: "balanced"
+  readonly property bool shouldPauseLive:
+    FullscreenState.isOn(wallsRoot.liveScreen) ||
+    wallsRoot.pausePowerProfiles.indexOf(wallsRoot.powerProfile) !== -1
+
+  Process {
+    id: getPowerProfile
+    command: ["sh", "-c",
+      'powerprofilesctl get 2>/dev/null || /run/current-system/sw/bin/powerprofilesctl get']
+    running: false
+    stdout: SplitParser { onRead: line => wallsRoot.powerProfile = line.trim() }
+  }
+  // Solo se consulta mientras hay un video de fondo (sin video no hay nada
+  // que pausar): antes lanzaba `powerprofilesctl` cada 5 s para siempre.
+  Timer {
+    interval: 8000
+    running: wallsRoot.liveActivePath !== ""
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: if (!getPowerProfile.running) getPowerProfile.running = true
+  }
+
+  // Manda un comando JSON al mpv de mpvpaper por su socket IPC. Si mpvpaper
+  // no está corriendo (o socat no está instalado) el comando simplemente
+  // falla en silencio: no hay video que pausar.
+  function liveIpcSend(jsonCmd) {
+    Quickshell.execDetached(["bash", "-c",
+      "echo " + wallsRoot.shQuote(jsonCmd) + " | socat - " + wallsRoot.shQuote(wallsRoot.liveIpcSocket) + " >/dev/null 2>&1"
+    ])
+  }
+
+  function syncLivePause() {
+    if (wallsRoot.liveActivePath === "") return
+    console.log("[live] syncLivePause: shouldPauseLive=" + wallsRoot.shouldPauseLive +
+                " fullscreen=" + FullscreenState.isOn(wallsRoot.liveScreen) +
+                " profile=" + wallsRoot.powerProfile)
+    if (wallsRoot.liveStopWhenHidden) {
+      if (wallsRoot.shouldPauseLive) {
+        // Matar libera RAM y VRAM (pausar no: el decodificador y las texturas siguen)
+        wallsRoot.liveStopped = true
+        Quickshell.execDetached(["bash", "-c", wallsRoot.killLiveCmd])
+      } else if (wallsRoot.liveStopped) {
+        wallsRoot.liveStopped = false
+        wallsRoot.relaunchLiveNow()
+      }
+      return
+    }
+    wallsRoot.liveIpcSend(wallsRoot.shouldPauseLive
+      ? '{"command":["set_property","pause",true]}'
+      : '{"command":["set_property","pause",false]}')
+  }
+
+  // ─── Vigilante de RAM de mpvpaper ──────────────────────────────────
+  // Cada 60 s suma el RSS de mpvpaper (y su wrapper) en MB. Si pasa el tope,
+  // lo relanza: contiene la fuga conocida del loop sin que tengas que hacer nada.
+  Process {
+    id: liveRssProc
+    command: ["bash", "-c",
+      "pgrep -f '[m]pvpaper' | xargs -r ps -o rss= -p | awk '{s+=$1} END{if (NR>0) print int(s/1024)}'"]
+    running: false
+    stdout: SplitParser {
+      onRead: line => {
+        const mb = parseInt(line.trim())
+        if (isNaN(mb)) return
+        console.log("[live] RAM mpvpaper: " + mb + " MB (tope " + wallsRoot.liveRamLimitMB + ")")
+        if (wallsRoot.liveRamLimitMB > 0 && mb > wallsRoot.liveRamLimitMB) {
+          console.log("[live] tope superado: relanzando mpvpaper")
+          wallsRoot.relaunchLiveNow()
+        }
+      }
+    }
+  }
+  Timer {
+    interval: 60000
+    running: wallsRoot.liveActivePath !== "" && !wallsRoot.liveStopped && wallsRoot.liveRamLimitMB > 0
+    repeat: true
+    onTriggered: if (!liveRssProc.running && !relaunchLive.running) liveRssProc.running = true
+  }
+
+  // ─── Copia liviana en segundo plano ────────────────────────────────
+  Process {
+    id: optimizeLive
+    property string video: ""
+    command: ["bash", wallsRoot.liveOptScript, video,
+              String(wallsRoot.liveOptMaxHeight), String(wallsRoot.liveOptMaxFps)]
+    running: false
+    environment: ({ "LIVE_OPT_DIR": wallsRoot.liveOptDir })
+    onExited: (code) => {
+      console.log("[live] optimizar " + video + " -> código " + code)
+      // 0 = copia lista. Si sigue siendo el video activo, se cambia a ella
+      // (parpadeo de ~0,5 s una sola vez) salvo que esté parado por fullscreen.
+      if (code === 0 && wallsRoot.liveOptSwap && video === wallsRoot.liveActivePath
+          && !wallsRoot.liveStopped)
+        wallsRoot.relaunchLiveNow()
+    }
+  }
+  function optimizeActiveLive() {
+    if (!wallsRoot.liveOptimize || wallsRoot.liveActivePath === "" || optimizeLive.running) return
+    optimizeLive.video = wallsRoot.liveActivePath
+    optimizeLive.running = true
+  }
+
+  onShouldPauseLiveChanged: wallsRoot.syncLivePause()
+
+  // Tras lanzar/relanzar mpvpaper, el socket tarda un instante en existir.
+  // Acá SIEMPRE forzamos reproducción: elegiste el video a mano, tiene que
+  // verse. La pausa automática (fullscreen/perfil) actúa después, sobre el
+  // video ya corriendo, vía onShouldPauseLiveChanged — no acá.
+  Timer {
+    id: liveSyncDelay
+    interval: 500
+    repeat: false
+    onTriggered: {
+      console.log("[live] liveSyncDelay: forzando pause=false tras (re)lanzar")
+      wallsRoot.liveIpcSend('{"command":["set_property","pause",false]}')
+    }
+  }
+
+  // Aplica el elemento del carrusel (Enter / clic en la tarjeta central)
+  function applyItem(wp) {
+    if (!wp) {
+      console.log("[live] applyItem: wp vacío/null, no hago nada")
+      return
+    }
+    console.log("[live] applyItem: liveMode=" + wallsRoot.liveMode + " path=" + wp.path)
+    if (wallsRoot.liveMode) {
+      applyLive.videoPath = wp.path
+      applyLive.framePath = wallsRoot.frameFor(wp.path)
+      wallsRoot.paletteSource = applyLive.framePath
+      wallsRoot.liveActivePath = wp.path
+      wallsRoot.liveStopped = false
+      applyLive.running = true
+      console.log("[live] applyLive.running = true (videoPath=" + applyLive.videoPath + ")")
+    } else {
+      applyWallpaper.wpPath = wp.path
+      wallsRoot.paletteSource = wp.path
+      wallsRoot.liveActivePath = ""
+      applyWallpaper.running = true
+    }
+  }
+
+  function reloadLive() {
+    if (scanLive.running || genThumbs.running) return
+    liveModel.clear()
+    scanLive.running = true
+  }
+
+  function setLiveMode(on) {
+    if (on === wallsRoot.liveMode) return
+    wallsRoot.indexMemory[wallsRoot.liveMode ? "live" : "stat"] = wallsRoot.currentIndex
+    wallsRoot.liveMode = on
+    const idx = wallsRoot.indexMemory[on ? "live" : "stat"]
+    if (on) {
+      // La lista se recarga (agarra videos nuevos); el índice se ajusta al terminar
+      wallsRoot.currentIndex = idx
+      wallsRoot.reloadLive()
+    } else {
+      wallsRoot.currentIndex = Math.min(idx, Math.max(0, wallpaperModel.count - 1))
+    }
+  }
+
+  // Al terminar de escanear: miniaturas en segundo plano + restaurar el modo
+  function onLiveScanned() {
+    if (liveModel.count > 0 && !genThumbs.running) {
+      let sc = "mkdir -p " + wallsRoot.shQuote(wallsRoot.liveCacheDir) + "\n" +
+               "gen() { V=\"$1\"; F=\"$2\"; " +
+               "[ -s \"$F\" ] || ffmpeg -nostdin -y -v error -ss 1 -i \"$V\" -frames:v 1 -vf scale=1280:-2 -q:v 2 \"$F\" 2>/dev/null; " +
+               "[ -s \"$F\" ] || ffmpeg -nostdin -y -v error -i \"$V\" -frames:v 1 -vf scale=1280:-2 -q:v 2 \"$F\" 2>/dev/null; " +
+               "[ -s \"$F\" ] && echo \"$V\"; }\n"
+      for (let i = 0; i < liveModel.count; i++) {
+        const it = liveModel.get(i)
+        sc += "gen " + wallsRoot.shQuote(it.path) + " " + wallsRoot.shQuote(it.thumb) + "\n"
+      }
+      genThumbs.script = sc
+      genThumbs.running = true
+    }
+
+    if (!wallsRoot.liveRestored) {
+      wallsRoot.liveRestored = true
+      if (wallsRoot.liveActivePath !== "") {
+        let idx = 0
+        for (let i = 0; i < liveModel.count; i++)
+          if (liveModel.get(i).path === wallsRoot.liveActivePath) { idx = i; break }
+        wallsRoot.liveMode = true
+        wallsRoot.currentIndex = idx
+        wallsRoot.paletteSource = wallsRoot.frameFor(wallsRoot.liveActivePath)
+      }
+    } else if (wallsRoot.liveMode) {
+      wallsRoot.currentIndex = Math.min(wallsRoot.currentIndex, Math.max(0, liveModel.count - 1))
+    }
+  }
+
+  // ─── ¿Se están recargando los colores? ─────────────────────────────
+  // `changing` es true desde que ELIGES un wallpaper (o un esquema) hasta que
+  // el Theme ya aplicó la paleta nueva. shell.qml se lo pasa a la barra y a
+  // los módulos, que se esconden solo durante ese tramo: abrir el selector
+  // NO los toca.
+  //
+  // Etapas: awww (transición) → matugen → leer json → Theme.reload() →
+  // colchón para que termine la animación de color del Theme. Cada etapa es
+  // un Process/Timer real, así que si algo tarda más, sigue oculto hasta que
+  // termine de verdad. `changeFailsafe` lo suelta pase lo que pase.
+  //
+  // El matugen del arranque NO cuenta: solo lo que dispara el usuario.
+  property bool changing: false
+  // Debe cubrir --transition-duration del comando de applyWallpaper
+  property int transitionHoldMs: 1300
+  // Tiempo tras aplicar la paleta (cat + animación de 300 ms del Theme)
+  property int settleMs: 700
+  // El Theme ya puede leer la paleta nueva
+  signal colorsReloaded()
+
+  property bool holdDone: true
+  property bool settled: true
+
+  function beginChange(withTransition) {
+    settleTimer.stop()
+    wallsRoot.settled = false
+    wallsRoot.holdDone = !withTransition
+    if (withTransition) changeHold.restart()
+    wallsRoot.changing = true
+    changeFailsafe.restart()
+  }
+
+  function tryFinishChange() {
+    if (applyWallpaper.running || applyLive.running || matugenProc.running
+        || colorReadTimer.running || readColors.running) return
+    if (!wallsRoot.holdDone || !wallsRoot.settled) return
+    wallsRoot.changing = false
+    changeFailsafe.stop()
+  }
+
+  Timer {
+    id: changeHold
+    interval: wallsRoot.transitionHoldMs
+    repeat: false
+    onTriggered: { wallsRoot.holdDone = true; wallsRoot.tryFinishChange() }
+  }
+
+  Timer {
+    id: settleTimer
+    interval: wallsRoot.settleMs
+    repeat: false
+    onTriggered: { wallsRoot.settled = true; wallsRoot.tryFinishChange() }
+  }
+
+  Timer {
+    id: changeFailsafe
+    interval: 12000
+    repeat: false
+    onTriggered: wallsRoot.changing = false
+  }
+
+  property int windowSize: 7
+  readonly property int halfWindow: Math.floor(windowSize / 2)
+
+  // ─── Navegación ─────────────────────────────────────────────
+  // Mueve la selección `d` tarjetas (con vuelta al llegar al final)
+  function step(d) {
+    const total = wallsRoot.activeModel.count
+    if (total === 0) return
+    wallsRoot.currentIndex = ((wallsRoot.currentIndex + d) % total + total) % total
+  }
+
+  function goTo(i) {
+    const total = wallsRoot.activeModel.count
+    if (total === 0) return
+    wallsRoot.currentIndex = Math.max(0, Math.min(total - 1, i))
+  }
+
+  // Salta a una tarjeta al azar (distinta de la actual). No la aplica: Enter.
+  function randomIndex() {
+    const n = wallsRoot.activeModel.count
+    if (n < 2) return
+    let i = wallsRoot.currentIndex
+    while (i === wallsRoot.currentIndex) i = Math.floor(Math.random() * n)
+    wallsRoot.currentIndex = i
+  }
+
+  // Lo que está aplicado AHORA (para marcar su tarjeta con "ACTUAL"): el
+  // video si hay uno de fondo, o el wallpaper estático que se aplicó
+  readonly property string appliedPath:
+    wallsRoot.liveMode ? wallsRoot.liveActivePath
+                       : (wallsRoot.liveActivePath === "" ? applyWallpaper.wpPath : "")
+
+  // ─── Volver a leer la carpeta al abrir ─────────────────────────
+  // Antes la lista se leía una sola vez al arrancar: un wallpaper nuevo no
+  // aparecía hasta reiniciar el shell. Ahora, al abrir el selector, se vuelve
+  // a leer y, si cambió algo, se rehace la lista sin perder la tarjeta en la
+  // que estabas (se busca por ruta).
+  onOpenChanged: {
+    if (wallsRoot.open && !wallsRoot.liveMode && !loadWalls.running && !rescanWalls.running)
+      rescanWalls.running = true
+  }
+
+  Process {
+    id: rescanWalls
+    property var found: []
+    command: [ "bash", "-c",
+      "find \"" + wallsRoot.wallpaperFolder + "\" -maxdepth 1 -type f 2>/dev/null | sort | grep -iE '\\.(jpg|jpeg|png|webp|gif)$'" ]
+    running: false
+    stdout: SplitParser {
+      onRead: line => { const p = line.trim(); if (p !== "") rescanWalls.found.push(p) }
+    }
+    onRunningChanged: {
+      if (running) { rescanWalls.found = []; return }
+      const f = rescanWalls.found
+      rescanWalls.found = []
+      if (wallsRoot.liveMode) return
+      // ¿Cambió algo? (mismo largo y mismas rutas en el mismo orden = nada)
+      let same = f.length === wallpaperModel.count
+      for (let i = 0; same && i < f.length; i++)
+        if (wallpaperModel.get(i).path !== f[i]) same = false
+      if (same) return
+      const cur = wallpaperModel.count > 0 && wallsRoot.currentIndex < wallpaperModel.count
+        ? wallpaperModel.get(wallsRoot.currentIndex).path : ""
+      wallpaperModel.clear()
+      for (let i = 0; i < f.length; i++)
+        wallpaperModel.append({ "name": f[i].split("/").pop(), "path": f[i], "thumb": f[i], "ready": true })
+      const idx = f.indexOf(cur)
+      wallsRoot.currentIndex = idx >= 0 ? idx : Math.min(wallsRoot.currentIndex, Math.max(0, f.length - 1))
+    }
+  }
+
+  function shQuote(s) {
+    return "'" + String(s).replace(/'/g, "'\\''") + "'"
+  }
+
+  // ─── Función para buscar el índice guardado en el modelo ────
+    function restoreLastIndex(savedPath) {
+      const cleanPath = savedPath.trim()
+      if (cleanPath === "") return
+
+      for (let i = 0; i < wallpaperModel.count; i++) {
+        if (wallpaperModel.get(i).path === cleanPath) {
+          wallsRoot.currentIndex = i
+          // Asignamos la ruta cargada para que matugen la use
+          applyWallpaper.wpPath = cleanPath
+          wallsRoot.paletteSource = cleanPath
+          break
+        }
+      }
+    }
+
+  // ─── Esquemas matugen ─────────────────────────────────────────
+  // La lista vive en Theme.qml (single source of truth: la usa también el
+  // selector de "Paleta preferida" en Ajustes → Configuración avanzada).
+  // schemeIndex arranca en la paleta preferida; es un binding declarativo,
+  // así que se respeta SOLO hasta que elegís un esquema a mano acá abajo
+  // (applyScheme le asigna un valor imperativo, lo cual en QML desconecta
+  // el binding — tu elección manual para ESTE wallpaper queda intacta).
+  property int schemeIndex: Theme.defaultSchemeIndex
+  readonly property var schemes: Theme.schemes
+
+  function applyScheme(idx) {
+    schemeIndex = idx
+    if (wallsRoot.paletteSource !== "") {
+      wallsRoot.beginChange(false)
+      wallsRoot.runMatugen()
+    }
+  }
+
+  // Pide una corrida de matugen. Si ya hay una en curso (p. ej. cambiaste de
+  // esquema dos veces rápido) NO se pierde el último pedido: al terminar la
+  // actual se lanza otra con lo más reciente. Antes `running = true` con el
+  // proceso ya corriendo no hacía nada y quedaba el esquema anterior.
+  property bool matugenAgain: false
+  function runMatugen() {
+    // Modo Paletas (Ajustes → Configuración avanzada → Apariencia): matugen
+    // queda apagado del todo, así que cambiar de wallpaper NO le pega al
+    // color del shell. Igual hay que "soltar" el `changing` (que esconde
+    // barra/módulos durante el cambio) como si la paleta ya se hubiese
+    // releído — si no, se quedaría esperando 12 s al failsafe.
+    if (Theme.paletteMode) {
+      wallsRoot.settled = false
+      settleTimer.restart()
+      return
+    }
+    if (matugenProc.running) wallsRoot.matugenAgain = true
+    else matugenProc.running = true
+  }
+
+  // Al volver de "Paletas" a "Automático" (Theme.setPaletteMode(false)) el
+  // Theme ya repinta con la última paleta de matugen que tenía en memoria,
+  // pero esa pudo quedar vieja si cambiaste de wallpaper mientras matugen
+  // estaba apagado. Se pide una corrida fresca para el wallpaper actual.
+  Connections {
+    target: Theme
+    function onPaletteModeChanged() {
+      if (!Theme.paletteMode && wallsRoot.paletteSource !== "") wallsRoot.runMatugen()
+    }
+  }
+
+  property var paletteSlots: []
+  ListModel { id: wallpaperModel }
+
+  // ─── Carga de lista de Wallpapers ──────────────────────────────
+  Process {
+    id: loadWalls
+    command: ["bash", "-c",
+      "find \"" + wallsRoot.wallpaperFolder + "\" -maxdepth 1 -type f 2>/dev/null | sort | grep -iE '\\.(jpg|jpeg|png|webp|gif)$'"
+    ]
+    running: true
+    stdout: SplitParser {
+      onRead: (line) => {
+        const p = line.trim()
+        if (p !== "") wallpaperModel.append({ "name": p.split("/").pop(), "path": p, "thumb": p, "ready": true })
+      }
+    }
+    // Una vez que termina de escanear la carpeta, lee el caché del último fondo
+    onRunningChanged: if (!running) loadLastWp.running = true
+  }
+
+  // ─── Proceso para leer la última imagen usada desde el caché ───
+    Process {
+      id: loadLastWp
+      command: ["bash", "-c", "cat \"$HOME/.cache/awww/last\" 2>/dev/null"]
+      running: false
+      property string lastPath: ""
+      stdout: SplitParser { onRead: line => loadLastWp.lastPath += line }
+      onRunningChanged: {
+        if (!running && lastPath !== "") {
+          wallsRoot.restoreLastIndex(lastPath)
+          lastPath = ""
+          // Si hay una ruta válida cargada, regeneramos la paleta de colores al iniciar
+          if (applyWallpaper.wpPath !== "") {
+            wallsRoot.runMatugen()
+          }
+        }
+      }
+    }
+
+    Process {
+      id: applyWallpaper
+      property string wpPath: ""
+      command: ["bash", "-c",
+        // Volver a un wallpaper estático: apaga el video y olvida el modo live
+        wallsRoot.killLiveCmd + "rm -f " + wallsRoot.shQuote(wallsRoot.liveStateFile) + "; " +
+        "mkdir -p \"$HOME/.cache/awww\" && " +
+        "awww img " + wallsRoot.shQuote(wpPath) + " " +
+        "--transition-type center " +
+        "--transition-angle 30 " +
+        "--transition-duration 1; " +
+        "echo " + wallsRoot.shQuote(wpPath) + " > \"$HOME/.cache/awww/last\""
+      ]
+      running: false
+      onRunningChanged: {
+        if (running) wallsRoot.beginChange(true)
+        else if (wpPath !== "") wallsRoot.runMatugen()
+      }
+    }
+
+    // ─── Live wallpapers: procesos ────────────────────────────────
+    // Estado al arrancar: ¿había un video activo? Si sí y mpvpaper ya no
+    // corre (reinicio de sesión), lo relanza. Si sigue corriendo (solo se
+    // reinició Quickshell), no lo toca: así el video no parpadea.
+    Process {
+      id: loadLiveState
+      command: ["bash", "-c",
+        "p=$(cat " + wallsRoot.shQuote(wallsRoot.liveStateFile) + " 2>/dev/null); " +
+        "if [ -n \"$p\" ] && [ -f \"$p\" ]; then echo \"$p\"; " +
+        "pgrep -f '[m]pvpaper' >/dev/null || { " +
+        "mkdir -p " + wallsRoot.shQuote(wallsRoot.liveCacheDir) + "; " +
+        "rm -f " + wallsRoot.shQuote(wallsRoot.liveIpcSocket) + "; " +
+        "V=\"$p\"; " + wallsRoot.optResolveCmd() +
+        "setsid -f mpv\"\"paper -p -l " + wallsRoot.liveLayer + " -o " + wallsRoot.shQuote(wallsRoot.mpvOptions) +
+        " '*' \"$V\" >>" + wallsRoot.shQuote(wallsRoot.liveLogFile) + " 2>&1; }; fi"
+      ]
+      running: true
+      stdout: SplitParser { onRead: line => { if (line.trim() !== "") wallsRoot.liveActivePath = line.trim() } }
+      onRunningChanged: {
+        if (running) return
+        scanLive.running = true
+        if (wallsRoot.liveActivePath !== "") liveSyncDelay.restart()
+      }
+    }
+
+    Process {
+      id: scanLive
+      command: ["bash", "-c",
+        "find \"" + wallsRoot.wallpaperFolder + "\" \"" + wallsRoot.liveFolder + "\" -maxdepth 1 -type f 2>/dev/null " +
+        "| grep -iE '\\.(mp4|mkv|webm|mov|avi|m4v)$' | sort -u"
+      ]
+      running: false
+      stdout: SplitParser {
+        onRead: (line) => {
+          const p = line.trim()
+          if (p !== "") liveModel.append({
+            "name": p.split("/").pop(), "path": p,
+            "thumb": wallsRoot.frameFor(p), "ready": false,
+            "clip": wallsRoot.clipFor(p), "clipReady": false
+          })
+        }
+      }
+      onRunningChanged: if (!running) wallsRoot.onLiveScanned()
+    }
+
+    // Miniaturas (un fotograma por video) en segundo plano. Cada línea que
+    // imprime es un video cuya miniatura ya existe.
+    Process {
+      id: genThumbs
+      property string script: ""
+      command: ["bash", "-c", script]
+      running: false
+      stdout: SplitParser {
+        onRead: (line) => {
+          const p = line.trim()
+          for (let i = 0; i < liveModel.count; i++) {
+            if (liveModel.get(i).path === p) {
+              liveModel.setProperty(i, "ready", true)
+              wallsRoot.thumbRev++
+              break
+            }
+          }
+        }
+      }
+      // Los fotogramas ya están (o al menos, el intento terminó): ahora, en
+      // segundo plano, los mini clips para la vista previa de la tarjeta
+      // central. Van después para no competir por CPU con las miniaturas,
+      // que son las que hacen falta primero para ver el carrusel.
+      onRunningChanged: if (!running) wallsRoot.startClipGen()
+    }
+
+    // Mini clips (GIF, uno por video) para la vista previa animada de la
+    // tarjeta central. Igual que genThumbs: cada línea impresa es un video
+    // cuyo clip ya existe (nuevo o cacheado de una corrida anterior).
+    Process {
+      id: genClips
+      property string script: ""
+      command: ["bash", "-c", script]
+      running: false
+      stdout: SplitParser {
+        onRead: (line) => {
+          const p = line.trim()
+          for (let i = 0; i < liveModel.count; i++) {
+            if (liveModel.get(i).path === p) {
+              liveModel.setProperty(i, "clipReady", true)
+              wallsRoot.thumbRev++
+              break
+            }
+          }
+        }
+      }
+    }
+
+    // Arma y lanza el script que genera todos los clips pendientes.
+    // Filtro de paleta optimizada de dos pasos (palettegen + paletteuse)
+    // en una sola invocación de ffmpeg con `split`. 3 s, 12 fps, ~320 px
+    // de ancho (alto proporcional, múltiplo par por el -2 de scale).
+    function startClipGen() {
+      // Los mini clips cuestan CPU (ffmpeg) y solo sirven para la vista previa
+      if (!wallsRoot.previewOn) return
+      if (liveModel.count === 0 || genClips.running) return
+      let sc = "mkdir -p " + wallsRoot.shQuote(wallsRoot.liveCacheDir) + "\n" +
+        "VF='fps=12,scale=320:-2:flags=lanczos,split[s0][s1];[s0]palettegen=stats_mode=diff[p];[s1][p]paletteuse=dither=bayer'\n" +
+        "gen() { V=\"$1\"; C=\"$2\"; " +
+        "[ -s \"$C\" ] || ffmpeg -nostdin -y -v error -ss 1 -t 3 -i \"$V\" -vf \"$VF\" -loop 0 \"$C\" 2>/dev/null; " +
+        "[ -s \"$C\" ] || ffmpeg -nostdin -y -v error -t 3 -i \"$V\" -vf \"$VF\" -loop 0 \"$C\" 2>/dev/null; " +
+        "[ -s \"$C\" ] && echo \"$V\"; }\n"
+      for (let i = 0; i < liveModel.count; i++) {
+        const it = liveModel.get(i)
+        if (!it.clipReady) sc += "gen " + wallsRoot.shQuote(it.path) + " " + wallsRoot.shQuote(it.clip) + "\n"
+      }
+      genClips.script = sc
+      genClips.running = true
+    }
+
+    // Aplicar un video: fotograma (para la paleta) → mpvpaper → recordar.
+    // Al terminar, matugen corre sobre el fotograma, igual que con una imagen.
+    Process {
+      id: applyLive
+      property string videoPath: ""
+      property string framePath: ""
+      command: ["bash", "-c",
+        "mkdir -p " + wallsRoot.shQuote(wallsRoot.liveCacheDir) + " \"$HOME/.cache/awww\"; " +
+        wallsRoot.frameCmd(videoPath, framePath) +
+        wallsRoot.killLiveCmd +
+        wallsRoot.mpvLaunchCmd(videoPath) + "; " +
+        "echo " + wallsRoot.shQuote(videoPath) + " > " + wallsRoot.shQuote(wallsRoot.liveStateFile) + "; " +
+        // shell.qml (initColors) lee este archivo al arrancar: que apunte al fotograma
+        "echo " + wallsRoot.shQuote(framePath) + " > \"$HOME/.cache/awww/last\""
+      ]
+      running: false
+      stderr: SplitParser { onRead: (line) => console.log("[live]", line) }
+      onRunningChanged: {
+        console.log("[live] applyLive.running=" + running + " videoPath=" + videoPath)
+        if (running) wallsRoot.beginChange(false)
+        else if (videoPath !== "") {
+          wallsRoot.runMatugen()
+          liveSyncDelay.restart()
+          wallsRoot.optimizeActiveLive()
+        }
+      }
+    }
+
+  // Al encender la vista previa, se generan los clips que faltaban
+  // (ver wallsRoot.onPreviewOnChanged, más arriba)
+
+  // ─── Modo claro / oscuro ─────────────────────────────────────
+  // El Theme ya cambió al instante (matugen guarda ambas variantes en el
+  // json); esto vuelve a correr matugen con `-m` para que el resto de tus
+  // apps (plantillas de matugen) siga el mismo modo.
+  //
+  // Ojo con el spam del botón: antes cada clic hacía `running = false;
+  // running = true`. Con matugen ya corriendo eso solo lo MATABA (el
+  // `running = true` no hace nada mientras el proceso sigue vivo) y nadie lo
+  // relanzaba: tus otras apps quedaban en el modo contrario al del toggle y la
+  // paleta a medio escribir. Ahora se espera a que dejes de pulsar y se pide
+  // UNA corrida con `runMatugen()`, que si ya hay una en curso la deja
+  // terminar y repite con el modo más reciente.
+  Connections {
+    target: Theme
+    function onLightModeChanged() { lightModeSettle.restart() }
+  }
+
+  Timer {
+    id: lightModeSettle
+    interval: 400
+    repeat: false
+    onTriggered: {
+      if (wallsRoot.paletteSource === "") return
+      wallsRoot.runMatugen()
+    }
+  }
+
+  // Modo con el que se lanza matugen y se lee su json (directo de lightMode)
+  readonly property string matugenMode: Theme.lightMode ? "light" : "dark"
+
+  // ─── Matugen ────────────────────────────────────────────────
+  Process {
+    id: matugenProc
+    command: ["bash", "-c",
+      "matugen image " + wallsRoot.shQuote(wallsRoot.paletteSource) +
+      " -m " + wallsRoot.matugenMode +
+      " --source-color-index 0 -t scheme-" + wallsRoot.schemes[wallsRoot.schemeIndex].name + "; " +
+      "matugen image " + wallsRoot.shQuote(wallsRoot.paletteSource) +
+      " -m " + wallsRoot.matugenMode +
+      " --source-color-index 0 -t scheme-" + wallsRoot.schemes[wallsRoot.schemeIndex].name +
+      " --json hex | sed -n '/^{/,/^}/p' > /tmp/matugen-colors.json"
+    ]
+    running: false
+    stderr: SplitParser { onRead: (line) => console.log("[matugen]", line) }
+    onRunningChanged: {
+      if (running) return
+      // Llegó otro pedido mientras corría: se lanza de nuevo y se descarta
+      // esta salida (ya está vieja)
+      if (wallsRoot.matugenAgain) {
+        wallsRoot.matugenAgain = false
+        Qt.callLater(() => { matugenProc.running = true })
+        return
+      }
+      colorReadTimer.running = true
+    }
+  }
+
+  Timer {
+    id: colorReadTimer
+    interval: 200; repeat: false; running: false
+    onTriggered: readColors.running = true
+  }
+
+  Process {
+    id: readColors
+    command: ["cat", "/tmp/matugen-colors.json"]
+    running: false
+    property string buffer: ""
+    stdout: SplitParser { onRead: line => readColors.buffer += line }
+    onRunningChanged: {
+      if (running) return
+      if (buffer !== "") {
+        try {
+          const palette = JSON.parse(buffer)
+          const c = palette.colors
+          const m = wallsRoot.matugenMode
+          const p = k => c[k]?.[m]?.color
+          // En claro se suaviza igual que el Theme (no deslumbrar)
+          const sf = col => Theme.lightMode ? Theme.soften(col) : col
+          wallsRoot.matugenColors = {
+            bg:      sf(p("background")        ?? "#0d0305"),
+            border:  p("primary")           ?? "#cc1a2a",
+            accent:  p("primary")           ?? "#cc1a2a",
+            text:    p("on_background")     ?? "#e8c4c4",
+            subtext: p("secondary")         ?? "#a87878",
+            btn:     sf(p("surface_container") ?? "#1e0a0d")
+          }
+          const slotDefs = [
+            { key: "primary",             color: p("primary")             },
+            { key: "secondary",           color: p("secondary")           },
+            { key: "tertiary",            color: p("tertiary")            },
+            { key: "error",               color: p("error")               },
+            { key: "primary_container",   color: p("primary_container")   },
+            { key: "secondary_container", color: p("secondary_container") },
+            { key: "tertiary_container",  color: p("tertiary_container")  },
+            { key: "surface_variant",     color: p("surface_variant")     }
+          ]
+          wallsRoot.paletteSlots = slotDefs.filter(s => s.color && s.color !== "")
+        } catch(e) { console.log("matugen parse error:", e) }
+        buffer = ""
+      }
+      // Paleta lista: el Theme la lee ahora, y arranca el colchón final
+      wallsRoot.colorsReloaded()
+      if (wallsRoot.changing) {
+        wallsRoot.settled = false
+        settleTimer.restart()
+      }
+    }
+  }
+
+  property var matugenColors: ({
+    bg: "#0d0305", border: "#cc1a2a", accent: "#cc1a2a",
+    text: "#e8c4c4", subtext: "#a87878", btn: "#1e0a0d"
+  })
+
+  // ─── Contenedor ──────────────────────────────────────────────
+  // El selector vive dentro de un panel (FusedPanel, el mismo de los demás
+  // popups) que nace del borde INFERIOR de la pantalla y crece hacia arriba,
+  // con la misma animación de spawn que los que cuelgan de la barra.
+  //
+  //   ┌ Static|Live · esquemas de color ┐   ← cabecera
+  //   │      ‹ carrusel de tarjetas ›   │
+  //   └ ● ○ ○ ○ ○           3 / 24      ┘   ← paginador + contador
+  //
+  // Todo se dimensiona en función del ancho de la pantalla:
+  //   panelW    → ancho del contenedor (90 % de la pantalla, máx. 1700 px)
+  //   cardRatio → ancho de la tarjeta central respecto al del carrusel
+  readonly property real screenW: wallsWindow.screenWidth || 1920
+  property real panelW: Math.min(screenW * 0.9, 1700)
+  property real cardRatio: 0.24
+  readonly property int pad: 24
+
+  // Antes esta ventana se mostraba/ocultaba con `visible: open || panel.shown`,
+  // como un PanelWindow propio. Eso hacía que Hyprland le aplicara su propia
+  // animación de capa (fade/escala) al aparecer y desaparecer, ENCIMA de la
+  // animación de crecimiento de FusedPanel: se notaba un "corte" al cerrar,
+  // distinto de los demás popups. FusedWindow evita esto quedando SIEMPRE
+  // montada (ver su comentario) — igual que el reloj/calendario y el
+  // selector de workspaces (Overview) — así solo se ve la animación propia
+  // del panel.
+  
+  FusedWindow {
+    id: wallsWindow
+    targetScreen: wallsRoot.targetScreen
+    namespace: "oozeshell-walls"
+    active: wallsRoot.open || panel.shown
+    exclusiveKeys: true
+    onCloseRequested: {
+      wallsRoot.closeRequested()
+      gc()
+    }
+    // Teclas: ←→ / A D mover · Home End · RePág AvPág de a 5 · R al azar ·
+    // F efectos · Enter / Espacio aplicar · Tab Static/Live · Esc la maneja
+    // FusedWindow solo (cierra).
+    onKeyPressed: (key, modifiers, text) => {
+      if (key === Qt.Key_Tab) {
+        wallsRoot.setLiveMode(!wallsRoot.liveMode)
+        return
+      }
+      if (key === Qt.Key_F && modifiers === Qt.NoModifier) {
+        wallsRoot.previewOn = !wallsRoot.previewOn
+        return
+      }
+
+      if (wallsRoot.activeModel.count === 0) return
+
+      switch (key) {
+        case Qt.Key_Left:
+        case Qt.Key_A:        wallsRoot.step(-1); break
+        case Qt.Key_Right:
+        case Qt.Key_D:        wallsRoot.step(1); break
+        case Qt.Key_PageUp:   wallsRoot.step(-5); break
+        case Qt.Key_PageDown: wallsRoot.step(5); break
+        case Qt.Key_Home:     wallsRoot.goTo(0); break
+        case Qt.Key_End:      wallsRoot.goTo(wallsRoot.activeModel.count - 1); break
+        case Qt.Key_R:        wallsRoot.randomIndex(); break
+        case Qt.Key_Return:
+        case Qt.Key_Enter:
+        case Qt.Key_Space:
+          wallsRoot.applyItem(wallsRoot.activeModel.get(wallsRoot.currentIndex)); break
+      }
+    }
+
+      FusedPanel {
+        id: panel
+
+        // Nace SIEMPRE del borde de abajo (no sigue a la barra), centrado
+        edge: "bottom"
+        align: "center"
+        // Barra abajo: el selector nace justo encima de ella. En cualquier
+        // otra posición nace del borde de la pantalla.
+        faceOffset: Theme.barAtBottom ? Theme.barOffset : 0
+        // Flotante (sin curvas, tarjeta con las 4 esquinas redondeadas) SOLO
+        // cuando la barra vive abajo, y en dos casos: fullscreen (la barra
+        // real está oculta, igual que le pasa a Keybinds) o mientras se está
+        // APLICANDO un wallpaper/esquema (`changing`) — de regalo, porque
+        // queda igual de bien que en fullscreen. Con la barra en otra
+        // posición el selector ya nace del borde de la pantalla (sin barra
+        // real detrás) y se deja como está.
+        detached: Theme.barAtBottom && (wallsWindow.detached || wallsRoot.changing)
+        // Medidas relativas a la pantalla: no se multiplican por la escala
+        // de "Ventanas" (Ajustes), que solo pensaría en popups angostos.
+        uiScale: 1.0
+        open: wallsRoot.open
+        panelWidth: wallsRoot.panelW
+        contentHeight: col.implicitHeight + wallsRoot.pad * 2
+        // Fusión con el fondo de pantalla: color del wallpaper actual +
+        // transparencia, en vez del Theme.bg sólido de siempre.
+        color: wallsRoot.fuse(wallsRoot.matugenColors.bg, wallsRoot.fusionAlpha)
+
+        ColumnLayout {
+          id: col
+          x: 0
+          y: wallsRoot.pad
+          width: parent.width
+          spacing: 14
+
+          // ─── CABECERA: Static/Live + esquemas ─────────────────
+          RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: wallsRoot.pad
+            Layout.rightMargin: wallsRoot.pad
+            spacing: 10
+
+            Item { Layout.fillWidth: true }
+
+            // ─── BOTÓN Static / Live ───────────────────────────
+            // Burbuja aparte, en la MISMA fila que la paleta: comparte su
+            // altura y su estilo. Tab también lo alterna. La paleta funciona
+            // igual en los dos modos.
+            SkinRect {
+              id: modeBubble
+              Layout.preferredWidth: modeToggle.width + 20
+              Layout.preferredHeight: schemeFlow.implicitHeight + 20
+              notch: 4
+              raised: Theme.cozy
+              depth: 3
+              inkColor: wallsRoot.matugenColors.accent
+              color: wallsRoot.matugenColors.bg
+              border.color: wallsRoot.matugenColors.accent
+              border.width: 1.5
+
+              Rectangle {
+                id: modeToggle
+                anchors.centerIn: parent
+                width: 138; height: 26; radius: Theme.cozy ? 0 : 13
+                color: Theme.tint(0.08)
+                border.color: Theme.tint(0.18)
+                border.width: Theme.bw1
+
+                // Perilla que se desliza
+                Rectangle {
+                  y: 2; height: parent.height - 4
+                  width: parent.width / 2 - 2
+                  radius: Theme.cozy ? 0 : 11
+                  x: wallsRoot.liveMode ? parent.width / 2 : 2
+                  color: wallsRoot.matugenColors.accent
+                  Behavior on x { NumberAnimation { duration: Theme.animDuration(180); easing.type: Easing.OutCubic } }
+                }
+
+                Text {
+                  x: 0; width: parent.width / 2; height: parent.height
+                  horizontalAlignment: Text.AlignHCenter
+                  verticalAlignment: Text.AlignVCenter
+                  text: Translations.t("wallsModeStatic")
+                  font.pixelSize: 10
+                  font.family: Theme.fontFamily
+                  color: !wallsRoot.liveMode ? wallsRoot.matugenColors.bg : Theme.tint(0.8)
+                }
+                Text {
+                  x: parent.width / 2; width: parent.width / 2; height: parent.height
+                  horizontalAlignment: Text.AlignHCenter
+                  verticalAlignment: Text.AlignVCenter
+                  text: "▶ " + Translations.t("wallsModeLive")
+                  font.pixelSize: 10
+                  font.family: Theme.fontFamily
+                  color: wallsRoot.liveMode ? wallsRoot.matugenColors.bg : Theme.tint(0.8)
+                }
+                MouseArea {
+                  anchors.fill: parent
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: wallsRoot.setLiveMode(!wallsRoot.liveMode)
+                }
+              }
+            }
+
+            // ─── SELECTOR DE ESQUEMAS ──────────────────────────
+            SkinRect {
+              id: topBar
+              Layout.preferredWidth: Math.min(640, col.width * 0.5)
+              Layout.preferredHeight: schemeFlow.implicitHeight + 20
+              notch: 4
+              raised: Theme.cozy
+              depth: 3
+              inkColor: wallsRoot.matugenColors.accent
+              color: wallsRoot.matugenColors.bg
+              border.color: wallsRoot.matugenColors.accent
+              border.width: 1.5
+
+              Flow {
+                id: schemeFlow
+                anchors { fill: parent; margins: 10 }
+                spacing: 11
+
+                Repeater {
+                  model: wallsRoot.schemes
+                  delegate: SkinRect {
+                    id: schemeChip
+                    readonly property bool active: index === wallsRoot.schemeIndex
+                    width: chipText.implicitWidth + 20; height: 26
+                    notch: 3
+                    raised: Theme.cozy && active
+                    depth: 2
+                    inkColor: active ? wallsRoot.matugenColors.accent : Theme.ink
+                    color: active ? wallsRoot.matugenColors.accent : Theme.tint(0.08)
+                    border.color: active ? "#ffffff" : Theme.tint(0.18)
+                    border.width: Theme.bw1
+                    Behavior on color { ColorAnimation { duration: Theme.animDuration(150) } }
+
+                    Text {
+                      id: chipText
+                      anchors.centerIn: parent
+                      text: modelData.label
+                      font.pixelSize: 10
+                      font.family: Theme.fontFamily
+                      color: schemeChip.active ? wallsRoot.matugenColors.bg : Theme.tint(0.8)
+                    }
+                    MouseArea {
+                      anchors.fill: parent
+                      cursorShape: Qt.PointingHandCursor
+                      onClicked: wallsRoot.applyScheme(index)
+                    }
+                  }
+                }
+              }
+            }
+
+            // ─── ACCIONES: aleatorio + vista previa ─────────────
+            // Misma burbuja y altura que las otras dos. "Vista previa" es
+            // un interruptor PROPIO de este módulo (wallsRoot.previewOn),
+            // ya no el de Ajustes → General: apagado se van los clips
+            // animados, el brillo de las tarjetas y su elevación al pasar
+            // el mouse, y no se generan los mini clips.
+            SkinRect {
+              id: actionsBubble
+              Layout.preferredWidth: actionsRow.implicitWidth + 20
+              Layout.preferredHeight: schemeFlow.implicitHeight + 20
+              notch: 4
+              raised: Theme.cozy
+              depth: 3
+              inkColor: wallsRoot.matugenColors.accent
+              color: wallsRoot.matugenColors.bg
+              border.color: wallsRoot.matugenColors.accent
+              border.width: 1.5
+
+              Row {
+                id: actionsRow
+                anchors.centerIn: parent
+                spacing: 8
+
+                // 🎲 Aleatorio
+                SkinRect {
+                  id: randomChip
+                  width: randomText.implicitWidth + 20; height: 26
+                  notch: 3
+                  raised: Theme.cozy
+                  depth: 2
+                  inkColor: Theme.ink
+                  color: randomArea.containsMouse ? Theme.tint(0.16) : Theme.tint(0.08)
+                  border.color: Theme.tint(0.18); border.width: Theme.bw1
+                  Behavior on color { ColorAnimation { duration: Theme.animDuration(150) } }
+                  Text {
+                    id: randomText
+                    anchors.centerIn: parent
+                    text: "⚄  " + Translations.t("wallsRandom")
+                    font.pixelSize: 10
+                    font.family: Theme.fontFamily
+                    color: Theme.tint(0.8)
+                  }
+                  MouseArea {
+                    id: randomArea
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: wallsRoot.randomIndex()
+                  }
+                }
+
+                // 󰈈 Vista previa ON / OFF (antes "Efectos"; ahora local)
+                SkinRect {
+                  id: fxChip
+                  width: fxText.implicitWidth + 20; height: 26
+                  notch: 3
+                  raised: Theme.cozy && wallsRoot.previewOn
+                  depth: 2
+                  inkColor: wallsRoot.previewOn ? wallsRoot.matugenColors.accent : Theme.ink
+                  color: wallsRoot.previewOn ? wallsRoot.matugenColors.accent : Theme.tint(0.08)
+                  border.color: wallsRoot.previewOn ? "#ffffff" : Theme.tint(0.18)
+                  border.width: Theme.bw1
+                  Behavior on color { ColorAnimation { duration: Theme.animDuration(150) } }
+                  Text {
+                    id: fxText
+                    anchors.centerIn: parent
+                    text: "󰈈  " + Translations.t("wallsPreview") + "  " + (wallsRoot.previewOn ? "ON" : "OFF")
+                    font.pixelSize: 10
+                    font.family: Theme.monoFamily
+                    color: wallsRoot.previewOn ? wallsRoot.matugenColors.bg : Theme.tint(0.8)
+                  }
+                  MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: wallsRoot.previewOn = !wallsRoot.previewOn
+                  }
+                }
+              }
+            }
+
+            Item { Layout.fillWidth: true }
+          }
+
+          // ══════════════════════════════════════════════════════
+          // DOCK LAYOUT — Carrusel con overlap
+          // ══════════════════════════════════════════════════════
+          // Ocupa TODO el ancho del contenedor (sin el padding): las
+          // tarjetas de los extremos se recortan contra el borde del panel.
+          Item {
+            id: dockArea
+            
+            Layout.fillWidth: true
+            Layout.preferredHeight: cardH
+
+            // ─── Tamaño de las tarjetas ───
+            property real cardW: width * wallsRoot.cardRatio
+            property real cardH: cardW * (9.0 / 16.0)
+
+            // Rueda del mouse / touchpad: mueve el carrusel. Con una pausa
+            // corta entre pasos para que el touchpad no lo dispare de golpe.
+            // Va DEBAJO de las tarjetas (z: -1) y no toma clics.
+            MouseArea {
+              anchors.fill: parent
+              z: -1
+              acceptedButtons: Qt.NoButton
+              onWheel: wheel => {
+                if (wheelLock.running) return
+                const dy = wheel.angleDelta.y !== 0 ? wheel.angleDelta.y : wheel.angleDelta.x
+                if (dy === 0) return
+                wallsRoot.step(dy < 0 ? 1 : -1)
+                wheelLock.restart()
+              }
+            }
+            Timer { id: wheelLock; interval: 110; repeat: false }
+
+            // Modo Live sin videos: dice dónde ponerlos
+    Text {
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: parent.height - dockArea.cardH / 2 - height / 2
+        visible: wallsRoot.liveMode && liveModel.count === 0 && !scanLive.running
+        horizontalAlignment: Text.AlignHCenter
+        text: Translations.t("wallsNoLive") + "\n" + wallsRoot.liveFolder
+        color: Theme.tint(0.67)
+        font.pixelSize: 13
+        font.family: Theme.fontFamily
+    }
+
+    Repeater {
+        model: wallsRoot.windowSize
+        delegate: Item {
+            id: cCard
+            property int offset: index - wallsRoot.halfWindow
+            property int total: wallsRoot.activeModel.count
+            property bool slotActive:
+                total > 0 &&
+                Math.abs(offset) < Math.max(1, Math.ceil(total / 2))
+            property int actualIndex:
+                total > 0
+                    ? ((wallsRoot.currentIndex + offset) % total + total) % total
+                    : -1
+            property var wp: {
+                // Dependencias: cuando una miniatura queda lista, o cambia el modo
+                wallsRoot.thumbRev
+                wallsRoot.liveMode
+                return (slotActive && actualIndex >= 0 && actualIndex < total)
+                    ? wallsRoot.activeModel.get(actualIndex)
+                    : null
+            }
+            property bool isCurrent: offset === 0
+            property real cw: dockArea.cardW
+            property real ch: dockArea.cardH
+
+            // ─── OVERLAP ───
+            // Mantiene las tarjetas bastante juntas,
+            // igual que tu diseño original.
+            property real spacing: cw * 0.52
+            property real targetX:
+                (dockArea.width / 2) -
+                (cw / 2) +
+                (offset * spacing)
+
+            // La tarjeta central se levanta ligeramente.
+            // Con efectos, la tarjeta lateral bajo el mouse se levanta un poco
+            readonly property bool hovered: cardMouse.containsMouse
+            property real targetY:
+                (dockArea.height - ch) -
+                ((wallsRoot.previewOn && hovered && !isCurrent) ? 10 : 0)
+
+            // ─── ESCALA ───
+            // Mucho menos contraste entre centro y laterales.
+            property real targetScale:
+                isCurrent
+                    ? 1.0
+                    : Math.max(
+                        0.92,
+                        0.98 - Math.abs(offset) * 0.025
+                    )
+
+            // ─── OPACIDAD ───
+            property real targetOpacity:
+                !slotActive
+                    ? 0.0
+                    : (
+                        isCurrent
+                            ? 1.0
+                            : Math.min(
+                                0.97,
+                                Math.max(
+                                    0.50,
+                                    0.82 - Math.abs(offset) * 0.08
+                                ) + ((wallsRoot.previewOn && hovered) ? 0.15 : 0)
+                            )
+                    )
+
+            // ─── ROTACIÓN ───
+            property real targetAngle:
+                offset * 0
+
+            x: targetX
+            y: targetY
+            width: cw
+            height: ch
+            opacity: targetOpacity
+            visible: slotActive
+            // La tarjeta central queda siempre encima.
+            z: isCurrent
+                ? 99
+                : 50 - Math.abs(offset)
+
+            // ─── Animaciones de movimiento ───
+
+            // Solo anima con el contenedor ya abierto: así, en la primera
+            // apertura, las tarjetas no se deslizan mientras el layout aún
+            // se está acomodando.
+            Behavior on x {
+                enabled: panel.progress >= 0.999
+                NumberAnimation {
+                    duration: Theme.animDuration(350)
+                    easing.type: Easing.OutCubic
+                }
+            }
+            Behavior on y {
+                enabled: panel.progress >= 0.999
+                NumberAnimation {
+                    duration: Theme.animDuration(350)
+                    easing.type: Easing.OutCubic
+                }
+            }
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Theme.animDuration(250)
+                }
+            }
+            transform: [
+
+                // ─── ESCALA ───
+                Scale {
+                    origin.x: cw / 2
+                    origin.y: ch
+                    xScale: cCard.targetScale
+                    yScale: cCard.targetScale
+
+                    Behavior on xScale {
+                        NumberAnimation {
+                            duration: Theme.animDuration(350)
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                    Behavior on yScale {
+                        NumberAnimation {
+                            duration: Theme.animDuration(350)
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                },
+
+                // ─── ROTACIÓN ───
+                Rotation {
+                    origin.x: cw / 2
+                    origin.y: ch / 2
+                    angle: cCard.targetAngle
+                    Behavior on angle {
+                        NumberAnimation {
+                            duration: Theme.animDuration(350)
+                            easing.type: Easing.OutCubic
+                        }
+                    }
+                }
+            ]
+
+            // ══════════════════════════════════════════════
+            // TARJETA
+            // ══════════════════════════════════════════════
+
+            SkinRect {
+                id: cardFrame
+                anchors.fill: parent
+                clip: true
+                notch: 6
+                raised: Theme.cozy
+                depth: 4
+                inkColor: cCard.isCurrent ? wallsRoot.matugenColors.accent : Theme.ink
+                color: wallsRoot.matugenColors.bg
+                border.color:
+                    cCard.isCurrent
+                        ? wallsRoot.matugenColors.accent
+                        : Theme.tint(0.25)
+                border.width: 2
+                Behavior on border.color {
+                    ColorAnimation {
+                        duration: Theme.animDuration(200)
+                    }
+                }
+
+                // ─── Imagen ───
+
+                Image {
+                    id: cThumb
+                    anchors.fill: parent
+                    anchors.margins: cardFrame.border.width
+                    source:
+                        (cCard.wp && cCard.wp.ready)
+                            ? ("file://" + cCard.wp.thumb)
+                            : ""
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    cache: true
+                    sourceSize.width: parent.width
+                    sourceSize.height: parent.height
+                    // Se esconde solo cuando el clip animado ya está listo y
+                    // corriendo encima; mientras tanto (o en las tarjetas
+                    // laterales) el fotograma estático sigue siendo lo que se ve.
+                    visible: !cAnim.visible || cAnim.status !== AnimatedImage.Ready
+                    opacity:
+                        status === Image.Ready
+                            ? 1.0
+                            : 0.0
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Theme.animDuration(280)
+                        }
+                    }
+                }
+
+                // Mientras la miniatura carga: pulso suave del color del tema
+                // (solo con efectos; sin ellos queda el fondo liso)
+                Rectangle {
+                    id: shimmer
+                    anchors.fill: parent
+                    anchors.margins: cardFrame.border.width
+                    visible: wallsRoot.previewOn && cCard.slotActive && cThumb.status !== Image.Ready
+                    color: wallsRoot.matugenColors.accent
+                    opacity: 0.12
+                    SequentialAnimation on opacity {
+                        running: (shimmer.visible && wallsRoot.open) && Theme.uiAnimationsEnabled
+                        loops: Animation.Infinite
+                        NumberAnimation { from: 0.08; to: 0.26; duration: Theme.animDuration(900); easing.type: Easing.InOutSine }
+                        NumberAnimation { from: 0.26; to: 0.08; duration: Theme.animDuration(900); easing.type: Easing.InOutSine }
+                    }
+                }
+
+                // ─── Vista previa animada (solo tarjeta central) ───
+                // Mini clip GIF generado en segundo plano por ffmpeg. Las
+                // tarjetas laterales nunca la usan; se quedan con cThumb.
+                AnimatedImage {
+                    id: cAnim
+                    anchors.fill: parent
+                    anchors.margins: cardFrame.border.width
+                    fillMode: Image.PreserveAspectCrop
+                    asynchronous: true
+                    cache: true
+                    // Solo anima mientras el selector está abierto: si se
+                    // cierra, "visible" cae a false, "source" se vacía y
+                    // el clip deja de decodificarse/reproducirse.
+                    visible:
+                        wallsRoot.previewOn &&
+                        wallsRoot.open &&
+                        wallsRoot.liveMode &&
+                        cCard.isCurrent &&
+                        !!cCard.wp &&
+                        !!cCard.wp.clipReady
+                    source: visible ? ("file://" + cCard.wp.clip) : ""
+                    playing: visible && Theme.uiAnimationsEnabled
+                }
+
+                // Insignia ▶ LIVE
+                SkinRect {
+                    visible: wallsRoot.liveMode && cCard.wp
+                    anchors { top: parent.top; right: parent.right; margins: cardFrame.border.width + 6 }
+                    width: liveBadge.implicitWidth + 14; height: 20
+                    notch: 3
+                    raised: Theme.cozy
+                    depth: 2
+                    inkColor: wallsRoot.matugenColors.accent
+                    color: Qt.rgba(0, 0, 0, 0.65)
+                    Text {
+                        id: liveBadge
+                        anchors.centerIn: parent
+                        text: "▶ LIVE"
+                        color: wallsRoot.matugenColors.accent
+                        font.pixelSize: 9
+                        font.bold: true
+                        font.family: Theme.fontFamily
+                    }
+                }
+
+                // Insignia ● ACTUAL: es el wallpaper (o video) que está puesto ahora
+                SkinRect {
+                    visible: !!cCard.wp && cCard.wp.path === wallsRoot.appliedPath
+                    anchors { top: parent.top; left: parent.left; margins: cardFrame.border.width + 6 }
+                    width: curBadge.implicitWidth + 14; height: 20
+                    notch: 3
+                    raised: Theme.cozy
+                    depth: 2
+                    inkColor: wallsRoot.matugenColors.accent
+                    color: wallsRoot.matugenColors.accent
+                    Text {
+                        id: curBadge
+                        anchors.centerIn: parent
+                        text: "● " + Translations.t("wallsCurrent")
+                        color: wallsRoot.matugenColors.bg
+                        font.pixelSize: 9
+                        font.bold: true
+                        font.family: Theme.fontFamily
+                    }
+                }
+
+                // ══════════════════════════════════════════
+                // BARRA DE INFORMACIÓN
+                // ══════════════════════════════════════════
+
+                Rectangle {
+                    anchors.bottom: parent.bottom
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.margins: cardFrame.border.width
+                    height: 36
+                    color: Qt.rgba(0, 0, 0, 0.65)
+                    visible:
+                        cCard.isCurrent &&
+                        cCard.wp
+
+                    RowLayout {
+                        anchors {
+                            fill: parent
+                            leftMargin: 12
+                            rightMargin: 12
+                        }
+
+                        Text {
+                            text:
+                                cCard.wp
+                                    ? cCard.wp.name.replace(
+                                        /\.[^.]+$/,
+                                        ""
+                                    )
+                                    : ""
+
+                            color: "#ffffffdd"
+                            font.pixelSize: 11
+                            font.family: Theme.fontFamily
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
+                        }
+
+                        Text {
+                            text:
+                                Translations.t(
+                                    wallsRoot.changing ? "wallsApplying" : "wallsApplyHint"
+                                )
+                            color:
+                                wallsRoot.matugenColors.accent
+
+                            font.pixelSize: 9
+                            font.family: Theme.fontFamily
+                        }
+                    }
+                }
+            }
+
+            // ══════════════════════════════════════════════
+            // CLICK
+            // ══════════════════════════════════════════════
+
+            MouseArea {
+                id: cardMouse
+                anchors.fill: parent
+                enabled: cCard.slotActive
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    if (cCard.isCurrent) {
+                        wallsRoot.applyItem(cCard.wp)
+                    } else {
+                        wallsRoot.currentIndex =
+                            cCard.actualIndex
+                    }
+                }
+            }
+        }
+    }
+          }
+
+          // ─── PAGINADOR + CONTADOR ───────────────────────────
+          Item {
+            Layout.fillWidth: true
+            Layout.leftMargin: wallsRoot.pad
+            Layout.rightMargin: wallsRoot.pad
+            Layout.preferredHeight: 32
+
+            Row {
+              anchors.centerIn: parent
+              spacing: 6
+              Repeater {
+                model: Math.min(wallsRoot.activeModel.count, 15)
+                delegate: Rectangle {
+                  width: index === (wallsRoot.currentIndex % 15) ? 18 : 6; height: 6; radius: Theme.cozy ? 0 : 3
+                  color: index === (wallsRoot.currentIndex % 15) ? wallsRoot.matugenColors.accent : Theme.tint(0.25)
+                  Behavior on width { NumberAnimation { duration: Theme.animDuration(200) } }
+                }
+              }
+            }
+
+            // ─── HUD (Contador) ──────────────────────────────
+            SkinRect {
+              id: counterPill
+              anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+              width: counterText.width + 24; height: 32
+              notch: 4
+              raised: Theme.cozy
+              depth: 3
+              inkColor: Theme.ink
+              color: Qt.rgba(0, 0, 0, 0.55)
+              border.color: Qt.rgba(1, 1, 1, 0.18)
+              border.width: Theme.bw1
+
+              Text {
+                id: counterText
+                anchors.centerIn: parent
+                text: (wallsRoot.activeModel.count > 0 ? wallsRoot.currentIndex + 1 : 0) + " / " + wallsRoot.activeModel.count
+                + (genThumbs.running ? "  ·  " + Translations.t("wallsGenerating") : "")
+                color: Qt.rgba(1,1,1,0.75)
+                font.pixelSize: 11
+                font.family: Theme.fontFamily
+              }
+            }
+          }
+        }
+      }
+  }
+}
