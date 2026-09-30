@@ -1,8 +1,8 @@
-# Oozenix Dotfiles
+# Oozenix Dotfiles Beta
 
 Personal dotfiles for a **Hyprland** Wayland desktop on **NixOS** (main target) and **Arch Linux**, centered around **OozeShell**, a custom **Quickshell / Qt6** desktop shell.
 
-OozeShell replaces the bar, launcher, notification center, lock screen, wallpaper selector, dock, media controls, power menu and most system panels with a single, themeable shell.
+OozeShell replaces the bar, launcher, notification center, lock screen, wallpaper selector, dock, media controls, power menu and most system panels with a single, themeable shell. 
 
 > **⚠️ Important:** This repository contains user-level configuration from my personal system. It is a starting point and may need adjustments for your hardware, usernames, monitors, GPU, paths and installed packages (the Hyprland config is written for an NVIDIA machine).
 
@@ -26,7 +26,7 @@ OozeShell replaces the bar, launcher, notification center, lock screen, wallpape
 * [Screenshots](#-screenshots)
 * [Removing the dotfiles](#-removing-the-dotfiles)
 * [Troubleshooting](#-troubleshooting)
-
+* [Updating the dotfiles](#-updating-the-dotfiles)
 ---
 
 ## 🖥️ Supported systems
@@ -509,6 +509,8 @@ rm -f ~/.local/bin/nix-rofi
 
 # ⚠️ Troubleshooting
 
+
+
 ### `Could not find OozeShell.zip` / `OozeShell-arch.zip`
 
 The installer looks for the archive in `~/dotfiles`. Arch needs exactly `OozeShell-arch.zip`; every other system needs `OozeShell.zip`. Put the file there and run the installer again.
@@ -589,6 +591,38 @@ echo $PATH
 ### Static Waybar theme keeps being overwritten
 
 Matugen is still generating `style.css`. Disable `[templates.waybar]` in `~/.config/matugen/config.toml` and restart Waybar.
+
+---
+
+## 🔄 Updating the dotfiles
+
+Before pulling, look at what you changed locally:
+
+```bash
+cd ~/dotfiles
+git status
+git diff
+```
+
+- **Changes you want to keep:** commit them first (`git add <files> && git commit`) or `git stash`, then `git pull` (and `git stash pop`).
+- **Changes you don't need:** revert only those files, e.g. `git checkout -- <file>`, then `git pull`.
+- **Start clean, discarding everything local:**
+```bash
+  git fetch origin
+  git reset --hard origin/main    # change "main" if your branch is named differently
+```
+  ⚠️ This deletes **all** uncommitted changes in the repository.
+
+On **Arch**, the installer edits `keybinds.lua` and `env.lua` (PacSearch bind, Nvidia and Electron variables), so they will show up as modified. Decide per file whether to keep or revert them.
+
+Then re-run the installer to re-apply the Arch-specific changes:
+
+```bash
+cd ~/dotfiles
+bash install-oozenix.sh
+```
+
+When run on an existing install, the installer tells git to ignore local changes in `~/.config/hypr/modules/appearance/autogen`, since OozeShell regenerates those files.
 
 ---
 
