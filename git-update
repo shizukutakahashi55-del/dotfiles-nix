@@ -19,7 +19,7 @@ if [ "$#" -eq 0 ]; then
     echo "Usage: git-update -Your commit message"
     exit 1
 fi
-
+    
 MESSAGE="$*"
 
 # Remove the first "-" from the message

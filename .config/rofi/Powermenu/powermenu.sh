@@ -1,19 +1,35 @@
+
 #!/usr/bin/env bash
+
+# ============================================================================
+# POWERMENU
+# ============================================================================
 
 # Rutas absolutas para evitar errores
 dir="$HOME/.config/rofi/Powermenu"
-theme='WLStyle'
+
+theme="WLStyle"
+
 icons="$HOME/.config/rofi/icons"
+
 conf_rasi="$dir/confirm.rasi"
 
-# Opciones
+
+# ============================================================================
+# OPTIONS
+# ============================================================================
+
 sdown="Shutdown\0icon\x1f${icons}/shutdown.svg"
 reboot="Reboot\0icon\x1f${icons}/reboot.svg"
 susp="Suspend\0icon\x1f${icons}/suspend.svg"
 log="Logout\0icon\x1f${icons}/logout.svg"
 hiber="Hibernate\0icon\x1f${icons}/hibernate.svg"
 
-# Función de confirmación forzando el tema
+
+# ============================================================================
+# CONFIRMATION
+# ============================================================================
+
 confirm_exit() {
     echo -e "Yes\nNo" | rofi -dmenu \
         -p "Confirmation" \
@@ -21,27 +37,53 @@ confirm_exit() {
         -theme "${conf_rasi}"
 }
 
-# Menú principal
+
+# ============================================================================
+# MAIN MENU
+# ============================================================================
+
 chosen=$(echo -e "$sdown\n$reboot\n$susp\n$log\n$hiber" | rofi -dmenu \
-    -p "Goodbye ${USER}" \
-    -mesg "󱑂 Uptime: $(uptime | grep -oP '(?<=up ).*?(?=,)')" \
+    -p "Goodbye ✧ ${USER} !!" \
+    -mesg "󱑂 Uptime: $(uptime | grep -oP '(?<=up ).*?(?=,)' | head -1)" \
     -theme "${dir}/${theme}.rasi" \
     -markup-rows)
 
+
+# ============================================================================
+# ACTIONS
+# ============================================================================
+
 case "$chosen" in
+
     "Shutdown")
-        [[ $(confirm_exit) == "Yes" ]] && systemctl poweroff
+        if [[ $(confirm_exit) == "Yes" ]]; then
+            hyprshutdown --vt 2 -t "Shutting down..." --post-cmd "systemctl poweroff"
+
+        fi
         ;;
+
     "Reboot")
-        [[ $(confirm_exit) == "Yes" ]] && systemctl reboot
+        if [[ $(confirm_exit) == "Yes" ]]; then
+            hyprshutdown --vt 2 -t "Rebooting..." --post-cmd "reboot"
+        fi
         ;;
+
     "Suspend")
-        systemctl suspend
+        if [[ $(confirm_exit) == "Yes" ]]; then
+            systemctl suspend
+        fi
         ;;
+
     "Logout")
-        [[ $(confirm_exit) == "Yes" ]] &&  hyprctl dispatch 'hl.dsp.exit()'
+        if [[ $(confirm_exit) == "Yes" ]]; then
+            hyprshutdown --vt 2 -t "See you soon~"   ##Nvidia Fix
+        fi
         ;;
+
     "Hibernate")
-        systemctl hibernate
+        if [[ $(confirm_exit) == "Yes" ]]; then
+            systemctl hibernate
+        fi
         ;;
+
 esac

@@ -1,0 +1,180 @@
+// MprisBackend — único lugar que corre `playerctl` para saber qué está
+// sonando y controlarlo.
+//
+// Antes esta lógica vivía adentro de MPRIS/Mpris.qml (el popup de 820
+// líneas), mezclada con su UI. Se separó acá para que
+// DASHBOARD/DashboardMpris.qml (ver especificación §12: "Debe reutilizar
+// el backend MPRIS existente") pueda mostrar los mismos datos sin correr
+// un tercer poller de playerctl por su cuenta — Mpris.qml ahora lee de
+// acá también (ver ese archivo).
+//
+// Mismo patrón que COMMON/AudioLevels.qml: nadie sondea nada mientras
+// nadie lo pide.
+//
+//   MprisBackend.setWanted("dashboard", true)   // empezar a sondear
+//   MprisBackend.setWanted("dashboard", false)  // dejar de necesitarlo
+pragma Singleton
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
+Singleton {
+  id: root
+
+  // ─── Quién lo necesita ───────────────────────────────────────
+  property var wanters: ({})
+  readonly property bool wanted: Object.keys(root.wanters).length > 0
+
+  function setWanted(who, on) {
+    if ((root.wanters[who] === true) === on) return
+    const n = Object.assign({}, root.wanters)
+    if (on) n[who] = true
+    else delete n[who]
+    root.wanters = n
+  }
+
+  // ─── Datos ────────────────────────────────────────────────────
+  property var activePlayers: []
+  property int activePlayerIndex: 0
+
+  property string currentTitle: ""
+  property string currentArtist: ""
+  property string currentArt: ""
+  property string currentStatus: "Stopped"
+  property int currentPosition: 0
+  property int currentLength: 0
+
+  readonly property real progressRatio:
+    root.currentLength > 0 ? Math.max(0, Math.min(1, root.currentPosition / root.currentLength)) : 0
+
+  function currentPlayer() {
+    if (root.activePlayers.length === 0) return ""
+    if (root.activePlayerIndex < 0 || root.activePlayerIndex >= root.activePlayers.length)
+      return root.activePlayers[0]
+    return root.activePlayers[root.activePlayerIndex]
+  }
+
+  function selectPlayer(i) {
+    if (root.activePlayers.length === 0) return
+    root.activePlayerIndex = (i + root.activePlayers.length) % root.activePlayers.length
+    root.refreshMetadata()
+  }
+
+  function formatTime(us) {
+    const s = Math.floor(us / 1000000)
+    const m = Math.floor(s / 60)
+    const r = s % 60
+    return m + ":" + (r < 10 ? "0" : "") + r
+  }
+
+  function playerIcon(name) {
+    const lower = (name || "").toLowerCase()
+    if (lower.includes("spotify")) return "󰓇"
+    if (lower.includes("firefox")) return "󰈹"
+    if (lower.includes("chrome"))  return "󰊯"
+    if (lower.includes("brave"))   return "󰈹"
+    if (lower.includes("mpv"))     return "󰚺"
+    if (lower.includes("vlc"))     return "󰕼"
+    return "󰝚"
+  }
+
+  function cleanPlayerName(name) {
+    if (!name) return "—"
+    let clean = name.split(".")[0]
+    clean = clean.split("-")[0]
+    return clean.charAt(0).toUpperCase() + clean.slice(1)
+  }
+
+  // ─── Lista de players ─────────────────────────────────────────
+  Process {
+    id: listPlayersProc
+    command: ["playerctl", "--list-all"]
+    running: false
+    property var found: []
+
+    stdout: SplitParser {
+      onRead: line => {
+        const p = line.trim()
+        if (p !== "") listPlayersProc.found = [...listPlayersProc.found, p]
+      }
+    }
+
+    onRunningChanged: {
+      if (running) return
+      root.activePlayers = listPlayersProc.found
+      if (root.activePlayerIndex >= root.activePlayers.length) root.activePlayerIndex = 0
+      if (listPlayersProc.found.length > 0) {
+        root.refreshMetadata()
+      } else {
+        root.currentTitle = ""
+        root.currentArtist = ""
+        root.currentArt = ""
+        root.currentStatus = "Stopped"
+        root.currentPosition = 0
+        root.currentLength = 0
+      }
+      listPlayersProc.found = []
+    }
+  }
+
+  Timer {
+    interval: 3000
+    running: root.wanted
+    repeat: true
+    triggeredOnStart: true
+    onTriggered: { if (!listPlayersProc.running) listPlayersProc.running = true }
+  }
+
+  // ─── Metadata del player activo ────────────────────────────────
+  // Separador \u001f (no "|"): un título con "|" rompía el parseo.
+  Process {
+    id: metadataProc
+    command: [
+      "playerctl", "--player=" + root.currentPlayer(), "metadata", "--format",
+      "{{artist}}\u001f{{title}}\u001f{{mpris:artUrl}}\u001f{{status}}\u001f{{position}}\u001f{{mpris:length}}"
+    ]
+    running: false
+
+    stdout: SplitParser {
+      onRead: data => {
+        const parts = data.split("\u001f")
+        if (parts.length >= 6) {
+          root.currentArtist = parts[0].trim()
+          root.currentTitle = parts[1].trim()
+          root.currentArt = parts[2].trim()
+          root.currentStatus = parts[3].trim()
+          root.currentPosition = parseInt(parts[4]) || 0
+          root.currentLength = parseInt(parts[5]) || 0
+        }
+      }
+    }
+  }
+
+  function refreshMetadata() {
+    if (root.activePlayers.length === 0 || metadataProc.running) return
+    metadataProc.running = true
+  }
+
+  Timer {
+    interval: 500
+    running: root.wanted && root.activePlayers.length > 0
+    repeat: true
+    onTriggered: root.refreshMetadata()
+  }
+
+  // ─── Controles (un solo Process para todo) ─────────────────────
+  Process {
+    id: ctl
+    property var args: []
+    command: ["playerctl", "--player=" + root.currentPlayer()].concat(ctl.args)
+    running: false
+    onRunningChanged: { if (!running) root.refreshMetadata() }
+  }
+
+  function runCtl(args) {
+    if (root.activePlayers.length === 0) return
+    ctl.running = false
+    ctl.args = args
+    ctl.running = true
+  }
+}

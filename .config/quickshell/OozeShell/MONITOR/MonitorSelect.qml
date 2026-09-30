@@ -1,177 +1,223 @@
-// OozeShell — Selector de monitor (click en vez de terminal)
-// Se abre en TODAS las pantallas conectadas (por si estás mirando
-// una distinta a la que tiene el shell ahora mismo), mostrando
-// chips clickeables con el nombre de cada monitor. Al hacer click
-// en uno, emite monitorChosen(name) y se cierra.
+// MonitorSelect — selector de monitor, como submenú de Ajustes (pestaña General).
 //
-// Se dispara vía IPC:
+// Atajo de teclado (IPC), sigue igual que antes:
 //   quickshell ipc -p .../shell.qml call -- monitor togglePicker
-
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
 import QtQuick
+import QtQuick.Layouts
+import "../COMMON"
 import "../LANG"
 
 Item {
-  id: pickerRoot
+  id: root
 
   property bool open: false
   property string current: "DP-3"
+  // Solo para mostrar, en la fila "Auto", qué pantalla se está usando
+  // ahora mismo (la que Hyprland ve bajo el mouse). No decide nada acá.
+  property string resolvedCurrent: ""
+
+  property int cardWidth: 420
+  property int edgeMargin: 10
+  readonly property int pad: 18
+
   signal closeRequested()
+  signal backRequested()
   signal monitorChosen(string name)
 
-  // ─── Colores desde matugen (mismo patrón que Notify/Mpris) ─────
-  property var colors: ({
-    bg: "#0d0e11", border: "#4a90d9", accent: "#4a90d9",
-    text: "#e1e2e8", subtext: "#8e9ab0"
-  })
+  // Pantalla donde se abre el selector (la pasa shell.qml: focusedMonitor).
+  // Antes había una ventana a pantalla completa POR CADA monitor, todas
+  // activas a la vez (cada una con su panel, su máscara y su foco de teclado):
+  // ahora es una sola, igual que Idioma / Apariencia / Red. La lista de
+  // adentro sigue mostrando todas las pantallas.
+  property string targetScreen: ""
 
-  function withAlpha(hex, alpha) {
-    var h = String(hex).replace('#', '')
-    var r = parseInt(h.substring(0, 2), 16) / 255
-    var g = parseInt(h.substring(2, 4), 16) / 255
-    var b = parseInt(h.substring(4, 6), 16) / 255
-    return Qt.rgba(r, g, b, alpha)
-  }
+  FusedWindow {
+    id: fw
 
-  Process {
-    id: loadColors
-    command: ["cat", "/tmp/matugen-colors.json"]
-    running: false
-    property string buffer: ""
-    stdout: SplitParser { onRead: line => loadColors.buffer += line }
-    onRunningChanged: {
-      if (!running && buffer !== "") {
-        try {
-          const palette = JSON.parse(buffer)
-          const c = palette.colors
-          pickerRoot.colors = {
-            bg:      c.surface?.dark?.color    ?? c.background?.dark?.color ?? "#0d0e11",
-            border:  c.primary?.dark?.color    ?? "#4a90d9",
-            accent:  c.primary?.dark?.color    ?? "#4a90d9",
-            text:    c.on_surface?.dark?.color ?? c.on_background?.dark?.color ?? "#e1e2e8",
-            subtext: c.secondary?.dark?.color  ?? "#8e9ab0"
-          }
-        } catch (e) {
-          console.log("monitor picker color parse error:", e)
+    active: root.open || panel.shown
+    targetScreen: root.targetScreen
+    namespace: "oozeshell-monitor"
+    onCloseRequested: root.closeRequested()
+
+    FusedPanel {
+      id: panel
+
+      open: root.open
+      panelWidth: root.cardWidth
+      contentHeight: col.implicitHeight + root.pad * 2
+
+      // Cuelga de la barra, del lado de su botón (derecha si es horizontal,
+      // abajo si es vertical). FusedPanel se coloca solo según Theme.barPosition.
+      align: "end"
+      alignMargin: root.edgeMargin + Theme.barEdge + Theme.frameSideArm
+
+      ColumnLayout {
+        id: col
+        x: root.pad
+        y: root.pad
+        width: parent.width - root.pad * 2
+        spacing: 12
+
+        PanelHeader {
+          Layout.fillWidth: true
+          icon: "󰍹"
+          title: Translations.t("monitorPickerTitle")
+          onBackRequested: root.backRequested()
         }
-        buffer = ""
-      }
-    }
-  }
 
-  // Recarga colores cada vez que se abre, por si matugen corrió
-  // hace rato y todavía no se había mostrado el picker.
-  onOpenChanged: {
-    if (open) {
-      loadColors.running = false
-      loadColors.running = true
-    }
-  }
+        ColumnLayout {
+          Layout.fillWidth: true
+          spacing: 4
 
-  Variants {
-    model: Quickshell.screens
-
-    delegate: Component {
-      PanelWindow {
-        id: pickerPanel
-        property var modelData
-        screen: modelData
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.namespace: "monitor-picker"
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-        anchors { top: true; left: true; right: true; bottom: true }
-        color: "transparent"
-        exclusiveZone: -1
-        visible: pickerRoot.open
-
-        Rectangle {
-          anchors.fill: parent
-          color: Qt.rgba(0, 0, 0, 0.35)
-          opacity: pickerRoot.open ? 1.0 : 0.0
-          Behavior on opacity { NumberAnimation { duration: 150 } }
-
-          // Click afuera de la tarjeta cierra el picker
-          MouseArea {
-            anchors.fill: parent
-            onClicked: pickerRoot.closeRequested()
-          }
-
-          focus: pickerRoot.open
-          Keys.onPressed: (event) => {
-            if (event.key === Qt.Key_Escape) {
-              pickerRoot.closeRequested()
-              event.accepted = true
-            }
-          }
-
-          // ─── Tarjeta central ────────────────────────────────
+          // ─── Auto ──────────────────────────────────────────
+          // No fija ninguna pantalla: cada cosa que se abra usa la
+          // que tenga el mouse encima en ese momento (lo decide
+          // Hyprland, no acá). El subtítulo muestra cuál sería
+          // ahora mismo, para que quede claro que está vivo.
           Rectangle {
-            id: card
-            anchors.centerIn: parent
-            width: Math.max(260, chipFlow.implicitWidth + 40)
-            height: col.implicitHeight + 40
-            radius: 22
-            color: pickerRoot.withAlpha(pickerRoot.colors.bg, 0.94)
-            border.color: pickerRoot.withAlpha(pickerRoot.colors.border, 0.55)
-            border.width: 1
+            id: autoRow
+            readonly property bool active: root.current === "auto"
 
-            Behavior on color        { ColorAnimation { duration: 300 } }
-            Behavior on border.color { ColorAnimation { duration: 300 } }
+            Layout.fillWidth: true
+            Layout.preferredHeight: 48
+            radius: 10
+            color: active
+              ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.16)
+              : (autoArea.containsMouse ? Theme.surface : "transparent")
+            Behavior on color { ColorAnimation { duration: 120 } }
 
-            // Bloquea que el click en la tarjeta cierre el picker
-            MouseArea { anchors.fill: parent; onClicked: {} }
-
-            Column {
-              id: col
-              anchors { fill: parent; margins: 20 }
+            RowLayout {
+              anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
               spacing: 12
 
               Text {
-                text: Translations.t("monitorPickerTitle")
-                color: pickerRoot.colors.text
-                font.pixelSize: 13
-                font.bold: true
-                font.family: "JetBrainsMono Nerd Font"
+                text: "󰍹"
+                color: autoRow.active ? Theme.primary : Theme.subtext
+                font.pixelSize: Theme.fs(18)
+                font.family: Theme.monoFamily
               }
 
-              Flow {
-                id: chipFlow
-                width: col.width
-                spacing: 8
+              ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 1
 
-                Repeater {
-                  model: Quickshell.screens
-                  delegate: Rectangle {
-                    id: chip
-                    readonly property bool active: modelData.name === pickerRoot.current
-                    width: chipLabel.implicitWidth + 24
-                    height: 30
-                    radius: 15
-                    color: active ? pickerRoot.colors.accent : Qt.rgba(1, 1, 1, 0.08)
-                    border.color: active ? "#ffffff" : Qt.rgba(1, 1, 1, 0.18)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
+                Text {
+                  Layout.fillWidth: true
+                  text: Translations.t("monitorAutoOption")
+                  color: autoRow.active ? Theme.primary : Theme.text
+                  font.bold: autoRow.active
+                  font.pixelSize: Theme.fs(13)
+                  font.family: Theme.fontFamily
+                  elide: Text.ElideRight
+                }
+                Text {
+                  Layout.fillWidth: true
+                  text: root.resolvedCurrent !== ""
+                    ? Translations.t("monitorAutoHint") + " " + root.resolvedCurrent
+                    : Translations.t("monitorAutoSubtitle")
+                  color: Theme.subtext
+                  font.pixelSize: Theme.fs(10)
+                  font.family: Theme.fontFamily
+                  elide: Text.ElideRight
+                }
+              }
 
-                    Text {
-                      id: chipLabel
-                      anchors.centerIn: parent
-                      text: modelData.name
-                      color: chip.active ? pickerRoot.colors.bg : pickerRoot.colors.text
-                      font.pixelSize: 11
-                      font.family: "JetBrainsMono Nerd Font"
-                    }
+              Text {
+                visible: autoRow.active
+                text: "󰄬"
+                color: Theme.primary
+                font.pixelSize: Theme.fs(15)
+                font.family: Theme.monoFamily
+              }
+            }
 
-                    MouseArea {
-                      anchors.fill: parent
-                      cursorShape: Qt.PointingHandCursor
-                      onClicked: {
-                        pickerRoot.monitorChosen(modelData.name)
-                        pickerRoot.closeRequested()
-                      }
-                    }
+            MouseArea {
+              id: autoArea
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                root.monitorChosen("auto")
+                root.closeRequested()
+              }
+            }
+          }
+
+          Rectangle {
+            Layout.fillWidth: true
+            Layout.preferredHeight: 1
+            Layout.topMargin: 2
+            Layout.bottomMargin: 2
+            color: Theme.subtext
+            opacity: 0.15
+          }
+
+          Repeater {
+            model: Quickshell.screens
+
+            delegate: Rectangle {
+              id: row
+              readonly property bool active: modelData.name === root.current
+
+              Layout.fillWidth: true
+              Layout.preferredHeight: 48
+              radius: 10
+              color: active
+                ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.16)
+                : (rowArea.containsMouse ? Theme.surface : "transparent")
+              Behavior on color { ColorAnimation { duration: 120 } }
+
+              RowLayout {
+                anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
+                spacing: 12
+
+                Text {
+                  text: "󰍹"
+                  color: row.active ? Theme.primary : Theme.subtext
+                  font.pixelSize: Theme.fs(18)
+                  font.family: Theme.monoFamily
+                }
+
+                ColumnLayout {
+                  Layout.fillWidth: true
+                  spacing: 1
+
+                  Text {
+                    Layout.fillWidth: true
+                    text: modelData.name
+                    color: row.active ? Theme.primary : Theme.text
+                    font.bold: row.active
+                    font.pixelSize: Theme.fs(13)
+                    font.family: Theme.fontFamily
+                    elide: Text.ElideRight
                   }
+                  Text {
+                    Layout.fillWidth: true
+                    text: modelData.width + "×" + modelData.height
+                    color: Theme.subtext
+                    font.pixelSize: Theme.fs(10)
+                    font.family: Theme.fontFamily
+                  }
+                }
+
+                Text {
+                  visible: row.active
+                  text: "󰄬"
+                  color: Theme.primary
+                  font.pixelSize: Theme.fs(15)
+                  font.family: Theme.monoFamily
+                }
+              }
+
+              MouseArea {
+                id: rowArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                  root.monitorChosen(modelData.name)
+                  root.closeRequested()
                 }
               }
             }

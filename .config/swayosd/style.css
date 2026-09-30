@@ -8,21 +8,21 @@
  * PALETA MATUGEN
  * ============================================================ */
 
-@define-color base         #1d100a;
-@define-color mantle       #180b06;
-@define-color surface      #261812;
-@define-color surface_alt  #2b1c16;
+@define-color base         #1d1010;
+@define-color mantle       #180b0b;
+@define-color surface      #261818;
+@define-color surface_alt  #2b1c1c;
 
-@define-color text          #f8ddd2;
-@define-color subtext       #dbc1b6;
+@define-color text          #f8dcdc;
+@define-color subtext       #dbc0c1;
 
-@define-color primary       #ffb694;
-@define-color p_container   #7b2f00;
-@define-color on_primary    #571f00;
-@define-color on_p_cont     #ffdbcc;
+@define-color primary       #ffb3b6;
+@define-color p_container   #920028;
+@define-color on_primary    #68001a;
+@define-color on_p_cont     #ffdada;
 
 @define-color error         #ffb4ab;
-@define-color outline       #55433b;
+@define-color outline       #554243;
 
 
 /* ============================================================

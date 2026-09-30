@@ -10,28 +10,16 @@
 --    https://wiki.hypr.land/Configuring/Layouts/Scrolling-Layout/
 -- ============================================================================
 
--- Ref https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
--- "Smart gaps" / "No gaps when only"
--- uncomment all if you wish to use that.
--- hl.workspace_rule({ workspace = "w[tv1]", gaps_out = 0, gaps_in = 0 })
--- hl.workspace_rule({ workspace = "f[1]",   gaps_out = 0, gaps_in = 0 })
--- hl.window_rule({
---     name  = "no-gaps-wtv1",
---     match = { float = false, workspace = "w[tv1]" },
---     border_size = 0,
---     rounding    = 0,
--- })
--- hl.window_rule({
---     name  = "no-gaps-f1",
---     match = { float = false, workspace = "f[1]" },
---     border_size = 0,
---     rounding    = 0,
--- })
-
+-- Se recarga siempre desde disco (require cachea el módulo y, tras un
+-- reload de Hyprland, podría quedarse con el valor viejo)
+-- layouts.lua (ya no necesitas el package.loaded = nil)
+local loader  = require("modules.appearance.loader")
+local layouta = loader.load("layouta", loader.defaults.layouta)
 -- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
 hl.config({
     dwindle = {
         preserve_split = true, -- You probably want this
+        smart_split    = false,
     },
 })
 
@@ -39,6 +27,9 @@ hl.config({
 hl.config({
     master = {
         new_status = "master",
+        mfact      = 0.55,
+        smart_resizing = true,
+        focus_master_on_close = true,
     },
 })
 
@@ -46,6 +37,8 @@ hl.config({
 hl.config({
     scrolling = {
         fullscreen_on_one_column = true,
+        column_width             = 0.5,
+        focus_fit_method         = 1,
     },
 })
 
@@ -56,10 +49,6 @@ hl.config({
 for i = 1, 10 do
     hl.workspace_rule({
         workspace = tostring(i),
-        layout = "scrolling", -- You can add WORKSPACES rules for other workspaces, with other Layouts.
+        layout = layouta.layout, 
     })
--- EXAMPLE OF ANOTHER LAYOUTS workspace-rules -
-
- hl.workspace_rule({ workspace = "2", layout = "Master" })
-
 end

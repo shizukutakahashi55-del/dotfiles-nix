@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 
 set -euo pipefail
@@ -40,22 +39,41 @@ fi
 
 # ─────────────────────────────────────────────
 # Mostrar resultados
+#
+# Se agrega una columna de "flags" para saber de
+# un vistazo si el paquete es unfree / broken /
+# insecure, sin tener que entrar al detalle.
 # ─────────────────────────────────────────────
 
 SELECTED=$(
     printf '%s\n' "$RESULTS" |
     jq -r '
         select(.type == "package") |
+        (
+            [ (.package_license_set // [])[]?.fullName ]
+            | any(test("(?i)unfree"))
+        ) as $unfree
+        |
+        ( .package_broken // false ) as $broken
+        |
+        ( .package_insecure // false ) as $insecure
+        |
+        (
+            ( if $unfree   then "unfree,"   else "" end ) +
+            ( if $broken   then "broken,"   else "" end ) +
+            ( if $insecure then "insecure," else "" end )
+        ) as $flags
+        |
         [
             .package_attr_name,
-            .package_pversion,
-            .package_description
-        ] |
-        @tsv
+            (.package_pversion // "-"),
+            ( if ($flags | length) == 0 then "-" else ($flags | rtrimstr(",")) end ),
+            (.package_description // "")
+        ] | @tsv
     ' |
     awk -F '\t' '
     {
-        printf "%-30s %-14s %s\n", $1, $2, $3
+        printf "%-30s %-12s %-20s %s\n", $1, $2, $3, $4
     }' |
     rofi \
         -dmenu \
@@ -77,55 +95,129 @@ NIXPKG="nixpkgs#$ATTR"
 
 
 # ─────────────────────────────────────────────
+# Registro completo del paquete elegido, y
+# detección de si necesita config extra
+# (unfree / broken / insecure).
+#
+# Nota: los nombres de campo dependen de la
+# versión de nix-search-cli que uses. Si algo
+# sale vacío, corré:
+#   nix-search --json --search firefox | head -n1 | jq .
+# y ajustá los nombres de campo abajo.
+# ─────────────────────────────────────────────
+
+PKG_JSON=$(
+    printf '%s\n' "$RESULTS" |
+    jq -c --arg attr "$ATTR" \
+        'select(.type == "package" and .package_attr_name == $attr)' |
+    head -n1
+)
+
+IS_UNFREE=$(printf '%s' "$PKG_JSON" | jq -r '
+    [ (.package_license_set // [])[]?.fullName ]
+    | any(test("(?i)unfree"))
+')
+
+DETAILS=$(printf '%s' "$PKG_JSON" | jq -r '
+    "Nombre:        \(.package_pname // .package_attr_name)\n" +
+    "Atributo:      \(.package_attr_name)\n" +
+    "Versión:       \(.package_pversion // "N/A")\n" +
+    "Descripción:   \(.package_description // "N/A")\n" +
+    "Homepage:      \((.package_homepage // []) | join(", "))\n" +
+    "Licencia(s):   \((.package_license_set // []) | map(.fullName) | join(", "))\n" +
+    "Plataformas:   \((.package_platforms // []) | join(", "))\n" +
+    "Mantenedores:  \((.package_maintainers_set // []) | map(.name) | join(", "))\n" +
+    "Posición:      \(.package_position // "N/A")\n" +
+    (
+        if ( [ (.package_license_set // [])[]?.fullName ] | any(test("(?i)unfree")) ) then
+            "\n⚠  UNFREE — necesitás uno de estos:\n" +
+            "   · en tu configuración: nixpkgs.config.allowUnfree = true;\n" +
+            "   · o al vuelo: NIXPKGS_ALLOW_UNFREE=1 nix shell/profile ... --impure\n"
+        else "" end
+    ) +
+    (
+        if (.package_broken // false) then
+            "\n☠  BROKEN en nixpkgs — puede fallar al construir/instalar.\n"
+        else "" end
+    ) +
+    (
+        if (.package_insecure // false) then
+            "\n🔒 INSECURE — necesitás:\n" +
+            "   nixpkgs.config.permittedInsecurePackages = [ \"" + (.package_attr_name // "") + "\" ];\n"
+        else "" end
+    )
+')
+
+
+# ─────────────────────────────────────────────
 # Acciones
 # ─────────────────────────────────────────────
 
-ACTION=$(printf '%s\n' \
-    "󰐥  Ejecutar temporalmente" \
-    "󰏗  Instalar permanentemente" \
-    "󰆏  Copiar nixpkgs#$ATTR" \
-    "󰖟  Abrir en search.nixos.org" |
-    rofi \
-        -dmenu \
-        -i \
-        -p "󰘧 $ATTR" \
-        -mesg "Selecciona una acción" \
-        -theme "$THEME"
-)
+while true; do
 
-[[ -z "$ACTION" ]] && exit 0
+    ACTION=$(printf '%s\n' \
+        "󰋽  Ver información detallada" \
+        "󰐥  Ejecutar temporalmente" \
+        "󰏗  Instalar permanentemente" \
+        "󰆏  Copiar nixpkgs#$ATTR" \
+        "󰖟  Abrir en search.nixos.org" |
+        rofi \
+            -dmenu \
+            -i \
+            -p "󰘧 $ATTR" \
+            -mesg "$( [[ "$IS_UNFREE" == "true" ]] && echo "⚠ unfree" || echo "Selecciona una acción" )" \
+            -theme "$THEME"
+    )
 
+    [[ -z "$ACTION" ]] && exit 0
 
-# ─────────────────────────────────────────────
-# Ejecutar acción
-# ─────────────────────────────────────────────
+    case "$ACTION" in
 
-case "$ACTION" in
+        "󰋽  Ver información detallada")
+            rofi \
+                -e "$DETAILS" \
+                -theme "$THEME" \
+                -p "󰘧 $ATTR"
+            continue
+            ;;
 
-    "󰐥  Ejecutar temporalmente")
-        foot -e bash -c "nix shell '$NIXPKG'; exec bash"
-        ;;
+        "󰐥  Ejecutar temporalmente")
+            if [[ "$IS_UNFREE" == "true" ]]; then
+                notify-send "Nix Search" "$ATTR es unfree, se ejecuta con --impure"
+                foot -e bash -c "NIXPKGS_ALLOW_UNFREE=1 nix shell --impure '$NIXPKG'; exec bash"
+            else
+                foot -e bash -c "nix shell '$NIXPKG'; exec bash"
+            fi
+            ;;
 
-    "󰏗  Instalar permanentemente")
-        nix profile install "$NIXPKG"
-        notify-send "Nix Search" "Instalado: $NIXPKG"
-        ;;
+        "󰏗  Instalar permanentemente")
+            if [[ "$IS_UNFREE" == "true" ]]; then
+                notify-send "Nix Search" "$ATTR es unfree, se instala con --impure"
+                NIXPKGS_ALLOW_UNFREE=1 nix profile install --impure "$NIXPKG"
+            else
+                nix profile install "$NIXPKG"
+            fi
+            notify-send "Nix Search" "Instalado: $NIXPKG"
+            ;;
 
-    "󰆏  Copiar nixpkgs#$ATTR")
-        if command -v wl-copy >/dev/null 2>&1; then
-            printf '%s' "$NIXPKG" | wl-copy
-            notify-send "Nix Search" \
-                "Copiado al portapapeles: $NIXPKG"
-        else
-            notify-send "Nix Search" \
-                "No encuentro wl-copy. Instala wl-clipboard."
-        fi
-        ;;
+        "󰆏  Copiar nixpkgs#$ATTR")
+            if command -v wl-copy >/dev/null 2>&1; then
+                printf '%s' "$NIXPKG" | wl-copy
+                notify-send "Nix Search" \
+                    "Copiado al portapapeles: $NIXPKG"
+            else
+                notify-send "Nix Search" \
+                    "No encuentro wl-copy. Instala wl-clipboard."
+            fi
+            ;;
 
-    "󰖟  Abrir en search.nixos.org")
-        xdg-open \
-            "https://search.nixos.org/packages?query=$QUERY"
-        ;;
+        "󰖟  Abrir en search.nixos.org")
+            xdg-open \
+                "https://search.nixos.org/packages?query=$QUERY"
+            ;;
 
-esac
+    esac
 
+    break
+
+done

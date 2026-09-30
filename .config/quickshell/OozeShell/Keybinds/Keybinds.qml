@@ -1,78 +1,29 @@
+// Keybinds — panel de atajos (pestañas Atajos / Vim).
+//
+// Atajo (IPC), ver shell.qml:
+//   quickshell ipc -p .../shell.qml call -- keybinds toggle
+//
+// Teclado (toma el teclado apenas se abre, sin clic previo):
+//   Esc              cerrar
+//   Tab / Shift+Tab  cambiar de pestaña (Atajos ↔ Vim)
+//   ← → / h l        sección anterior / siguiente
+//   ↑ ↓ / k j        scroll de la lista, línea a línea
+//   PgUp PgDn        scroll de a página (también Ctrl+u / Ctrl+d)
+//   Home End / g G   inicio / final de la lista
+//   1–9              saltar directo a una sección
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import "../LANG"
+import "../COMMON"
 
 Item {
   id: keybindsRoot
 
   property bool open: false
+  property string targetScreen: ""
   signal closeRequested()
-
-  // ─── Colores desde matugen ────────────────────────────────────
-  property var colors: ({
-    bg:      "#0d0e11",
-    border:  "#4a90d9",
-    accent:  "#4a90d9",
-    text:    "#e1e2e8",
-    subtext: "#8e9ab0",
-    btn:     "#1e2030",
-  })
-
-  Timer {
-    id: startupDelay
-    interval: 3000
-    running: true
-    repeat: false
-    onTriggered: loadColors.running = true
-  }
-
-  Process {
-    id: loadColors
-    command: ["cat", "/tmp/matugen-colors.json"]
-    running: false
-    property string buffer: ""
-
-    stdout: SplitParser {
-      onRead: line => loadColors.buffer += line
-    }
-
-    onRunningChanged: {
-      if (!running && buffer !== "") {
-        try {
-          const palette = JSON.parse(buffer)
-          const c = palette.colors
-
-          keybindsRoot.colors = {
-            bg:      c.background.dark.color,
-            border:  c.primary.dark.color,
-            accent:  c.primary.dark.color,
-            text:    c.on_background.dark.color,
-            subtext: c.secondary.dark.color,
-            btn:     c.surface_container.dark.color,
-          }
-        } catch(e) {
-          console.log("keybinds color parse error:", e)
-        }
-
-        buffer = ""
-      }
-    }
-  }
-
-  Timer {
-    interval: 3000
-    running: true
-    repeat: true
-
-    onTriggered: {
-      loadColors.running = false
-      loadColors.running = true
-    }
-  }
 
   property var sections: Translations.sections()
   property var vimSections: Translations.vimSections()
@@ -84,6 +35,16 @@ Item {
       keybindsRoot.vimSections = Translations.vimSections()
     }
   }
+
+  // ─── Medidas (lógicas: FusedPanel las escala según Ajustes → Ventanas) ──
+  readonly property int cardW: 860
+  // 620 como siempre, salvo que la pantalla sea más baja: entonces se acota
+  // para que el panel entre bajo la barra
+  readonly property real cardH: Math.max(380, Math.min(620,
+    (fw.screenHeight - Theme.barOffset - 24) / Theme.windowScale))
+  readonly property int headerH: 64
+  readonly property int footerH: 40
+  readonly property int sidebarW: 170
 
   // "keybinds" | "vim" — qué pestaña está activa arriba del panel.
   property string activeTab: "keybinds"
@@ -106,583 +67,490 @@ Item {
     else keybindsRoot.activeSection = i
   }
 
-  // ─── Panel fullscreen overlay ─────────────────────────────────
-  PanelWindow {
-    id: mainPanel
+  // Cambia entre las pestañas Atajos y Vim
+  function toggleTab() {
+    keybindsRoot.activeTab = keybindsRoot.activeTab === "vim" ? "keybinds" : "vim"
+  }
 
-    visible: keybindsRoot.open
+  // Sección siguiente (+1) o anterior (-1), dando la vuelta en los extremos
+  function moveSection(delta) {
+    const total = keybindsRoot.currentSections.length
+    if (total === 0) return
+    keybindsRoot.setCurrentIndex((keybindsRoot.currentIndex + delta + total) % total)
+  }
 
-    WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-    WlrLayershell.namespace: "keybinds-panel"
+  // Alto de una fila de la lista (44 + spacing 4) y de "una página"
+  readonly property real rowStep: 48
+  readonly property real pageStep: Math.max(rowStep, bindsList.height - 48)
 
-    anchors {
-      top: true
-      left: true
-      right: true
-      bottom: true
+  // Scroll de la lista de binds por teclado. Anima contentY con un
+  // NumberAnimation propio (un Behavior sobre contentY estorbaría al
+  // scroll con la rueda y al arrastre). Si ya hay una animación en curso
+  // suma sobre su destino, así mantener presionada la tecla acumula bien.
+  NumberAnimation {
+    id: scrollAnim
+    target: bindsList
+    property: "contentY"
+    duration: 140
+    easing.type: Easing.OutCubic
+  }
+
+  function scrollList(delta) {
+    const min = bindsList.originY - bindsList.topMargin
+    const max = Math.max(min, bindsList.originY + bindsList.contentHeight
+                              + bindsList.bottomMargin - bindsList.height)
+    const base = scrollAnim.running ? scrollAnim.to : bindsList.contentY
+    const dest = Math.max(min, Math.min(max, base + delta))
+
+    scrollAnim.stop()
+    scrollAnim.from = bindsList.contentY
+    scrollAnim.to = dest
+    scrollAnim.start()
+  }
+
+  // Al abrir, siempre arranca desde arriba de la lista
+  onOpenChanged: {
+    if (keybindsRoot.open) {
+      scrollAnim.stop()
+      Qt.callLater(() => bindsList.positionViewAtBeginning())
+    }
+  }
+
+  // Teclas (Esc lo maneja FusedWindow y cierra)
+  function handleKey(key, modifiers) {
+    const ctrl  = (modifiers & Qt.ControlModifier) !== 0
+    const shift = (modifiers & Qt.ShiftModifier) !== 0
+
+    switch (key) {
+      // ─── Cambiar de pestaña (Atajos ↔ Vim) ───────────
+      case Qt.Key_Tab:
+      case Qt.Key_Backtab:
+        keybindsRoot.toggleTab()
+        return
+
+      // ─── Sección siguiente / anterior ────────────────
+      case Qt.Key_Right:
+      case Qt.Key_L:
+        keybindsRoot.moveSection(1)
+        return
+
+      case Qt.Key_Left:
+      case Qt.Key_H:
+        keybindsRoot.moveSection(-1)
+        return
+
+      // ─── Scroll de la lista de binds ─────────────────
+      case Qt.Key_Down:
+      case Qt.Key_J:
+        keybindsRoot.scrollList(keybindsRoot.rowStep)
+        return
+
+      case Qt.Key_Up:
+      case Qt.Key_K:
+        keybindsRoot.scrollList(-keybindsRoot.rowStep)
+        return
+
+      case Qt.Key_PageDown:
+        keybindsRoot.scrollList(keybindsRoot.pageStep)
+        return
+
+      case Qt.Key_PageUp:
+        keybindsRoot.scrollList(-keybindsRoot.pageStep)
+        return
+
+      case Qt.Key_D:
+        if (ctrl) keybindsRoot.scrollList(keybindsRoot.pageStep / 2)
+        return
+
+      case Qt.Key_U:
+        if (ctrl) keybindsRoot.scrollList(-keybindsRoot.pageStep / 2)
+        return
+
+      case Qt.Key_Home:
+        keybindsRoot.scrollList(-1e6)
+        return
+
+      case Qt.Key_End:
+        keybindsRoot.scrollList(1e6)
+        return
+
+      case Qt.Key_G:
+        keybindsRoot.scrollList(shift ? 1e6 : -1e6)
+        return
     }
 
-    color: "transparent"
-    exclusiveZone: -1
+    // ─── Saltar directo a una sección con 1–9 ──────
+    if (key >= Qt.Key_1 && key <= Qt.Key_9) {
+      const idx = key - Qt.Key_1
+      if (idx < keybindsRoot.currentSections.length)
+        keybindsRoot.setCurrentIndex(idx)
+    }
+  }
 
-    Rectangle {
-      anchors.fill: parent
-      color: "transparent"
+  // ═══════════════════════════════════════════════════════════════
+  FusedWindow {
+    id: fw
+    active: keybindsRoot.open || panel.shown
+    targetScreen: keybindsRoot.targetScreen
+    namespace: "oozeshell-keybinds"
+    // Modal: toma el teclado apenas se abre (sin clic previo)
+    exclusiveKeys: true
+    onCloseRequested: keybindsRoot.closeRequested()
+    onKeyPressed: (key, modifiers, text) => keybindsRoot.handleKey(key, modifiers)
 
-      // ─── Click fuera → cerrar ────────────────────────────────
-      MouseArea {
+    FusedPanel {
+      id: panel
+
+      open: keybindsRoot.open
+      panelWidth: keybindsRoot.cardW
+      contentHeight: keybindsRoot.cardH
+
+      // Centrado bajo la barra (o al costado, si la barra es vertical)
+      align: "center"
+
+      ColumnLayout {
         anchors.fill: parent
-        onClicked: keybindsRoot.closeRequested()
-        z: 0
-      }
+        spacing: 0
 
-      // ─── Escape → cerrar / navegación con teclado ───────────
-      focus: keybindsRoot.open
+        // ─── Header ─────────────────────────────────────────
+        Item {
+          Layout.fillWidth: true
+          Layout.preferredHeight: keybindsRoot.headerH
 
-      Keys.onPressed: event => {
-        const total = keybindsRoot.currentSections.length
-
-        switch (event.key) {
-          case Qt.Key_Escape:
-            keybindsRoot.closeRequested()
-            event.accepted = true
-            break
-
-          // ─── Cambiar de pestaña (Keybinds ↔ Vim) ─────────
-          case Qt.Key_PageDown:
-          case Qt.Key_PageUp:
-            keybindsRoot.activeTab = keybindsRoot.activeTab === "vim" ? "keybinds" : "vim"
-            event.accepted = true
-            break
-
-          // ─── Siguiente sección ───────────────────────────
-          case Qt.Key_Down:
-          case Qt.Key_J:
-          case Qt.Key_Right:
-          case Qt.Key_L:
-          case Qt.Key_Tab:
-            keybindsRoot.setCurrentIndex((keybindsRoot.currentIndex + 1) % total)
-            event.accepted = true
-            break
-
-          // ─── Sección anterior ────────────────────────────
-          case Qt.Key_Up:
-          case Qt.Key_K:
-          case Qt.Key_Left:
-          case Qt.Key_H:
-          case Qt.Key_Backtab:
-            keybindsRoot.setCurrentIndex((keybindsRoot.currentIndex - 1 + total) % total)
-            event.accepted = true
-            break
-
-          default:
-            // ─── Saltar directo a una sección con 1–9 ──────
-            if (event.key >= Qt.Key_1 && event.key <= Qt.Key_9) {
-              const idx = event.key - Qt.Key_1
-              if (idx < total) {
-                keybindsRoot.setCurrentIndex(idx)
-                event.accepted = true
-              }
+          RowLayout {
+            anchors {
+              fill: parent
+              leftMargin: 24
+              rightMargin: 24
             }
-            break
-        }
-      }
+            spacing: 10
 
-      // ─── Card ────────────────────────────────────────────────
-      Rectangle {
-        anchors.centerIn: parent
+            Text {
+              text: "󰌌"
+              color: Theme.primary
+              font.pixelSize: Theme.fs(24)
+              font.family: Theme.monoFamily
+            }
 
-        width: 760
-        height: 620
+            // ─── Tabs: Keybinds / Vim ───────────────────────
+            Row {
+              spacing: 6
 
-        radius: 22
-        color: keybindsRoot.colors.bg
-        border.color: keybindsRoot.colors.border
-        border.width: 1
-        z: 1
+              Repeater {
+                model: [
+                  { id: "keybinds", label: "tabKeybinds" },
+                  { id: "vim",      label: "tabVim" }
+                ]
 
-        Behavior on color {
-          ColorAnimation { duration: 400 }
-        }
+                delegate: Rectangle {
+                  id: tab
+                  required property var modelData
+                  readonly property bool current: keybindsRoot.activeTab === tab.modelData.id
 
-        Behavior on border.color {
-          ColorAnimation { duration: 400 }
-        }
-
-        // ─── Bloquear clicks dentro del card ──────────────────
-        MouseArea {
-          anchors.fill: parent
-          onClicked: {}
-        }
-
-        ColumnLayout {
-          anchors.fill: parent
-          spacing: 0
-
-          // ─── Header ─────────────────────────────────────────
-          Item {
-            Layout.fillWidth: true
-            height: 64
-
-            RowLayout {
-              anchors {
-                fill: parent
-                leftMargin: 24
-                rightMargin: 24
-              }
-
-              spacing: 10
-
-              Text {
-                text: "󰌌"
-                color: keybindsRoot.colors.accent
-                font.pixelSize: 24
-                font.family: "JetBrainsMono Nerd Font"
-
-                Behavior on color {
-                  ColorAnimation { duration: 400 }
-                }
-              }
-
-              // ─── Tabs: Keybinds / Vim ───────────────────────
-              Row {
-                spacing: 6
-
-                Rectangle {
-                  id: keybindsTabBtn
-                  width: keybindsTabLabel.implicitWidth + 24
+                  width: tabLabel.implicitWidth + 24
                   height: 32
-                  radius: 8
+                  radius: Theme.cardRadius - 4
 
-                  color: keybindsRoot.activeTab === "keybinds"
-                    ? Qt.rgba(1, 1, 1, 0.10)
-                    : "transparent"
+                  color: tab.current ? Theme.surface
+                       : tabArea.containsMouse ? Theme.surface
+                       : "transparent"
+                  border.width: tab.current ? 1 : 0
+                  border.color: Theme.primary
 
-                  border.width: keybindsRoot.activeTab === "keybinds" ? 1 : 0
-                  border.color: keybindsRoot.colors.accent
-
-                  Behavior on color {
-                    ColorAnimation { duration: 180 }
-                  }
+                  Behavior on color { ColorAnimation { duration: 150 } }
 
                   Text {
-                    id: keybindsTabLabel
+                    id: tabLabel
                     anchors.centerIn: parent
-                    text: Translations.t("tabKeybinds")
-                    font.pixelSize: 15
-                    font.bold: keybindsRoot.activeTab === "keybinds"
-
-                    color: keybindsRoot.activeTab === "keybinds"
-                      ? keybindsRoot.colors.text
-                      : keybindsRoot.colors.subtext
-
-                    Behavior on color {
-                      ColorAnimation { duration: 180 }
-                    }
+                    text: Translations.t(tab.modelData.label)
+                    font.pixelSize: Theme.fs(15)
+                    font.bold: tab.current
+                    color: tab.current ? Theme.text : Theme.subtext
+                    Behavior on color { ColorAnimation { duration: 150 } }
                   }
 
                   MouseArea {
+                    id: tabArea
                     anchors.fill: parent
+                    hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: keybindsRoot.activeTab = "keybinds"
+                    onClicked: keybindsRoot.activeTab = tab.modelData.id
                   }
-                }
-
-                Rectangle {
-                  id: vimTabBtn
-                  width: vimTabLabel.implicitWidth + 24
-                  height: 32
-                  radius: 8
-
-                  color: keybindsRoot.activeTab === "vim"
-                    ? Qt.rgba(1, 1, 1, 0.10)
-                    : "transparent"
-
-                  border.width: keybindsRoot.activeTab === "vim" ? 1 : 0
-                  border.color: keybindsRoot.colors.accent
-
-                  Behavior on color {
-                    ColorAnimation { duration: 180 }
-                  }
-
-                  Text {
-                    id: vimTabLabel
-                    anchors.centerIn: parent
-                    text: Translations.t("tabVim")
-                    font.pixelSize: 15
-                    font.bold: keybindsRoot.activeTab === "vim"
-
-                    color: keybindsRoot.activeTab === "vim"
-                      ? keybindsRoot.colors.text
-                      : keybindsRoot.colors.subtext
-
-                    Behavior on color {
-                      ColorAnimation { duration: 180 }
-                    }
-                  }
-
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: keybindsRoot.activeTab = "vim"
-                  }
-                }
-              }
-
-              Item {
-                Layout.fillWidth: true
-              }
-
-              Text {
-                text: Translations.t("tagline")
-                color: keybindsRoot.colors.subtext
-                font.pixelSize: 12
-                font.family: "JetBrainsMono Nerd Font"
-
-                Behavior on color {
-                  ColorAnimation { duration: 400 }
                 }
               }
             }
 
-            Rectangle {
-              anchors {
-                bottom: parent.bottom
-                left: parent.left
-                right: parent.right
-              }
+            Item { Layout.fillWidth: true }
 
-              height: 1
-              color: Qt.rgba(1, 1, 1, 0.07)
+            Text {
+              text: Translations.t("tagline")
+              color: Theme.subtext
+              font.pixelSize: Theme.fs(12)
+              font.family: Theme.fontFamily
             }
           }
 
-          // ─── Sidebar + lista ────────────────────────────────
-          RowLayout {
-            Layout.fillWidth: true
+          Rectangle {
+            anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
+            height: 1
+            color: Theme.surface
+          }
+        }
+
+        // ─── Sidebar + lista ────────────────────────────────
+        RowLayout {
+          Layout.fillWidth: true
+          Layout.fillHeight: true
+          spacing: 0
+
+          // ─── Sidebar categorías ───────────────────────────
+          // Mismo fondo que el panel (sólido); solo la sección activa y
+          // el hover llevan una tarjeta, como en el resto del shell.
+          Item {
+            Layout.preferredWidth: keybindsRoot.sidebarW
             Layout.fillHeight: true
-            spacing: 0
 
-            // ─── Sidebar categorías ───────────────────────────
-            Rectangle {
-              width: 190
-              Layout.fillHeight: true
-              color: Qt.rgba(0, 0, 0, 0.20)
-
-              ListView {
-                id: sectionList
-
-                anchors {
-                  fill: parent
-                  topMargin: 10
-                  bottomMargin: 10
-                }
-
-                clip: true
-                spacing: 2
-                boundsBehavior: Flickable.StopAtBounds
-
-                model: keybindsRoot.currentSections.length
-
-                ScrollBar.vertical: ScrollBar {
-                  policy: ScrollBar.AsNeeded
-                }
-
-                // ─── Mantiene visible la sección activa al navegar
-                // con teclado, aunque haya más categorías que las
-                // que entran en el recuadro (ej. Vim con 15).
-                Connections {
-                  target: keybindsRoot
-                  function onCurrentIndexChanged() {
-                    sectionList.positionViewAtIndex(keybindsRoot.currentIndex, ListView.Contain)
-                  }
-                }
-
-                delegate: Item {
-                  width: sectionList.width
-                  height: 44
-
-                  Rectangle {
-                    anchors.fill: parent
-
-                    color: index === keybindsRoot.currentIndex
-                      ? Qt.rgba(1, 1, 1, 0.08)
-                      : "transparent"
-
-                    Behavior on color {
-                      ColorAnimation { duration: 180 }
-                    }
-                  }
-
-                  Rectangle {
-                    visible: index === keybindsRoot.currentIndex
-
-                    width: 3
-                    height: 24
-                    radius: 2
-
-                    color: keybindsRoot.colors.accent
-
-                    anchors {
-                      left: parent.left
-                      verticalCenter: parent.verticalCenter
-                    }
-
-                    Behavior on color {
-                      ColorAnimation { duration: 400 }
-                    }
-                  }
-
-                  RowLayout {
-                    anchors {
-                      fill: parent
-                      leftMargin: 18
-                      rightMargin: 10
-                    }
-
-                    spacing: 10
-
-                    Text {
-                      text: keybindsRoot.currentSections[index].icon
-
-                      color: index === keybindsRoot.currentIndex
-                        ? keybindsRoot.colors.accent
-                        : keybindsRoot.colors.subtext
-
-                      font.pixelSize: 17
-                      font.family: "JetBrainsMono Nerd Font"
-
-                      Behavior on color {
-                        ColorAnimation { duration: 200 }
-                      }
-                    }
-
-                    Text {
-                      text: keybindsRoot.currentSections[index].title
-
-                      color: index === keybindsRoot.currentIndex
-                        ? keybindsRoot.colors.text
-                        : keybindsRoot.colors.subtext
-
-                      font.pixelSize: 15
-                      font.bold: index === keybindsRoot.currentIndex
-
-                      Behavior on color {
-                        ColorAnimation { duration: 200 }
-                      }
-                    }
-                  }
-
-                  MouseArea {
-                    anchors.fill: parent
-
-                    onClicked: {
-                      keybindsRoot.setCurrentIndex(index)
-                    }
-
-                    cursorShape: Qt.PointingHandCursor
-                  }
-                }
-              }
-
-              Rectangle {
-                anchors {
-                  top: parent.top
-                  bottom: parent.bottom
-                  right: parent.right
-                }
-
-                width: 1
-                color: Qt.rgba(1, 1, 1, 0.07)
-              }
-            }
-
-            // ─── Lista de binds ───────────────────────────────
             ListView {
-              id: bindsList
+              id: sectionList
 
-              Layout.fillWidth: true
-              Layout.fillHeight: true
+              anchors {
+                fill: parent
+                topMargin: 10
+                bottomMargin: 10
+              }
 
-              topMargin: 12
-              bottomMargin: 12
-              leftMargin: 16
-              rightMargin: 16
-
-              model: keybindsRoot.currentSections[
-                keybindsRoot.currentIndex
-              ].binds
-
-              spacing: 4
               clip: true
+              spacing: 2
+              boundsBehavior: Flickable.StopAtBounds
+
+              model: keybindsRoot.currentSections.length
 
               ScrollBar.vertical: ScrollBar {
                 policy: ScrollBar.AsNeeded
+                contentItem: Rectangle {
+                  implicitWidth: 4
+                  radius: 2
+                  color: Theme.surfaceHigh
+                }
+                background: null
               }
 
-              delegate: Rectangle {
-                width: bindsList.width - 32
+              // ─── Mantiene visible la sección activa al navegar
+              // con teclado, aunque haya más categorías que las
+              // que entran en el recuadro (ej. Vim con 15).
+              Connections {
+                target: keybindsRoot
+                function onCurrentIndexChanged() {
+                  sectionList.positionViewAtIndex(keybindsRoot.currentIndex, ListView.Contain)
+                }
+              }
+
+              delegate: Item {
+                id: secItem
+                width: sectionList.width
                 height: 44
-                radius: 9
 
-                color: hoverArea.containsMouse
-                  ? Qt.rgba(1, 1, 1, 0.05)
-                  : "transparent"
+                readonly property bool current: index === keybindsRoot.currentIndex
 
-                Behavior on color {
-                  ColorAnimation { duration: 120 }
+                Rectangle {
+                  anchors {
+                    fill: parent
+                    leftMargin: 8
+                    rightMargin: 8
+                  }
+                  radius: Theme.cardRadius - 2
+                  color: secItem.current ? Theme.surfaceHigh
+                       : secArea.containsMouse ? Theme.surface
+                       : "transparent"
+                  Behavior on color { ColorAnimation { duration: 150 } }
                 }
 
-                MouseArea {
-                  id: hoverArea
-
-                  anchors.fill: parent
-                  hoverEnabled: true
+                Rectangle {
+                  visible: secItem.current
+                  width: 3
+                  height: 24
+                  radius: 2
+                  color: Theme.primary
+                  anchors {
+                    left: parent.left
+                    leftMargin: 8
+                    verticalCenter: parent.verticalCenter
+                  }
                 }
 
                 RowLayout {
                   anchors {
                     fill: parent
-                    leftMargin: 12
-                    rightMargin: 12
+                    leftMargin: 22
+                    rightMargin: 16
                   }
-
                   spacing: 10
 
-                  // ─── Key caps ──────────────────────────────
-                  Row {
-                    spacing: 5
-
-                    Repeater {
-                      model: modelData.keys
-
-                      delegate: Rectangle {
-                        height: 28
-                        width: capLabel.implicitWidth + 18
-                        radius: 6
-
-                        color: keybindsRoot.colors.btn
-                        border.color: Qt.rgba(1, 1, 1, 0.13)
-                        border.width: 1
-
-                        Behavior on color {
-                          ColorAnimation { duration: 400 }
-                        }
-
-                        Rectangle {
-                          anchors {
-                            bottom: parent.bottom
-                            left: parent.left
-                            right: parent.right
-                          }
-
-                          height: 2
-                          radius: 5
-                          color: Qt.rgba(0, 0, 0, 0.30)
-                        }
-
-                        Text {
-                          id: capLabel
-
-                          anchors.centerIn: parent
-
-                          text: modelData
-                          color: keybindsRoot.colors.accent
-
-                          font.pixelSize: 14
-                          font.family: "JetBrainsMono Nerd Font"
-                          font.bold: true
-
-                          Behavior on color {
-                            ColorAnimation { duration: 400 }
-                          }
-                        }
-                      }
-                    }
-                  }
-
-                  Item {
-                    Layout.fillWidth: true
+                  Text {
+                    text: keybindsRoot.currentSections[index].icon
+                    color: secItem.current ? Theme.primary : Theme.subtext
+                    font.pixelSize: Theme.fs(17)
+                    font.family: Theme.monoFamily
+                    Behavior on color { ColorAnimation { duration: 150 } }
                   }
 
                   Text {
-                    text: modelData.desc
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                    text: keybindsRoot.currentSections[index].title
+                    color: secItem.current ? Theme.text : Theme.subtext
+                    font.pixelSize: Theme.fs(15)
+                    font.bold: secItem.current
+                    Behavior on color { ColorAnimation { duration: 150 } }
+                  }
+                }
 
-                    color: keybindsRoot.colors.subtext
+                MouseArea {
+                  id: secArea
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: keybindsRoot.setCurrentIndex(index)
+                }
+              }
+            }
 
-                    font.pixelSize: 16
+            Rectangle {
+              anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
+              width: 1
+              color: Theme.surface
+            }
+          }
 
-                    horizontalAlignment: Text.AlignRight
-                    elide: Text.ElideLeft
+          // ─── Lista de binds ───────────────────────────────
+          ListView {
+            id: bindsList
 
-                    Behavior on color {
-                      ColorAnimation { duration: 400 }
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            topMargin: 12
+            bottomMargin: 12
+            leftMargin: 16
+            rightMargin: 16
+
+            model: keybindsRoot.currentSections[keybindsRoot.currentIndex].binds
+
+            spacing: 4
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+
+            ScrollBar.vertical: ScrollBar {
+              policy: ScrollBar.AsNeeded
+              contentItem: Rectangle {
+                implicitWidth: 4
+                radius: 2
+                color: Theme.surfaceHigh
+              }
+              background: null
+            }
+
+            // Otra sección u otra pestaña: arranca desde arriba
+            onModelChanged: {
+              scrollAnim.stop()
+              Qt.callLater(() => bindsList.positionViewAtBeginning())
+            }
+
+            delegate: Rectangle {
+              width: bindsList.width - 32
+              height: 44
+              radius: Theme.cardRadius - 2
+
+              color: hoverArea.containsMouse ? Theme.surface : "transparent"
+              Behavior on color { ColorAnimation { duration: 120 } }
+
+              MouseArea {
+                id: hoverArea
+                anchors.fill: parent
+                hoverEnabled: true
+              }
+
+              RowLayout {
+                anchors {
+                  fill: parent
+                  leftMargin: 12
+                  rightMargin: 12
+                }
+                spacing: 10
+
+                // ─── Key caps ──────────────────────────────
+                Row {
+                  spacing: 5
+
+                  Repeater {
+                    model: modelData.keys
+
+                    delegate: Rectangle {
+                      height: 28
+                      width: capLabel.implicitWidth + 18
+                      radius: 8
+                      color: Theme.surfaceHigh
+
+                      Text {
+                        id: capLabel
+                        anchors.centerIn: parent
+                        text: modelData
+                        color: Theme.primary
+                        font.pixelSize: Theme.fs(14)
+                        font.family: Theme.fontFamily
+                        font.bold: true
+                      }
                     }
                   }
+                }
+
+                Text {
+                  Layout.fillWidth: true
+                  text: modelData.desc
+                  color: Theme.subtext
+                  font.pixelSize: Theme.fs(16)
+                  horizontalAlignment: Text.AlignRight
+                  elide: Text.ElideLeft
                 }
               }
             }
           }
+        }
 
-          // ─── Footer ─────────────────────────────────────────
-          Item {
-            Layout.fillWidth: true
-            height: 40
+        // ─── Footer ─────────────────────────────────────────
+        Item {
+          Layout.fillWidth: true
+          Layout.preferredHeight: keybindsRoot.footerH
 
-            Rectangle {
-              anchors {
-                top: parent.top
-                left: parent.left
-                right: parent.right
-              }
+          Rectangle {
+            anchors { top: parent.top; left: parent.left; right: parent.right }
+            height: 1
+            color: Theme.surface
+          }
 
-              height: 1
-              color: Qt.rgba(1, 1, 1, 0.07)
+          RowLayout {
+            anchors {
+              fill: parent
+              leftMargin: 24
+              rightMargin: 24
             }
 
-            RowLayout {
-              anchors {
-                fill: parent
-                leftMargin: 24
-                rightMargin: 24
-              }
+            Text {
+              Layout.fillWidth: true
+              elide: Text.ElideRight
+              text: "󰌑  " + Translations.t("keybindsFooterHint")
+              color: Theme.subtext
+              font.pixelSize: Theme.fs(12)
+              font.family: Theme.monoFamily
+            }
 
-              Text {
-                text: "󰌑  " + Translations.t("footerHint")
-
-                color: keybindsRoot.colors.subtext
-
-                font.pixelSize: 12
-                font.family: "JetBrainsMono Nerd Font"
-
-                Behavior on color {
-                  ColorAnimation { duration: 400 }
-                }
-              }
-
-              Item {
-                Layout.fillWidth: true
-              }
-
-              Text {
-                text: keybindsRoot.currentSections[
-                  keybindsRoot.currentIndex
-                ].title
-                  + "  "
-                  + (keybindsRoot.currentIndex + 1)
-                  + "/"
-                  + keybindsRoot.currentSections.length
-
-                color: keybindsRoot.colors.subtext
-
-                font.pixelSize: 12
-                font.family: "JetBrainsMono Nerd Font"
-
-                Behavior on color {
-                  ColorAnimation { duration: 400 }
-                }
-              }
+            Text {
+              text: keybindsRoot.currentSections[keybindsRoot.currentIndex].title
+                    + "  " + (keybindsRoot.currentIndex + 1)
+                    + "/" + keybindsRoot.currentSections.length
+              color: Theme.subtext
+              font.pixelSize: Theme.fs(12)
+              font.family: Theme.fontFamily
             }
           }
         }

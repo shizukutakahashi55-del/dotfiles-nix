@@ -1,809 +1,779 @@
 import Quickshell
 import Quickshell.Io
-import Quickshell.Wayland
+import Quickshell.Widgets
 import QtQuick
 import QtQuick.Layouts
-import QtQuick.Effects
+import "../COMMON"
 import "../LANG"
 
+// ─────────────────────────────────────────────────────────────────
+//
+// ─────────────────────────────────────────────────────────────────
 Item {
   id: mprisRoot
 
   property bool open: false
+  property string targetScreen: ""
   signal closeRequested()
 
-  property string targetScreen: ""
+  // Distancia al borde de pantalla, a lo largo de la barra: a la izquierda
+  // (barra horizontal) o desde arriba (barra vertical, donde el módulo
+  // izquierdo arranca casi pegado al borde)
+  property int anchorLeftMargin: 45
+  property int anchorTopMargin: 6
+  property int cardWidth: 460
 
-  // ─── Colores desde matugen ────────────────────────────────────
-  property var colors: ({
-    bg:      "#0d0e11",
-    border:  "#4a90d9",
-    accent:  "#4a90d9",
-    text:    "#e1e2e8",
-    subtext: "#8e9ab0",
-    btn:     "#1e2030"
-  })
-
-  Timer {
-    id: startupDelay
-    interval: 3000
-    running: true
-    repeat: false
-    onTriggered: loadColors.running = true
-  }
-
-  Process {
-    id: loadColors
-    command: ["cat", "/tmp/matugen-colors.json"]
-    running: false
-    property string buffer: ""
-    stdout: SplitParser {
-      onRead: line => loadColors.buffer += line
-    }
-    onRunningChanged: {
-      if (!running && buffer !== "") {
-        try {
-          const palette = JSON.parse(buffer)
-          const c = palette.colors
-          mprisRoot.colors = {
-            bg:      c.background.dark.color,
-            border:  c.primary.dark.color,
-            accent:  c.primary.dark.color,
-            text:    c.on_background.dark.color,
-            subtext: c.secondary.dark.color,
-            btn:     c.surface_container.dark.color
-          }
-        } catch(e) {
-          console.log("mpris color parse error:", e)
-        }
-        buffer = ""
-      }
-    }
-  }
-
-  Timer {
-    interval: 3000
-    running: true
-    repeat: true
-    onTriggered: {
-      loadColors.running = false
-      loadColors.running = true
-    }
-  }
-
-  // Position Memorize--------
-
-  property string posFilePath: "/tmp/mpris-panel-pos.json"
-property real savedX: -1
-property real savedY: -1
-
-Process {
-  id: loadPosProc
-  command: ["cat", mprisRoot.posFilePath]
-  running: true
-  property string buffer: ""
-  stdout: SplitParser { onRead: line => loadPosProc.buffer += line }
-  onRunningChanged: {
-    if (!running) {
-      if (buffer !== "") {
-        try {
-          const pos = JSON.parse(buffer)
-          if (typeof pos.x === "number") mprisRoot.savedX = pos.x
-          if (typeof pos.y === "number") mprisRoot.savedY = pos.y
-        } catch (e) {
-          console.log("mpris pos parse error:", e)
-        }
-      }
-      buffer = ""
-    }
-  }
-}
-
-Process {
-  id: savePosProc
-  property int posX: 0
-  property int posY: 0
-  command: ["sh", "-c", "echo '{\"x\":" + posX + ",\"y\":" + posY + "}' > " + mprisRoot.posFilePath]
-}
-
-Timer {
-  id: posSaveTimer
-  interval: 500
-  repeat: false
-  onTriggered: {
-    savePosProc.posX = Math.round(cardContainer.x)
-    savePosProc.posY = Math.round(cardContainer.y)
-    savePosProc.running = false
-    savePosProc.running = true
-  }
-}
+  // ─── Medidas (px lógicos) ────────────────────────────────────
+  // El alto total del panel sale de estas cifras (más los márgenes del cuerpo).
+  readonly property int headerH: 42
+  readonly property int footerH: 30
+  readonly property int sidePad: 18
+  readonly property int coverSize: 92
+  readonly property int playSize: 48
+  readonly property int skipSize: 38
 
   // ─── Metadata ────────────────────────────────────────────────
-  property string currentTitle: ""
-  property string currentArtist: ""
-  property string currentArt: ""
-  property string currentStatus: "Stopped"
-  property int currentPosition: 0
-  property int currentLength: 0
-  property var activePlayers: []
-  property int activePlayerIndex: 0
+  // Ya no se sondea acá: MPRIS/MprisBackend.qml es el único que corre
+  // `playerctl` (ver ese archivo), así el Dashboard puede mostrar lo mismo
+  // sin un tercer poller. Este popup solo "pide" datos mientras está
+  // abierto (o cerrándose, panel.shown) y lee/escribe contra el backend.
+  readonly property string currentTitle: MprisBackend.currentTitle
+  readonly property string currentArtist: MprisBackend.currentArtist
+  readonly property string currentArt: MprisBackend.currentArt
+  readonly property string currentStatus: MprisBackend.currentStatus
+  readonly property int currentPosition: MprisBackend.currentPosition
+  readonly property int currentLength: MprisBackend.currentLength
 
-  Process {
-    id: listPlayersProc
-    command: ["playerctl", "--list-all"]
-    running: true
-    property string buffer: ""
-    property var found: []
-    stdout: SplitParser {
-      onRead: line => {
-        const p = line.trim()
-        if (p !== "") listPlayersProc.found = [...listPlayersProc.found, p]
-      }
-    }
-    onRunningChanged: {
-      if (!running) {
-        if (listPlayersProc.found.length > 0) {
-          mprisRoot.activePlayers = listPlayersProc.found
-          if (mprisRoot.activePlayerIndex >= mprisRoot.activePlayers.length)
-            mprisRoot.activePlayerIndex = 0
-          metadataProc.running = true
-        }
-        listPlayersProc.found = []
-        listPlayersProc.buffer = ""
-      }
-    }
+  readonly property var activePlayers: MprisBackend.activePlayers
+  readonly property int activePlayerIndex: MprisBackend.activePlayerIndex
+
+  readonly property real progressRatio: MprisBackend.progressRatio
+
+  readonly property bool wanted: mprisRoot.open || panel.shown
+  onWantedChanged: MprisBackend.setWanted("popup", mprisRoot.wanted)
+  Component.onCompleted: MprisBackend.setWanted("popup", mprisRoot.wanted)
+  Component.onDestruction: {
+    MprisBackend.setWanted("popup", false)
+    AudioLevels.setWanted("mpris", false)
   }
 
-  Timer {
-    interval: 3000
-    running: true
-    repeat: true
-    onTriggered: listPlayersProc.running = true
+  function currentPlayer() { return MprisBackend.currentPlayer() }
+  function selectPlayer(i) { MprisBackend.selectPlayer(i) }
+  function runCtl(args) { MprisBackend.runCtl(args) }
+  function playerIcon(name) { return MprisBackend.playerIcon(name) }
+  function cleanPlayerName(name) { return MprisBackend.cleanPlayerName(name) }
+
+  function formatTime(us) { return MprisBackend.formatTime(us) }
+
+  // ─── Ir a la app que está reproduciendo ────────────────────────
+  // El nombre MPRIS no siempre coincide con la clase de la ventana en
+  // Hyprland (ej. Firefox reporta "firefox.instanceXXXX" pero su clase
+  // suele ser "firefox"; algunos players usan guiones para lo mismo que
+  // cleanPlayerName ya recorta). Este mapeo cubre los casos más comunes;
+  // si no matchea ninguno, cae al nombre limpio tal cual.
+  readonly property var playerAppMap: ({
+    chromium: "chromium",
+    brave: "brave-browser",
+    spotify: "spotify",
+    firefox: "firefox",
+  })
+
+  function playerAppNeedle(name) {
+    if (!name) return ""
+    const clean = name.split(".")[0].split("-")[0].toLowerCase()
+    return mprisRoot.playerAppMap[clean] || clean
+  }
+
+  // Palabras con las que buscar la ventana del player: la del mapeo de
+  // arriba ("brave" → "brave-browser") y el nombre MPRIS tal cual, sin el
+  // sufijo ".instanceXXXX" ("youtube-music" sigue entero).
+  function playerNeedles(name) {
+    if (!name) return []
+    const out = []
+    const mapped = mprisRoot.playerAppNeedle(name)
+    const base = name.split(".")[0].toLowerCase()
+    if (mapped !== "") out.push(mapped)
+    if (base !== "" && out.indexOf(base) < 0) out.push(base)
+    return out
+  }
+
+  // Ventana del player entre los clientes de Hyprland: primero por CLASE
+  // (más fiable), después por título. Si hay varias (ej. dos ventanas del
+  // navegador) gana la usada más recientemente (focusHistoryID menor).
+  function findPlayerWindow(clients, needles) {
+    const usable = clients
+      .filter(c => c.mapped !== false && !c.hidden)
+      .sort((a, b) => (a.focusHistoryID ?? 999) - (b.focusHistoryID ?? 999))
+
+    const byClass = usable.find(c => {
+      const cls = ((c["class"] || "") + " " + (c.initialClass || "")).toLowerCase()
+      return needles.some(n => cls.includes(n))
+    })
+    if (byClass) return byClass
+
+    return usable.find(c => {
+      const title = (c.title || "").toLowerCase()
+      return needles.some(n => title.includes(n))
+    }) ?? null
   }
 
   Process {
-    id: metadataProc
-    property string player: mprisRoot.activePlayers.length > 0
-      ? mprisRoot.activePlayers[mprisRoot.activePlayerIndex] ?? "spotify"
-      : "spotify"
-    command: ["playerctl", "--player=" + player, "metadata", "--format",
-      "{{artist}}|{{title}}|{{mpris:artUrl}}|{{status}}|{{position}}|{{mpris:length}}"]
+    id: focusAppProc
+    command: ["hyprctl", "clients", "-j"]
     running: false
+    property string buffer: ""
+
     stdout: SplitParser {
-      onRead: data => {
-        var parts = data.split("|")
-        if (parts.length >= 6) {
-          mprisRoot.currentArtist   = parts[0]
-          mprisRoot.currentTitle    = parts[1]
-          mprisRoot.currentArt      = parts[2]
-          mprisRoot.currentStatus   = parts[3].trim()
-          mprisRoot.currentPosition = parseInt(parts[4]) || 0
-          mprisRoot.currentLength   = parseInt(parts[5]) || 0
+      onRead: line => focusAppProc.buffer += line
+    }
+
+    onRunningChanged: {
+      if (running) return
+      const raw = focusAppProc.buffer
+      focusAppProc.buffer = ""
+
+      const player = mprisRoot.currentPlayer()
+      const needles = mprisRoot.playerNeedles(player)
+      if (needles.length === 0) return
+
+      let match = null
+      try {
+        if (raw !== "") match = mprisRoot.findPlayerWindow(JSON.parse(raw), needles)
+      } catch (e) {
+        console.log("Mpris: error buscando la ventana del player:", e)
+      }
+
+      if (match) {
+        // Enfoca la ventana (y cambia de workspace si hace falta). Ver
+        // COMMON/HyprDispatch.qml: en Hyprland con config Lua el
+        // `hyprctl dispatch focuswindow …` clásico ya no hace nada.
+        HyprDispatch.focusWindow(match.address)
+        mprisRoot.closeRequested()
+        return
+      }
+
+      // Sin ventana (el player corre en segundo plano o la ventana se
+      // cerró): se abre la app desde su .desktop, así el botón siempre
+      // hace algo.
+      for (const n of needles) {
+        const entry = DesktopEntries.heuristicLookup(n)
+        if (entry) {
+          entry.execute()
+          mprisRoot.closeRequested()
+          return
         }
       }
+      console.log("Mpris: sin ventana ni .desktop para el player:", player)
     }
   }
 
-  Timer {
-    interval: 1000
-    running: true
-    repeat: true
-    onTriggered: metadataProc.running = true
+  // Botón "ir a la app": busca su ventana entre los clientes de Hyprland
+  // (por clase o título) y la enfoca, cambiando de escritorio si hace
+  // falta; si no tiene ventana, abre la app. Cierra el panel al saltar,
+  // como al hacer clic afuera.
+  function focusPlayerApp() {
+    if (mprisRoot.activePlayers.length === 0 || focusAppProc.running) return
+    focusAppProc.running = true
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────
-  function formatTime(us) {
-    const s = Math.floor(us / 1000000)
-    const m = Math.floor(s / 60)
-    const r = s % 60
-    return m + ":" + (r < 10 ? "0" : "") + r
-  }
+  // Lista + metadata + controles: MPRIS/MprisBackend.qml (ver los
+  // delegados currentPlayer()/selectPlayer()/runCtl() más arriba y
+  // `wanted`, que le avisa cuándo sondear).
 
-  function playerIcon(name) {
-    const lower = name.toLowerCase()
-    if (lower.includes("spotify")) return "󰓇"
-    if (lower.includes("firefox")) return "󰈹"
-    if (lower.includes("chrome"))  return "󰊯"
-    if (lower.includes("brave"))   return "󰈹"
-    if (lower.includes("mpv"))     return "󰚺"
-    if (lower.includes("vlc"))     return "󰕼"
-    return "󰝚"
-  }
+  // ─── Audio para las ondas ────────────────────────────────────
+  // cava (COMMON/AudioLevels.qml) solo corre mientras el panel se ve (o se
+  // está cerrando) Y el player está sonando; pausado o cerrado = 0% CPU.
+  readonly property bool audioWanted:
+    (mprisRoot.open || panel.shown) && mprisRoot.currentStatus === "Playing"
+  onAudioWantedChanged: AudioLevels.setWanted("mpris", mprisRoot.audioWanted)
 
-  function cleanPlayerName(name) {
-    if (!name) return "—"
-    let clean = name.split(".")[0]
-    clean = clean.split("-")[0]
-    return clean.charAt(0).toUpperCase() + clean.slice(1)
-  }
+  // ═══════════════════════════════════════════════════════════════
+  FusedWindow {
+    active: mprisRoot.open || panel.shown
+    targetScreen: mprisRoot.targetScreen
+    namespace: "oozeshell-mpris"
+    onCloseRequested: mprisRoot.closeRequested()
 
-      // ─── Panel overlay ──────────────────────────────────────────
-      PanelWindow {
-        id: mainPanel
-        screen: Quickshell.screens.find(s => s.name === mprisRoot.targetScreen) ?? Quickshell.screens[0]
-        visible: mprisRoot.open
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-        WlrLayershell.namespace: "mpris-panel"
-        anchors { top: true; left: true; right: true; bottom: true }
-        color: "transparent"
-        exclusiveZone: -1
+    FusedPanel {
+      id: panel
 
-        Item {
+      open: mprisRoot.open
+      panelWidth: mprisRoot.cardWidth
+      // Modo Islas: la isla izquierda crece con la canción; si pasa el
+      // ancho del panel, el contenido y la portada se estiran (sin franjas)
+      stretchToIsland: true
+      contentHeight: col.implicitHeight
+
+      // Cuelga de la barra, del lado del módulo izquierdo: a la izquierda si la
+      // barra es horizontal, arriba si es vertical. FusedPanel se coloca solo.
+      align: "start"
+      alignMargin: (Theme.barVertical ? mprisRoot.anchorTopMargin : mprisRoot.anchorLeftMargin)
+                   + Theme.barEdge + Theme.frameSideArm
+
+      // ── Fondo: portada + degradado + ondas ───────────────────────────
+      // Va en el `backdrop` de FusedPanel, que lo recorta con la MISMA silueta
+      // del panel: esquinas redondas del lado opuesto a la barra (con el radio
+      // real, sin escalar). El degradado es EXACTAMENTE el color de la barra
+      // del lado en que ella está (arriba, abajo, izquierda o derecha) para
+      // que la unión sea invisible, y se va abriendo hacia el lado contrario
+      // dejando ver la portada. Encima van las ondas, en el lado LEJANO a la
+      // barra (abajo si la barra está arriba; arriba si está abajo).
+      backdrop: [
+        Image {
           anchors.fill: parent
+          source: mprisRoot.currentArt
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          smooth: true
+          // Sin esto Qt decodifica la carátula a su tamaño original (una de
+          // 1200×1200 = ~5,5 MB de RAM y de textura) para un fondo a 45 % de opacidad
+          sourceSize: Qt.size(720, 720)
+          opacity: status === Image.Ready ? 0.45 : 0.0
+          Behavior on opacity { NumberAnimation { duration: 500 } }
+        },
 
-          MouseArea {
-            anchors.fill: parent
-            onClicked: mprisRoot.closeRequested()
-            z: 0
-          }
-
-          focus: mprisRoot.open
-          Keys.onPressed: event => {
-            if (event.key === Qt.Key_Escape) {
-              mprisRoot.closeRequested()
-              event.accepted = true
-            }
-          }
-
-      // ─── Card Principal ─────────────────────────────────────
-      Rectangle {
-        id: cardContainer
-          
-        height: 380 // Mantiene su alto fijo
-          anchors {
-            top: parent.top
-            topMargin: 40
-            left: parent.left
-            leftMargin: 45
-            // Para la posición horizontal usas left o horizontalCenter
-          }
-
-          x: (parent.width - width) / 2
-          y: (parent.height - height) / 2
-
-          onXChanged: if (mprisRoot.open) posSaveTimer.restart()
-          onYChanged: if (mprisRoot.open) posSaveTimer.restart()
-
-        width: 460
-       
-
-        radius: 4
-        color: mprisRoot.colors.bg
-        border.color: Qt.rgba(1, 1, 1, 0.14)
-        border.width: 1
-        clip: true
-        antialiasing: true
-        layer.enabled: true
-        layer.smooth: true
-        z: 1
-
-        scale: mprisRoot.open ? 1.0 : 0.92
-        opacity: mprisRoot.open ? 1.0 : 0.0
-
-        Behavior on scale   { NumberAnimation { duration: 250; easing.type: Easing.OutBack } }
-        Behavior on opacity { NumberAnimation { duration: 200 } }
-        Behavior on color   { ColorAnimation  { duration: 400 } }
-
-        // Arrastrar
-        MouseArea {
-          id: dragArea
+        Rectangle {
           anchors.fill: parent
-          drag.target: cardContainer
-          drag.axis: Drag.XAndYAxis
-          drag.minimumX: 0
-          drag.maximumX: mainPanel.width - cardContainer.width
-          drag.minimumY: 0
-          drag.maximumY: mainPanel.height - cardContainer.height
-          cursorShape: dragArea.pressed ? Qt.ClosedHandCursor : Qt.ArrowCursor
+          gradient: Gradient {
+            // Barra vertical → degradado de lado a lado; horizontal → de arriba a abajo
+            orientation: panel.vertical ? Gradient.Horizontal : Gradient.Vertical
+            // Posición 0 = arriba/izquierda. Si la barra está abajo/derecha, la
+            // cara sólida es la del final: se espeja.
+            GradientStop { position: panel.faceAtEnd ? 1.0 : 0.0;  color: Theme.bg }
+            GradientStop { position: panel.faceAtEnd ? 0.65 : 0.35; color: Qt.rgba(Theme.bg.r, Theme.bg.g, Theme.bg.b, 0.80) }
+            GradientStop { position: panel.faceAtEnd ? 0.0 : 1.0;  color: Qt.rgba(Theme.bg.r, Theme.bg.g, Theme.bg.b, 0.55) }
+          }
+        },
+
+        // ── Ondas ──────────────────────────────────────────────────────
+        // Ver MprisWaves.qml: capas sinusoidales + espectro que reaccionan al
+        // audio (COMMON/AudioLevels.qml). Solo animan mientras el panel se ve.
+        MprisWaves {
+          anchors.fill: parent
+          running: panel.shown
+          playing: mprisRoot.currentStatus === "Playing"
+          sf: panel.scaleFactor
+          flip: !panel.vertical && panel.faceAtEnd
         }
+      ]
 
-        // ─── ARTWORK BACKGROUND BLUR ──────────────────────────
+      ColumnLayout {
+        id: col
+        width: parent.width
+        spacing: 0
+
+        // ── Header ───────────────────────────────────────────
         Item {
-          anchors.fill: parent
-          clip: true
+          Layout.fillWidth: true
+          Layout.preferredHeight: mprisRoot.headerH
 
-          Image {
-            anchors.fill: parent
-            source: mprisRoot.currentArt
-            fillMode: Image.PreserveAspectCrop
-            opacity: 0.18
-            visible: status === Image.Ready
+          RowLayout {
+            anchors { fill: parent; leftMargin: mprisRoot.sidePad; rightMargin: mprisRoot.sidePad }
+            spacing: 8
 
-            Behavior on opacity { NumberAnimation { duration: 500 } }
+            Text {
+              text: "󰝚"
+              color: Theme.primary
+              font.pixelSize: Theme.fs(18)
+              font.family: Theme.monoFamily
+            }
+
+            Text {
+              text: Translations.t("mprisTitle")
+              color: Theme.text
+              font.pixelSize: Theme.fs(14)
+              font.bold: true
+              font.family: Theme.fontFamily
+            }
+
+            Item { Layout.fillWidth: true }
+
+            // Player activo
+            Rectangle {
+              Layout.preferredHeight: 24
+              Layout.preferredWidth: Math.min(150, playerRow.implicitWidth + 16)
+              radius: Theme.cozy ? 4 : 12
+              color: Theme.surface
+              border.width: Theme.cozy ? 2 : 0
+              border.color: Theme.ink
+              clip: true
+
+              RowLayout {
+                id: playerRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                Text {
+                  text: mprisRoot.activePlayers.length > 0
+                    ? mprisRoot.playerIcon(mprisRoot.currentPlayer()) : "󰝚"
+                  color: Theme.primary
+                  font.pixelSize: Theme.fs(12)
+                  font.family: Theme.monoFamily
+                }
+                Text {
+                  Layout.maximumWidth: 100
+                  text: mprisRoot.activePlayers.length > 0
+                    ? mprisRoot.cleanPlayerName(mprisRoot.currentPlayer()) : "—"
+                  color: Theme.subtext
+                  font.pixelSize: Theme.fs(11)
+                  font.bold: true
+                  font.family: Theme.fontFamily
+                  elide: Text.ElideRight
+                }
+              }
+            }
+
+            // Ir a la app que está reproduciendo
+            Rectangle {
+              visible: mprisRoot.activePlayers.length > 0
+              Layout.preferredWidth: 24
+              Layout.preferredHeight: 24
+              radius: Theme.cozy ? 4 : 12
+              border.width: Theme.cozy ? 2 : 0
+              border.color: Theme.ink
+              color: goToAppArea.containsMouse ? Theme.surfaceHigh : Theme.surface
+              Behavior on color { ColorAnimation { duration: 120 } }
+
+              Text {
+                anchors.centerIn: parent
+                text: "󰏌"
+                color: Theme.text
+                font.pixelSize: Theme.fs(12)
+                font.family: Theme.monoFamily
+              }
+
+              MouseArea {
+                id: goToAppArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: mprisRoot.focusPlayerApp()
+              }
+            }
           }
 
           Rectangle {
-            anchors.fill: parent
-            gradient: Gradient {
-              GradientStop { position: 0.0; color: Qt.rgba(0,0,0,0.3) }
-              GradientStop { position: 1.0; color: Qt.rgba(0,0,0,0.75) }
-            }
+            anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
+            height: 1
+            color: Theme.divider
           }
         }
 
+        // ── Cuerpo ───────────────────────────────────────────
         ColumnLayout {
-          anchors.fill: parent
-          spacing: 0
+          Layout.fillWidth: true
+          Layout.leftMargin: mprisRoot.sidePad
+          Layout.rightMargin: mprisRoot.sidePad
+          Layout.topMargin: 14
+          Layout.bottomMargin: 12
+          spacing: 12
 
-          // ─── Header ─────────────────────────────────────────
-          Item {
+          // Portada + info (+ selector de player)
+          RowLayout {
             Layout.fillWidth: true
-            height: 56
-
-            RowLayout {
-              anchors { fill: parent; leftMargin: 20; rightMargin: 20 }
-              spacing: 10
-
-              Text {
-                text: "󰝚"
-                color: mprisRoot.colors.accent
-                font.pixelSize: 20
-                font.family: "JetBrainsMono Nerd Font"
-                Behavior on color { ColorAnimation { duration: 400 } }
-              }
-
-              Text {
-                text: Translations.t("Mpris")
-                color: mprisRoot.colors.text
-                font.pixelSize: 16
-                font.bold: true
-                Behavior on color { ColorAnimation { duration: 400 } }
-              }
-
-              Item { Layout.fillWidth: true }
-
-              // Badge del Player Activo (Ajustado para no salir del borde)
-              Rectangle {
-                Layout.maximumWidth: 160
-                height: 26
-                implicitWidth: playerRow.implicitWidth + 16
-                radius: 13
-                color: Qt.rgba(1, 1, 1, 0.08)
-                border.color: Qt.rgba(1, 1, 1, 0.12)
-                border.width: 1
-                clip: true
-
-                RowLayout {
-                  id: playerRow
-                  anchors.centerIn: parent
-                  anchors.leftMargin: 8
-                  anchors.rightMargin: 8
-                  spacing: 6
-
-                  Text {
-                    text: mprisRoot.activePlayers.length > 0
-                      ? mprisRoot.playerIcon(mprisRoot.activePlayers[mprisRoot.activePlayerIndex] ?? "")
-                      : "󰝚"
-                    color: mprisRoot.colors.accent
-                    font.pixelSize: 13
-                    font.family: "JetBrainsMono Nerd Font"
-                  }
-
-                  Text {
-                    Layout.maximumWidth: 110
-                    text: mprisRoot.activePlayers.length > 0
-                      ? mprisRoot.cleanPlayerName(mprisRoot.activePlayers[mprisRoot.activePlayerIndex])
-                      : "—"
-                    color: mprisRoot.colors.subtext
-                    font.pixelSize: 11
-                    font.bold: true
-                    font.family: "JetBrainsMono Nerd Font"
-                    elide: Text.ElideRight
-                  }
-                }
-              }
-            }
+            spacing: 14
 
             Rectangle {
-              anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
-              height: 1
-              color: Qt.rgba(1, 1, 1, 0.06)
+              visible: mprisRoot.activePlayers.length > 1
+              Layout.preferredWidth: 28
+              Layout.preferredHeight: 28
+              radius: Theme.cozy ? 5 : 14
+              border.width: Theme.cozy ? 2 : 0
+              border.color: Theme.ink
+              color: prevPlayerArea.containsMouse ? Theme.surfaceHigh : Theme.surface
+              Behavior on color { ColorAnimation { duration: 120 } }
+
+              Text {
+                anchors.centerIn: parent
+                text: "󰅁"
+                color: Theme.text
+                font.pixelSize: Theme.fs(15)
+                font.family: Theme.monoFamily
+              }
+              MouseArea {
+                id: prevPlayerArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: mprisRoot.selectPlayer(mprisRoot.activePlayerIndex - 1)
+              }
             }
-          }
 
-          // ─── Cuerpo ─────────────────────────────────────────
-          ColumnLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.margins: 20
-            spacing: 16
+            ClippingRectangle {
+              Layout.preferredWidth: mprisRoot.coverSize
+              Layout.preferredHeight: mprisRoot.coverSize
+              radius: Theme.cozy ? 4 : 14
+              color: Theme.surface
+              border.width: Theme.cozy ? 3 : 0
+              border.color: Theme.ink
 
-            // Central Row: Switcher + Art + Info
-            RowLayout {
-              Layout.fillWidth: true
-              spacing: 14
-
-              // Prev player
-              Rectangle {
-                width: 32; height: 32
-                radius: 16
-                visible: mprisRoot.activePlayers.length > 1
-                color: prevPlayerArea.containsMouse ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(1, 1, 1, 0.06)
-                border.color: Qt.rgba(1, 1, 1, 0.1)
-                border.width: 1
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "󰅁"
-                  color: mprisRoot.colors.text
-                  font.pixelSize: 16
-                  font.family: "JetBrainsMono Nerd Font"
-                }
-
-                MouseArea {
-                  id: prevPlayerArea
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: {
-                    mprisRoot.activePlayerIndex = (mprisRoot.activePlayerIndex - 1 + mprisRoot.activePlayers.length) % mprisRoot.activePlayers.length
-                    metadataProc.running = true
-                  }
-                }
+              Image {
+                id: albumArt
+                anchors.fill: parent
+                source: mprisRoot.currentArt
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                smooth: true
+                // Portada de 92 px lógicos: 256 px alcanza incluso con escala 2x
+                sourceSize: Qt.size(256, 256)
               }
 
-              // Album art
+              Text {
+                anchors.centerIn: parent
+                visible: albumArt.status !== Image.Ready
+                text: "󰝚"
+                color: Theme.primary
+                font.pixelSize: Theme.fs(34)
+                font.family: Theme.monoFamily
+              }
+
+              // Mini ecualizador
               Rectangle {
-                width: 110; height: 110
-                radius: 16
-                color: mprisRoot.colors.btn
-                border.color: Qt.rgba(1, 1, 1, 0.15)
-                border.width: 1
-                clip: true
+                anchors { right: parent.right; bottom: parent.bottom; margins: 5 }
+                width: 28
+                height: 20
+                radius: Theme.cozy ? 2 : 6
+                color: Qt.rgba(0, 0, 0, 0.68)
+                visible: mprisRoot.currentStatus === "Playing"
 
-                Image {
-                  id: albumArt
-                  anchors.fill: parent
-                  source: mprisRoot.currentArt
-                  fillMode: Image.PreserveAspectCrop
-                  asynchronous: true
-                }
-
-                Text {
+                Row {
                   anchors.centerIn: parent
-                  text: "󰝚"
-                  font.pixelSize: 38
-                  font.family: "JetBrainsMono Nerd Font"
-                  color: mprisRoot.colors.accent
-                  visible: albumArt.status !== Image.Ready
-                }
+                  spacing: 2
 
-                // Mini Ecualizador
-                Rectangle {
-                  anchors { right: parent.right; bottom: parent.bottom; margins: 6 }
-                  width: 32; height: 24
-                  radius: 4
-                  color: Qt.rgba(0, 0, 0, 0.65)
-                  visible: mprisRoot.currentStatus === "Playing"
+                  Repeater {
+                    model: 3
 
-                  Row {
-                    anchors.centerIn: parent
-                    spacing: 2
-                    Repeater {
-                      model: 3
+                    // Contenedor de alto fijo: el Row no admite anchors
+                    // verticales en sus hijos, así las barras se centran.
+                    Item {
+                      width: 3
+                      height: 12
+
                       Rectangle {
+                        anchors.verticalCenter: parent.verticalCenter
                         width: 3
-                        height: index === 0 ? 8 : (index === 1 ? 12 : 6)
-                        radius: 1.5
-                        color: mprisRoot.colors.accent
+                        height: index === 0 ? 7 : (index === 1 ? 10 : 5)
+                        radius: Theme.cozy ? 0 : 1.5
+                        color: Theme.primary
 
                         SequentialAnimation on height {
-                          running: mprisRoot.currentStatus === "Playing"
+                          running: mprisRoot.currentStatus === "Playing" && mprisRoot.open
                           loops: Animation.Infinite
-                          NumberAnimation { to: 12; duration: 300 + index * 100 }
-                          NumberAnimation { to: 4; duration: 300 + index * 100 }
+                          NumberAnimation { to: 10; duration: 300 + index * 100 }
+                          NumberAnimation { to: 3;  duration: 300 + index * 100 }
                         }
                       }
                     }
                   }
                 }
               }
-
-              // Info Canción
-              ColumnLayout {
-                Layout.fillWidth: true
-                spacing: 4
-
-                Text {
-                  Layout.fillWidth: true
-                  text: mprisRoot.currentTitle !== ""
-                    ? mprisRoot.currentTitle
-                    : Translations.t("mprisNoPlaying")
-                  color: mprisRoot.colors.text
-                  font.pixelSize: 16
-                  font.bold: true
-                  elide: Text.ElideRight
-                  Behavior on color { ColorAnimation { duration: 400 } }
-                }
-
-                Text {
-                  Layout.fillWidth: true
-                  text: mprisRoot.currentArtist !== "" ? mprisRoot.currentArtist : "—"
-                  color: mprisRoot.colors.subtext
-                  font.pixelSize: 13
-                  elide: Text.ElideRight
-                  Behavior on color { ColorAnimation { duration: 400 } }
-                }
-              }
-
-              // Next player
-              Rectangle {
-                width: 32; height: 32
-                radius: 16
-                visible: mprisRoot.activePlayers.length > 1
-                color: nextPlayerArea.containsMouse ? Qt.rgba(1, 1, 1, 0.15) : Qt.rgba(1, 1, 1, 0.06)
-                border.color: Qt.rgba(1, 1, 1, 0.1)
-                border.width: 1
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "󰅂"
-                  color: mprisRoot.colors.text
-                  font.pixelSize: 16
-                  font.family: "JetBrainsMono Nerd Font"
-                }
-
-                MouseArea {
-                  id: nextPlayerArea
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: {
-                    mprisRoot.activePlayerIndex = (mprisRoot.activePlayerIndex + 1) % mprisRoot.activePlayers.length
-                    metadataProc.running = true
-                  }
-                }
-              }
             }
 
-            // ─── Barra de progreso ──────────────────────────────
             ColumnLayout {
               Layout.fillWidth: true
-              spacing: 6
+              spacing: 3
 
-              Item {
+              Text {
                 Layout.fillWidth: true
-                height: 14
-
-                Rectangle {
-                  anchors.centerIn: parent
-                  width: parent.width
-                  height: progressArea.containsMouse ? 6 : 4
-                  radius: 3
-                  color: Qt.rgba(1, 1, 1, 0.12)
-                  Behavior on height { NumberAnimation { duration: 150 } }
-
-                  Rectangle {
-                    width: mprisRoot.currentLength > 0
-                      ? parent.width * (mprisRoot.currentPosition / mprisRoot.currentLength)
-                      : 0
-                    height: parent.height
-                    radius: 3
-                    color: mprisRoot.colors.accent
-
-                    Behavior on width { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-                  }
-
-                  Rectangle {
-                    x: (mprisRoot.currentLength > 0
-                      ? parent.width * (mprisRoot.currentPosition / mprisRoot.currentLength)
-                      : 0) - width / 2
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: progressArea.containsMouse ? 12 : 0
-                    height: width
-                    radius: width / 2
-                    color: "#ffffff"
-
-                    Behavior on width { NumberAnimation { duration: 150 } }
-                  }
-                }
-
-                MouseArea {
-                  id: progressArea
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: mouse => {
-                    if (mprisRoot.currentLength > 0) {
-                      const pos = Math.floor((mouse.x / width) * mprisRoot.currentLength)
-                      seekCmd.seekPos = pos
-                      seekCmd.running = true
-                    }
-                  }
-                }
+                text: mprisRoot.currentTitle !== ""
+                  ? mprisRoot.currentTitle : Translations.t("mprisNoPlaying")
+                color: Theme.text
+                font.pixelSize: Theme.fs(15)
+                font.bold: true
+                font.family: Theme.fontFamily
+                elide: Text.ElideRight
               }
-
-              RowLayout {
+              Text {
                 Layout.fillWidth: true
-                Text {
-                  text: mprisRoot.formatTime(mprisRoot.currentPosition)
-                  color: mprisRoot.colors.subtext
-                  font.pixelSize: 11
-                  font.family: "JetBrainsMono Nerd Font"
-                }
-                Item { Layout.fillWidth: true }
-                Text {
-                  text: mprisRoot.formatTime(mprisRoot.currentLength)
-                  color: mprisRoot.colors.subtext
-                  font.pixelSize: 11
-                  font.family: "JetBrainsMono Nerd Font"
-                }
+                text: mprisRoot.currentArtist !== "" ? mprisRoot.currentArtist : "—"
+                color: Theme.subtext
+                font.pixelSize: Theme.fs(12)
+                font.family: Theme.fontFamily
+                elide: Text.ElideRight
               }
             }
 
-            // ─── Controles ──────────────────────────────────────
-            RowLayout {
-              Layout.fillWidth: true
-              Layout.alignment: Qt.AlignHCenter
-              spacing: 20
-
-              Process {
-                id: seekCmd
-                property int seekPos: 0
-                property string player: metadataProc.player
-                command: ["playerctl", "--player=" + player, "position", String(Math.floor(seekPos / 1000000))]
-                onRunningChanged: if (!running) metadataProc.running = true
-              }
-              Process {
-                id: prevCmd
-                property string player: metadataProc.player
-                command: ["playerctl", "--player=" + player, "previous"]
-                onRunningChanged: if (!running) metadataProc.running = true
-              }
-              Process {
-                id: playCmd
-                property string player: metadataProc.player
-                command: ["playerctl", "--player=" + player, "play-pause"]
-                onRunningChanged: if (!running) metadataProc.running = true
-              }
-              Process {
-                id: nextCmd
-                property string player: metadataProc.player
-                command: ["playerctl", "--player=" + player, "next"]
-                onRunningChanged: if (!running) metadataProc.running = true
-              }
-
-              // Botón Anterior
-              Rectangle {
-                width: 44; height: 44
-                radius: 22
-                color: prevArea.containsMouse ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(1, 1, 1, 0.05)
-                border.color: Qt.rgba(1, 1, 1, 0.1)
-                border.width: 1
-
-                Text {
-                  anchors.centerIn: parent
-                  text: "󰒮"
-                  color: mprisRoot.colors.text
-                  font.pixelSize: 20
-                  font.family: "JetBrainsMono Nerd Font"
-                }
-
-                MouseArea {
-                  id: prevArea
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: prevCmd.running = true
-                }
-              }
-
-              // Botón Play / Pause Primario
-              Rectangle {
-                width: 52; height: 52
-                radius: 26
-                color: mprisRoot.colors.accent
-                border.color: playArea.containsMouse ? "#ffffff" : "transparent"
-                border.width: 1
-
-                Behavior on scale { NumberAnimation { duration: 100 } }
-                scale: playArea.pressed ? 0.92 : (playArea.containsMouse ? 1.05 : 1.0)
-
-                Text {
-                  anchors.centerIn: parent
-                  text: mprisRoot.currentStatus === "Playing" ? "󰏤" : "󰐊"
-                  color: mprisRoot.colors.bg
-                  font.pixelSize: 22
-                  font.family: "JetBrainsMono Nerd Font"
-                }
-
-                MouseArea {
-                  id: playArea
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: { playCmd.running = false; playCmd.running = true }
-                }
-              }
-
-              // Botón Siguiente
-              Rectangle {
-                width: 44; height: 44
-                radius: 22
-                color: nextArea.containsMouse ? Qt.rgba(1, 1, 1, 0.12) : Qt.rgba(1, 1, 1, 0.05)
-                border.color: Qt.rgba(1, 1, 1, 0.1)
-                border.width: 1
-
-               Text {
-                  anchors.centerIn: parent
-                  text: "󰒭"
-                  color: mprisRoot.colors.text
-                  font.pixelSize: 20
-                  font.family: "JetBrainsMono Nerd Font"
-                }
-
-                MouseArea {
-                  id: nextArea
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: nextCmd.running = true
-                }
-              }
-            }
-
-            // Indicadores de Players
-            Row {
-              Layout.alignment: Qt.AlignHCenter
-              spacing: 6
+            Rectangle {
               visible: mprisRoot.activePlayers.length > 1
+              Layout.preferredWidth: 28
+              Layout.preferredHeight: 28
+              radius: Theme.cozy ? 5 : 14
+              border.width: Theme.cozy ? 2 : 0
+              border.color: Theme.ink
+              color: nextPlayerArea.containsMouse ? Theme.surfaceHigh : Theme.surface
+              Behavior on color { ColorAnimation { duration: 120 } }
 
-              Repeater {
-                model: mprisRoot.activePlayers.length
-                delegate: Rectangle {
-                  width: index === mprisRoot.activePlayerIndex ? 18 : 6
-                  height: 6
-                  radius: 3
-                  color: index === mprisRoot.activePlayerIndex
-                    ? mprisRoot.colors.accent
-                    : Qt.rgba(1, 1, 1, 0.2)
-
-                  Behavior on width { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
-
-                  MouseArea {
-                    anchors.fill: parent
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: {
-                      mprisRoot.activePlayerIndex = index
-                      metadataProc.running = true
-                    }
-                  }
-                }
+              Text {
+                anchors.centerIn: parent
+                text: "󰅂"
+                color: Theme.text
+                font.pixelSize: Theme.fs(15)
+                font.family: Theme.monoFamily
+              }
+              MouseArea {
+                id: nextPlayerArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: mprisRoot.selectPlayer(mprisRoot.activePlayerIndex + 1)
               }
             }
           }
 
-          // ─── Footer ─────────────────────────────────────────
-          Item {
+          // Progreso: tiempo · barra · duración, todo en una sola línea
+          RowLayout {
             Layout.fillWidth: true
-            height: 36
+            Layout.preferredHeight: 14
+            spacing: 10
 
-            Rectangle {
-              anchors { top: parent.top; left: parent.left; right: parent.right }
-              height: 1
-              color: Qt.rgba(1, 1, 1, 0.06)
+            Text {
+              Layout.preferredWidth: 38
+              text: mprisRoot.formatTime(mprisRoot.currentPosition)
+              color: Theme.subtext
+              font.pixelSize: Theme.fs(11)
+              font.family: Theme.fontFamily
+              horizontalAlignment: Text.AlignLeft
             }
 
-            RowLayout {
-              anchors { fill: parent; leftMargin: 20; rightMargin: 20 }
+            Item {
+              Layout.fillWidth: true
+              Layout.fillHeight: true
 
-              Text {
-                text: "󰌑  " + Translations.t("footerHint")
-                color: mprisRoot.colors.subtext
-                font.pixelSize: 11
-                font.family: "JetBrainsMono Nerd Font"
+              PixelBar {
+                visible: Theme.cozy
+                anchors.fill: parent
+                ratio: mprisRoot.progressRatio
+                cell: 6
+                gap: 2
               }
 
-              Item { Layout.fillWidth: true }
+              Rectangle {
+                id: track
+                visible: !Theme.cozy
+                anchors.centerIn: parent
+                width: parent.width
+                height: progressArea.containsMouse ? 5 : 3
+                radius: 2.5
+                color: Theme.tint(0.12)
+                Behavior on height { NumberAnimation { duration: 100 } }
 
-              Text {
-                visible: mprisRoot.activePlayers.length > 1
-                text: (mprisRoot.activePlayerIndex + 1) + "/" + mprisRoot.activePlayers.length
-                color: mprisRoot.colors.subtext
-                font.pixelSize: 11
-                font.family: "JetBrainsMono Nerd Font"
+                Rectangle {
+                  width: track.width * mprisRoot.progressRatio
+                  height: parent.height
+                  radius: parent.radius
+                  color: Theme.primary
+                }
+
+                Rectangle {
+                  x: track.width * mprisRoot.progressRatio - width / 2
+                  anchors.verticalCenter: parent.verticalCenter
+                  width: progressArea.containsMouse ? 11 : 0
+                  height: width
+                  radius: width / 2
+                  color: Theme.text
+                  Behavior on width { NumberAnimation { duration: 100 } }
+                }
               }
+
+              MouseArea {
+                id: progressArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: mouse => {
+                  if (mprisRoot.currentLength > 0) {
+                    const pos = (mouse.x / width) * mprisRoot.currentLength
+                    mprisRoot.runCtl(["position", (pos / 1000000).toFixed(2)])
+                  }
+                }
+              }
+            }
+
+            Text {
+              Layout.preferredWidth: 38
+              text: mprisRoot.formatTime(mprisRoot.currentLength)
+              color: Theme.subtext
+              font.pixelSize: Theme.fs(11)
+              font.family: Theme.fontFamily
+              horizontalAlignment: Text.AlignRight
+            }
+          }
+
+          // Controles
+          RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 18
+
+            CozyButton {
+              visible: Theme.cozy
+              Layout.preferredWidth: mprisRoot.skipSize
+              Layout.preferredHeight: mprisRoot.skipSize + depth
+              onClicked: mprisRoot.runCtl(["previous"])
+              Text {
+                anchors.centerIn: parent
+                text: "󰒮"
+                color: Theme.text
+                font.pixelSize: Theme.fs(18)
+                font.family: Theme.monoFamily
+              }
+            }
+            CozyButton {
+              visible: Theme.cozy
+              Layout.preferredWidth: mprisRoot.playSize + 6
+              Layout.preferredHeight: mprisRoot.playSize + depth
+              face: Theme.primary
+              faceHover: Theme.mix(Theme.primary, "#ffffff", 0.18)
+              active: true
+              onClicked: mprisRoot.runCtl(["play-pause"])
+              Text {
+                anchors.centerIn: parent
+                text: mprisRoot.currentStatus === "Playing" ? "󰏤" : "󰐊"
+                color: Theme.textOnPrimary
+                font.pixelSize: Theme.fs(22)
+                font.family: Theme.monoFamily
+              }
+            }
+            CozyButton {
+              visible: Theme.cozy
+              Layout.preferredWidth: mprisRoot.skipSize
+              Layout.preferredHeight: mprisRoot.skipSize + depth
+              onClicked: mprisRoot.runCtl(["next"])
+              Text {
+                anchors.centerIn: parent
+                text: "󰒭"
+                color: Theme.text
+                font.pixelSize: Theme.fs(18)
+                font.family: Theme.monoFamily
+              }
+            }
+
+            Rectangle {
+              visible: !Theme.cozy
+              Layout.preferredWidth: mprisRoot.skipSize
+              Layout.preferredHeight: mprisRoot.skipSize
+              radius: mprisRoot.skipSize / 2
+              color: prevArea.containsMouse ? Theme.surfaceHigh : Theme.surface
+              Behavior on color { ColorAnimation { duration: 120 } }
+              Text {
+                anchors.centerIn: parent
+                text: "󰒮"
+                color: Theme.text
+                font.pixelSize: Theme.fs(18)
+                font.family: Theme.monoFamily
+              }
+              MouseArea {
+                id: prevArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: mprisRoot.runCtl(["previous"])
+              }
+            }
+
+            Rectangle {
+              visible: !Theme.cozy
+              Layout.preferredWidth: mprisRoot.playSize
+              Layout.preferredHeight: mprisRoot.playSize
+              radius: mprisRoot.playSize / 2
+              color: Theme.primary
+              scale: playArea.pressed ? 0.92 : (playArea.containsMouse ? 1.05 : 1.0)
+              Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutBack } }
+              Text {
+                anchors.centerIn: parent
+                text: mprisRoot.currentStatus === "Playing" ? "󰏤" : "󰐊"
+                color: Theme.textOnPrimary
+                font.pixelSize: Theme.fs(20)
+                font.family: Theme.monoFamily
+              }
+              MouseArea {
+                id: playArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: mprisRoot.runCtl(["play-pause"])
+              }
+            }
+
+            Rectangle {
+              visible: !Theme.cozy
+              Layout.preferredWidth: mprisRoot.skipSize
+              Layout.preferredHeight: mprisRoot.skipSize
+              radius: mprisRoot.skipSize / 2
+              color: nextArea.containsMouse ? Theme.surfaceHigh : Theme.surface
+              Behavior on color { ColorAnimation { duration: 120 } }
+              Text {
+                anchors.centerIn: parent
+                text: "󰒭"
+                color: Theme.text
+                font.pixelSize: Theme.fs(18)
+                font.family: Theme.monoFamily
+              }
+              MouseArea {
+                id: nextArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: mprisRoot.runCtl(["next"])
+              }
+            }
+          }
+        }
+
+        // ── Footer ───────────────────────────────────────────
+        // Los indicadores de player viven aquí (antes eran una fila extra en
+        // el cuerpo): así el alto del panel no cambia cuando aparece un 2º player.
+        Item {
+          Layout.fillWidth: true
+          Layout.preferredHeight: mprisRoot.footerH
+
+          Rectangle {
+            anchors { top: parent.top; left: parent.left; right: parent.right }
+            height: 1
+            color: Theme.divider
+          }
+
+          RowLayout {
+            anchors { fill: parent; leftMargin: mprisRoot.sidePad; rightMargin: mprisRoot.sidePad }
+            spacing: 10
+
+            Text {
+              Layout.fillWidth: true
+              text: "󰌑  " + Translations.t("footerHint")
+              color: Theme.subtext
+              font.pixelSize: Theme.fs(10)
+              font.family: Theme.monoFamily
+              elide: Text.ElideRight
+            }
+
+            Row {
+              visible: mprisRoot.activePlayers.length > 1
+              spacing: 5
+
+              Repeater {
+                model: mprisRoot.activePlayers.length
+                delegate: Rectangle {
+                  width: index === mprisRoot.activePlayerIndex ? 16 : 6
+                  height: 6
+                  radius: Theme.cozy ? 0 : 3
+                  color: index === mprisRoot.activePlayerIndex ? Theme.primary : Theme.tint(0.2)
+                  Behavior on width { NumberAnimation { duration: 150 } }
+
+                  MouseArea {
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: mprisRoot.selectPlayer(index)
+                  }
+                }
+              }
+            }
+
+            Text {
+              visible: mprisRoot.activePlayers.length > 1
+              text: (mprisRoot.activePlayerIndex + 1) + "/" + mprisRoot.activePlayers.length
+              color: Theme.subtext
+              font.pixelSize: Theme.fs(10)
+              font.family: Theme.fontFamily
             }
           }
         }

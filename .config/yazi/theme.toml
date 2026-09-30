@@ -1,79 +1,106 @@
-# Auto-generado por matugen — NO editar manualmente
-
-[flavor]
-dark = "matugen"
+# Auto-generado por Matugen — Plantilla para Yazi
 
 [manager]
-cwd = { fg = "{{ colors.primary.dark.hex }}" }
+cwd = { fg = "#deb8f6" }
 
-# Directorios
-hovered = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
-preview_hovered = { fg = "{{ colors.on_secondary_container.dark.hex }}", bg = "{{ colors.secondary_container.dark.hex }}" }
+# Selección y elementos sobrevolados
+hovered         = { fg = "#eac7ff", bg = "#503266" }
+preview_hovered = { bg = "#221f22" }
 
-# Texto
-find_keyword = { fg = "{{ colors.primary.dark.hex }}", bold = true }
-find_position = { fg = "{{ colors.tertiary.dark.hex }}", bold = true }
+# Búsqueda / Find
+find_keyword  = { fg = "#ffc4d5", bg = "#662b42", bold = true }
+find_position = { fg = "#ffb0ca", bg = "reset", bold = true }
 
-# Tablas
-marker_copied = { fg = "{{ colors.tertiary.dark.hex }}", bg = "{{ colors.tertiary_container.dark.hex }}" }
-marker_cut = { fg = "{{ colors.error.dark.hex }}", bg = "{{ colors.surface_container.dark.hex }}" }
-marker_marked = { fg = "{{ colors.secondary.dark.hex }}", bg = "{{ colors.secondary_container.dark.hex }}" }
+# Marcadores de archivos
+marker_copied   = { fg = "#d3c0db", bg = "#52445a" }
+marker_cut      = { fg = "#ffb4ab", bg = "#ffb4ab" }
+marker_marked   = { fg = "#deb8f6", bg = "#503266" }
+marker_selected = { fg = "#ffb0ca", bg = "#662b42" }
 
-# Indicadores
-tab_active = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
-tab_inactive = { fg = "{{ colors.on_surface_variant.dark.hex }}", bg = "{{ colors.surface_container_lowest.dark.hex }}" }
+# Pestañas
+tab_active   = { fg = "#eac7ff", bg = "#503266", bold = true }
+tab_inactive = { fg = "#cdc3cf", bg = "#221f22" }
 
-# Borde
+# Bordes (Corregido)
 border_symbol = "│"
-border_style = { fg = "{{ colors.outline_variant.dark.hex }}" }
+border_style  = { fg = "#4b444e" }
 
-# Estado
-count_copied = { fg = "{{ colors.on_tertiary_container.dark.hex }}", bg = "{{ colors.tertiary_container.dark.hex }}" }
-count_cut = { fg = "{{ colors.on_error_container.dark.hex }}", bg = "{{ colors.error_container.dark.hex }}" }
-count_selected = { fg = "{{ colors.on_secondary_container.dark.hex }}", bg = "{{ colors.secondary_container.dark.hex }}" }
+[mode]
+normal_main = { fg = "#151216", bg = "#deb8f6", bold = true }
+normal_alt  = { fg = "#deb8f6", bg = "#221f22" }
+
+select_main = { fg = "#151216", bg = "#d3c0db", bold = true }
+select_alt  = { fg = "#d3c0db", bg = "#221f22" }
+
+unset_main  = { fg = "#151216", bg = "#ffb4ab", bold = true }
+unset_alt   = { fg = "#ffb4ab", bg = "#221f22" }
 
 [status]
-separator_open = ""
-separator_close = ""
+separator_open  = ""
+separator_close = ""
+separator_style = { fg = "#221f22", bg = "#221f22" }
 
-progress_label = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
-progress_normal = { fg = "{{ colors.primary.dark.hex }}", bg = "{{ colors.surface_container.dark.hex }}" }
-progress_error = { fg = "{{ colors.on_error.dark.hex }}", bg = "{{ colors.error.dark.hex }}" }
+# Barra de progreso
+progress_label  = { fg = "#e8e0e6", bold = true }
+progress_normal = { fg = "#deb8f6", bg = "#100d11" }
+progress_error  = { fg = "#ffb4ab", bg = "#100d11" }
 
-[which]
-mask = { bg = "{{ colors.surface_container_lowest.dark.hex }}" }
-cand = { fg = "{{ colors.primary.dark.hex }}" }
-rest = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
-desc = { fg = "{{ colors.on_background.dark.hex }}" }
-separator = "  "
-separator_style = { fg = "{{ colors.outline_variant.dark.hex }}" }
+# Permisos
+perm_sep  = { fg = "#4b444e" }
+perm_type = { fg = "#deb8f6" }
+perm_read = { fg = "#d3c0db" }
+perm_write= { fg = "#ffb4ab" }
+perm_exec = { fg = "#ffb0ca" }
 
-[confirm]
-border = { fg = "{{ colors.primary.dark.hex }}" }
-title = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
-body = { fg = "{{ colors.on_background.dark.hex }}" }
-list = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
-btn_yes = { fg = "{{ colors.on_primary.dark.hex }}", bg = "{{ colors.primary.dark.hex }}" }
-btn_no = { fg = "{{ colors.on_error.dark.hex }}", bg = "{{ colors.error.dark.hex }}" }
-
-[spot]
-border = { fg = "{{ colors.primary.dark.hex }}" }
-title = { fg = "{{ colors.on_background.dark.hex }}" }
-tbl_col = { fg = "{{ colors.primary.dark.hex }}" }
-tbl_cell = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
-
-[completion]
-border = { fg = "{{ colors.outline_variant.dark.hex }}" }
-active = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
-inactive = { fg = "{{ colors.on_surface_variant.dark.hex }}" }
-
-[tasks]
-border = { fg = "{{ colors.outline_variant.dark.hex }}" }
-title = { fg = "{{ colors.on_background.dark.hex }}" }
-hovered = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
+[select]
+border   = { fg = "#deb8f6" }
+active   = { fg = "#eac7ff", bg = "#503266" }
+inactive = { fg = "#e8e0e6" }
 
 [input]
-border = { fg = "{{ colors.primary.dark.hex }}" }
-title = { fg = "{{ colors.on_background.dark.hex }}" }
-value = { fg = "{{ colors.on_surface.dark.hex }}" }
-selected = { fg = "{{ colors.on_primary_container.dark.hex }}", bg = "{{ colors.primary_container.dark.hex }}" }
+border   = { fg = "#deb8f6" }
+title    = { fg = "#deb8f6" }
+value    = { fg = "#e8e0e6" }
+selected = { bg = "#503266" }
+
+[completion]
+border   = { fg = "#deb8f6" }
+active   = { fg = "#eac7ff", bg = "#503266" }
+inactive = { fg = "#e8e0e6" }
+
+[tasks]
+border  = { fg = "#deb8f6" }
+title   = { fg = "#deb8f6" }
+hover   = { fg = "#eac7ff", bg = "#503266" }
+
+[which]
+mask            = { bg = "#100d11" }
+cand            = { fg = "#deb8f6" }
+rest            = { fg = "#cdc3cf" }
+desc            = { fg = "#d3c0db" }
+separator       = "  "
+separator_style = { fg = "#4b444e" }
+
+[help]
+on      = { fg = "#deb8f6" }
+exec    = { fg = "#d3c0db" }
+desc    = { fg = "#e8e0e6" }
+hover   = { fg = "#eac7ff", bg = "#503266" }
+footer  = { fg = "#cdc3cf", bg = "#221f22" }
+
+[filetype]
+rules = [
+	{ url = "*/", fg = "#deb8f6", bold = true },
+	{ mime = "image/*", fg = "#ffb0ca" },
+	{ mime = "video/*", fg = "#d3c0db" },
+	{ mime = "audio/*", fg = "#d3c0db" },
+	{ mime = "application/x-tar", fg = "#ffb4ab" },
+	{ mime = "application/x-bzip*", fg = "#ffb4ab" },
+	{ mime = "application/x-7z-compressed", fg = "#ffb4ab" },
+	{ mime = "application/zip", fg = "#ffb4ab" },
+	{ mime = "application/x-rar", fg = "#ffb4ab" },
+	{ url = "*", is = "exec", fg = "#d3c0db" },
+	{ url = "*", is = "link", fg = "#ffb0ca" },
+	{ url = "*", is = "orphan", fg = "#ffb4ab" },
+	{ mime = "*", fg = "#e8e0e6" }
+]

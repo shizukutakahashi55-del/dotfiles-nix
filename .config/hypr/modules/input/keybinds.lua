@@ -3,15 +3,40 @@
 --  MODULE: keybinds.lua
 --  Contains: every hl.bind() -- keyboard binds, workspace switching,
 --  multimedia keys, and the mouse binds (move/resize windows with the mouse).
+-- Tried to do the comments here on English but sometimes I forgot that LOL.
 --  Wiki: https://wiki.hypr.land/Configuring/Basics/Binds/
 -- ============================================================================
 
 local programs = require("modules.startup.programs")
+
+
 ---------------------
 ---- KEYBINDINGS ----
 ---------------------
 
 local mainMod = "SUPER" -- Sets "Windows" key as main modifier
+
+-------------------------------------------------------------------------------
+-- LUA CODE SNIPPETS
+-------------------------------------------------------------------------------
+    -- PER LAYOUT BINDS
+
+        local function layout_bind(bind_table)
+            return function ()
+                local workspace = hl.get_active_special_workspace() or
+                                hl.get_active_workspace()
+
+                if not workspace then
+                    return
+                end
+
+                local layout = workspace.tiled_layout
+
+            if bind_table[layout] then
+                    hl.dispatch(bind_table[layout])
+                end
+            end
+        end
 
 
 -------------------------------------------------------------------------------
@@ -27,6 +52,8 @@ hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
 -- Application Menu / Launcher
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu))
 
+-- Aplicaction Dolphin Handler Easy Drag
+-- hl.bind(mainMod .. "SHIFT + Y", hl.dsp.exec_cmd(Dolphin))
 
 -------------------------------------------------------------------------------
 -- WINDOW MANAGEMENT
@@ -49,16 +76,6 @@ hl.bind(
     "SUPER + F",
     hl.dsp.window.fullscreen("toggle")
 )
-
--- Swap active window with the left one
-hl.bind("SUPER + SHIFT + H", function()
-    hl.dispatch(hl.dsp.window.swap({ direction = "left" }))
-end)
-
--- Swap active window with the rigth one
-hl.bind("SUPER + SHIFT + L", function()
-    hl.dispatch(hl.dsp.window.swap({ direction = "right" }))
-end)
 
 
 -------------------------------------------------------------------------------
@@ -92,7 +109,6 @@ hl.bind(
     hl.dsp.layout("colresize -conf")
 )
 
-
 -------------------------------------------------------------------------------
 -- WINDOW FOCUS
 -------------------------------------------------------------------------------
@@ -102,6 +118,16 @@ hl.bind(mainMod .. " + left",  hl.dsp.focus({ direction = "left" }))
 hl.bind(mainMod .. " + right", hl.dsp.focus({ direction = "right" }))
 hl.bind(mainMod .. " + up",    hl.dsp.focus({ direction = "up" }))
 hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
+
+-- Move focus between tiled and floating windows 
+-- This functions similarly to the i3 focus mode_toggle bind.
+
+hl.bind("SUPER + space", function()
+    hl.dispatch(hl.dsp.window.cycle_next({
+        floating = not hl.get_active_window().floating
+    }))
+end, { description = "Switch focus between tiled and floating windows" })
+
 
 -------------------------------------------------------------------------------
 -- MOVE ACTIVE WINDOW
@@ -113,14 +139,61 @@ hl.bind(mainMod .. " + SHIFT + right", hl.dsp.window.move({ direction = "right" 
 hl.bind(mainMod .. " + SHIFT + up",    hl.dsp.window.move({ direction = "up" }))
 hl.bind(mainMod .. " + SHIFT + down",  hl.dsp.window.move({ direction = "down" }))
 
--------------------------------------------------------------------------------
--- WINDOW CYCLING -MONOCLE
--------------------------------------------------------------------------------
--- Cycle to next window
-hl.bind(mainMod .. " + TAB", hl.dsp.layout("cyclenext"))
+-- Move All Windows In Current Workspace To Another
 
--- Cycle to previous window
-hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.layout("cycleprev"))
+local function moveWindowsCurrentWorkspace(ws, f)
+    local cws = hl.get_active_workspace()
+    local windows = hl.get_windows({ workspace = cws })
+
+    for _,w in pairs(windows) do
+        hl.dispatch(
+            hl.dsp.window.move({
+                window = w ,
+                workspace = ws ,
+                follow = f
+            })
+        )
+    end
+end
+
+for i = 1, 10 do
+    local key = i % 10
+    hl.bind("SUPER+SHIFT+ALT+" .. key, function()
+        moveWindowsCurrentWorkspace(i, true)
+    end)
+end
+
+for i = 1, 10 do
+    local key = i % 10
+    hl.bind("SUPER+CTRL+ALT+" .. key, function()
+        moveWindowsCurrentWorkspace(i, false)
+    end)
+end
+
+
+-------------------------------------------------------------------------------
+-- WINDOW CYCLING
+-------------------------------------------------------------------------------
+-- Cycle to next Monocle
+-- hl.bind(mainMod .. " + TAB", hl.dsp.layout("cyclenext"))
+
+hl.bind("SUPER + TAB", layout_bind({
+    scrolling = hl.dsp.layout("swapcol l"),  -- Scrolling: swap column with left one
+    dwindle   = hl.dsp.layout("swapsplit"),  -- Dwindle: swap window split
+    monocle   = hl.dsp.layout("cycleprev"),  -- Monocle and master: cycle prev window
+    master    = hl.dsp.layout("cycleprev"),
+}))
+
+
+-- Cycle to previous Monocle
+-- hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.layout("cycleprev"))
+
+hl.bind("SUPER + SHIFT + TAB", layout_bind({
+    scrolling = hl.dsp.layout("swapcol r"),   -- Scrolling: swap column with right one
+    dwindle   = hl.dsp.layout("togglesplit"), -- Dwindle: toggle window split
+    monocle   = hl.dsp.layout("cyclenext"),   -- Monocle and master: cycle next window
+    master    = hl.dsp.layout("cyclenext"),
+}))
 
 
 -------------------------------------------------------------------------------
@@ -195,7 +268,7 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- LAYOUTS
 -------------------------------------------------------------------------------
 
--- Cycle layout for current workspace
+-- Cycle layout for current workspace Temporaly
 --
 -- SUPER + K
 --
@@ -209,26 +282,20 @@ hl.bind("SUPER + K", function ()
         master    = "󰓦",
         monocle   = "󰖲",
     }
-
     local order = {
         "scrolling",
         "dwindle",
         "master",
         "monocle",
     }
-
     local workspace = hl.get_active_workspace()
-
     if hl.get_active_special_workspace() then
         workspace = hl.get_active_special_workspace()
     end
-
     if not workspace then
         return
     end
-
     local next_layout = "dwindle"
-
     for i = 1, #order do
         if order[i] == workspace.tiled_layout then
             local next_layout_idx = (i % #order) + 1
@@ -236,7 +303,6 @@ hl.bind("SUPER + K", function ()
             break
         end
     end
-
     if workspace.special then
         hl.workspace_rule({
             workspace = tostring(workspace.name),
@@ -248,17 +314,16 @@ hl.bind("SUPER + K", function ()
             layout = next_layout
         })
     end
-
     -- Show current layout through Quickshell notification
     hl.exec_cmd(
-        "quickshell ipc -p ~/.config/hypr/OozeShell/shell.qml call -- notify show " ..
+        "notify-send " ..
         "'Layout: " .. layouts[next_layout] .. "  " .. next_layout .. "'"
     )
 end)
 
 
 -------------------------------------------------------------------------------
--- QUICKSHELL
+-- OOZESHELL
 -------------------------------------------------------------------------------
 
 -- Wallpaper selector
@@ -292,29 +357,91 @@ hl.bind(mainMod .. " + G", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- lang togglePicker"
 ))
 
+-- Keybind Appearance
+-- SUPER + H
+hl.bind(mainMod .. " + H", hl.dsp.exec_cmd(
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- appearance toggle"
+))
+
+-- Notification Center
+-- SUPER + N
+hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(
+    "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- notify toggle" 
+))
+
+-- Custom power menu
+hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- powermenu toggle"
+))
+
+-- Overview Toggle
+hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- overview toggle"
+))
+
+-- Menu Toggle
+hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- menu toggle"
+))
+
+--Nix-Search
+-- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
+hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle"))
+
+--Settings Call
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- settings toggle"))
+
+ -- OozeLock
+hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock "))
+
+-- NixSearch with Rofi
+-- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
+-- Pacman/Paru OozeShell
+-- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- pacsearch toggle"))
+
+
+-------------------------------------------------------------------------------
+-- LEGACY SIDE
+-------------------------------------------------------------------------------
+-- Custom power menu
+-- hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(
+--   "~/.config/rofi/Powermenu/powermenu.sh"
+-- ))
+
+
 -------------------------------------------------------------------------------
 -- SYSTEM / POWER
 -------------------------------------------------------------------------------
 
--- Shutdown / exit
+--Secure-Exit
 --hl.bind(mainMod .. " + M", hl.dsp.exec_cmd("command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
-hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("hyprlock"))
 
+-- Hyprlock
+-- hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("hyprlock"))
 
--- Custom power menu
-hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(
-  "~/.config/rofi/Powermenu/powermenu.sh"
-))
+-------------------------------------------------------------------------------
+-- Hyprsunset.
+-------------------------------------------------------------------------------
 
--- Notification Center
-hl.bind(mainMod .. " + N", hl.dsp.exec_cmd("swaync-client -t -sw" ))
+local function toggleHyprsunset()
+    return hl.dsp.exec_cmd([[
+        if pgrep -x hyprsunset >/dev/null; then
+            pkill -x hyprsunset
+            notify-send -i weather-clear "Hyprsunset" "OFF 🌙"
+        else
+            hyprsunset & disown
+            notify-send -i weather-clear-night "Hyprsunset" "ON ☀️"
+        fi
+    ]])
+end
 
-
+-- Hyprsunset
+hl.bind(mainMod .. " + Y", toggleHyprsunset())
 -------------------------------------------------------------------------------
 -- MULTIMEDIA / VOLUME
 -------------------------------------------------------------------------------
 
--- Volume up
+-- Volume up`
 hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
 
 -- Volume down
@@ -364,26 +491,23 @@ hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = tr
 
 -- PRINT
 -- Capture entire screen and copy it to the clipboard
-hl.bind("PRINT", hl.dsp.exec_cmd("grim - | wl-copy"))
+hl.bind("PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot fullSave"))
 
 -- SUPER + PRINT
 -- Select an area with the mouse and copy it to the clipboard
-hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("grim -g \"$(slurp)\" - | wl-copy"))
+hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaCopy"))
 
 -- SUPER + SHIFT + PRINT
 -- Select an area, copy it to the clipboard and save it
 -- to ~/Pictures/Screenshots
 hl.bind(mainMod .. " + SHIFT + PRINT", hl.dsp.exec_cmd(
-    "bash -c 'mkdir -p ~/Pictures/Screenshots && file=~/Pictures/Screenshots/screenshot_$(date +%Y%m%d_%H%M%S).png && grim -g \"$(slurp)\" \"$file\" && wl-copy < \"$file\"'"
+    "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaSave"
 ))
 
 
 -------------------------------------------------------------------------------
 -- CUSTOM / OPTIONAL BINDS
 -------------------------------------------------------------------------------
---Nix-Search with Rofi Buscador de Apps con rofi
-hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
-
 
 -- local home = os.getenv("HOME")
 
@@ -424,7 +548,3 @@ hl.bind(
     hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle")
 )
 
-
-
-
-  

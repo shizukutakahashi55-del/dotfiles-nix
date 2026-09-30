@@ -1,175 +1,243 @@
-/*****----- Material You Fullscreen Edition · Cute Remix -----*****/
+/* ═══════════════════════════════════════════════════════════
+   Material You · Powermenu
+   Cute Remix · Match with Main
+   ═══════════════════════════════════════════════════════════ */
 
 configuration {
     show-icons: true;
 }
 
-/* Importamos tus colores de Material You */
+/* ── Material You ─────────────────────────────────────────── */
+
 @import "colors.rasi"
 
-/*****----- Global Properties -----*****/
+
+/* ── Global ───────────────────────────────────────────────── */
+
 * {
-    font:                        "JetBrainsMono Nerd Font Bold 12";
-    background-color:            transparent;
-    text-color:                  @ml-text;
-
-    /* Mapeo de variables corregido */
-    accent:                      @primary;
-
-    /* Cambiamos 'surface' por una variable que sí exista en tu .rasi de colores */
-    bg-surface:                  @s-container;
-
-    border-col:                  @outline;
-    selected-bg:                 @p-container;
-    selected-fg:                 @on-p-cont;
+    font:               "JetBrainsMono Nerd Font Bold 12";
+    background-color:   transparent;
+    text-color:         @ml-text;
+    accent:             @primary;
+    bg-surface:         @surface;
+    border-col:         @outline;
+    selected-bg:        @p-container;
+    selected-fg:        @on-p-cont;
 }
 
-/*****----- Window -----*****/
+
+/* ── Window ───────────────────────────────────────────────── */
+
 window {
-    transparency:                "real";
-    location:                    center;
-    anchor:                      center;
-    fullscreen:                  true;
-    cursor:                      "default";
-    /* Un poco más de blur visual con overlay más suave */
-    background-color:            #14141c99;
+    transparency:       "real";
+    location:           center;
+    anchor:             center;
+    fullscreen:         true;
+    cursor:             default;
+    
+    /* 
+     * Relleno opaco oscuro detrás de los botones.
+     * Puedes usar código HEX de 8 dígitos (#RRGGBBAA) 
+     * o rgba(0, 0, 0, 0.6) para controlar el nivel de oscuridad.
+     */
+    background-color:   #000000a0; 
+
+    padding:            0px;
+    children:           [ "mainbox" ];
 }
+
+
+/* ── Mainbox ──────────────────────────────────────────────── */
 
 mainbox {
-    enabled:                     true;
-    spacing:                     28px;
-    margin:                      0px;
-    padding:                     0px;
-    background-color:            transparent;
-    children:                    [ "dummy", "userimage-box", "inputbar", "message", "listview", "dummy" ];
+    enabled:            true;
+    spacing:            28px;
+    margin:             0px;
+    padding:            0px 120px;
+    background-color:   transparent;
+    children:           [
+        "dummy",
+        "userimage-box",
+        "inputbar",
+        "message",
+        "listview",
+        "dummy"
+    ];
 }
 
-/*****----- User Image -----*****/
+
+/* ── User Image ───────────────────────────────────────────── */
+
 userimage-box {
-    background-color:            transparent;
-    orientation:                 horizontal;
-    children:                    [ "dummy", "userimage", "dummy" ];
+    background-color:   transparent;
+    orientation:        horizontal;
+    children:           [
+        "dummy",
+        "userimage",
+        "dummy"
+    ];
 }
 
 userimage {
-    width:                       190px;
-    height:                      190px;
-    expand:                      false;
-    background-color:            @bg-surface;
-    background-image:            url("~/.config/rofi/images/user.png", height);
-    /* Doble borde tipo "halo" pastel */
-    border:                      6px solid;
-    border-color:                @p-container;
-    border-radius:               100%;
+    width:              190px;
+    height:             190px;
+    expand:             false;
+    /*
+     * Igual que los botones:
+     * surface = cuerpo
+     * outline = borde
+     */
+    background-color:   @base;
+    background-image:   url("~/.config/rofi/images/user.png", height);
+    border:             3px solid;
+    border-color:       @outline;
+    border-radius:      100%;
 }
 
-/*****----- Inputbar -----*****/
+
+/* ── Inputbar ─────────────────────────────────────────────── */
+
 inputbar {
-    enabled:                     true;
-    background-color:            transparent;
-    children:                    [ "dummy", "prompt", "dummy" ];
+    enabled:            true;
+    spacing:            0px;
+    padding:            7px 18px;
+    horizontal-align:   0.5;
+    children:           [
+        "dummy",
+        "prompt",
+        "dummy"
+    ];
 }
 
 prompt {
-    enabled:                     true;
-    background-color:            transparent;
-    text-color:                  @primary;
-    font:                        "JetBrainsMono Nerd Font Bold 24";
-    /* Edita este texto a gusto; si tu script pasa -mesg o -p, eso pisa este valor */
-    str:                         "Goodbye ✧";
+    enabled:            true;
+    background-color:   @base;
+    border:             3px solid;
+    padding:            7px 18px;
+    border-radius:      3px;
+    border-color:       @outline;
+    text-color:         @primary;
+    font:               "JetBrainsMono Nerd Font Bold 24";
+    str:                "Goodbye ✧ !!";
 }
 
-/*****----- Message -----*****/
+
+/* ── Message ──────────────────────────────────────────────── */
+
 message {
-    enabled:                     true;
-    margin:                      0px 220px;
-    padding:                     12px 20px;
-    background-color:            @bg-surface;
-    border-radius:               999px;
-    border:                      1.5px solid;
-    border-color:                @primary;
+    enabled:            true;
+    margin:             0px 100px;
+    padding:            10px 20px;
+    width:              190px;
+    /*
+     * Mismo surface que el Main usa para
+     * inputbar / botones / elementos activos.
+     */
+    background-color:   @base;
+    border-radius:      0px;
+    border:             3px solid;
+    border-color:       @outline;
 }
 
 textbox {
-    background-color:            transparent;
-    text-color:                  @subtext;
-    vertical-align:              0.5;
-    horizontal-align:            0.5;
-    font:                        "JetBrainsMono Nerd Font 11";
+    background-color:   transparent;
+    text-color:         @subtext;
+    vertical-align:     0.5;
+    horizontal-align:   0.5;
+    font:               "JetBrainsMono Nerd Font 11";
 }
 
-/*****----- Listview -----*****/
+
+/* ── Listview ─────────────────────────────────────────────── */
+
 listview {
-    enabled:                     true;
-    columns:                     5;
-    lines:                       1;
-    cycle:                       true;
-    dynamic:                     true;
-    scrollbar:                   false;
-    layout:                      vertical;
-    reverse:                     false;
-    fixed-height:                true;
-    fixed-columns:               true;
-
-    spacing:                     18px;
-    margin:                      0px 120px;
-    background-color:            transparent;
-    cursor:                      "default";
+    enabled:            true;
+    columns:            5;
+    lines:              1;
+    cycle:              true;
+    dynamic:            true;
+    scrollbar:          false;
+    layout:             vertical;
+    reverse:            false;
+    fixed-height:       true;
+    fixed-columns:      true;
+    spacing:            18px;
+    margin:             0px 40px;
+    background-color:   transparent;
+    cursor:              default;
 }
 
-/*****----- Elements -----*****/
+
+/* ── Elements / Buttons ───────────────────────────────────── */
+
 element {
-    enabled:                     true;
-    /* Botón más compacto y rectangular, menos "columna alta" */
-    spacing:                     10px;
-    margin:                      0px;
-    padding:                     20px 10px;
-    border:                      1.5px solid;
-    border-radius:               22px;
-    border-color:                @border-col;
-    background-color:            @bg-surface;
-    text-color:                  @subtext;
-    orientation:                 vertical;
-    cursor:                      pointer;
+    enabled:            true;
+    spacing:            10px;
+    margin:             0px;
+    padding:            20px 10px;
+    /*
+     * Igual que los botones del Main.
+     */
+    background-color:   @base;
+    text-color:         @subtext;
+    border:             3px solid;
+    border-color:       @outline;
+    border-radius:      16px;
+    orientation:        vertical;
+    cursor:              pointer;
 }
+
+
+/* ── Icons ────────────────────────────────────────────────── */
 
 element-icon {
-    background-color:            transparent;
-    text-color:                  inherit;
-    /* Ícono un poco más chico para que respire dentro del botón bajito */
-    size:                        40px;
-    cursor:                      inherit;
-    horizontal-align:            0.5;
+    background-color:   transparent;
+    text-color:         inherit;
+    size:               40px;
+    cursor:             inherit;
+    horizontal-align:   0.5;
 }
+
+
+/* ── Text ─────────────────────────────────────────────────── */
 
 element-text {
-    background-color:            transparent;
-    text-color:                  inherit;
-    highlight:                   inherit;
-    cursor:                      inherit;
-    vertical-align:              0.5;
-    horizontal-align:            0.5;
-    font:                        "JetBrainsMono Nerd Font Bold 11";
+    background-color:   transparent;
+    text-color:         inherit;
+    highlight:          inherit;
+    cursor:             inherit;
+    vertical-align:     0.5;
+    horizontal-align:   0.5;
+
+    font:               "JetBrainsMono Nerd Font Bold 11";
 }
 
-/*****----- States -----*****/
+
+/* ── Normal ───────────────────────────────────────────────── */
+
 element normal.normal {
-    background-color:            @bg-surface;
-    text-color:                  @subtext;
-    border-color:                @border-col;
+    background-color:   @base;
+    text-color:         @subtext;
+    border:             3px solid;
+    border-color:       @outline;
+    border-radius:      16px;
 }
+
+
+/* ── Selected ─────────────────────────────────────────────── */
 
 element selected.normal {
-    /* Halo sutil al seleccionar, sin inflar tanto el radio */
-    background-color:            @selected-bg;
-    text-color:                  @selected-fg;
-    border:                      2.5px solid;
-    border-color:                @primary;
-    border-radius:               24px;
+    background-color:   @p-container;
+    text-color:         @on-p-cont;
+    border:             2px solid;
+    border-color:       @primary;
+    border-radius:      16px;
 }
 
-/*****----- Utilities -----*****/
+
+/* ── Utilities ────────────────────────────────────────────── */
+
 dummy {
-    expand:                      true;
-    background-color:            transparent;
+    expand:             true;
+    background-color:   transparent;
 }

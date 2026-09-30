@@ -3,9 +3,9 @@
 # ============================================================
 
 # ── Fastfetch ────────────────────────────────────────────────
-if command -v fastfetch &>/dev/null; then
-    fastfetch
-fi
+# if command -v fastfetch &>/dev/null; then
+#     fastfetch
+# fi
 
 # ── Historial ─────────────────────────────────────────────────
 HISTFILE="$HOME/.zsh_history"
@@ -40,10 +40,11 @@ zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
 zstyle ':completion:*' verbose yes
 
-zstyle ':completion:*:descriptions' format '%F{#f5c2e7}🎀 %d 🎀%f'
-zstyle ':completion:*:messages' format '%F{#a6e3a1}✨ %d ✨%f'
-zstyle ':completion:*:warnings' format '%F{#f38ba8}🌸 sin resultados 🌸%f'
-zstyle ':completion:*:corrections' format '%F{#f9e2af}💭 %d (errores: %e) 💭%f'
+# Iconos Nerd Fonts v3 para el menú de autocompletado
+zstyle ':completion:*:descriptions' format '%F{#f5c2e7}󰍉 %d 󰍉%f'
+zstyle ':completion:*:messages' format '%F{#a6e3a1}󰄬 %d%f'
+zstyle ':completion:*:warnings' format '%F{#f38ba8}󰅚 sin resultados%f'
+zstyle ':completion:*:corrections' format '%F{#f9e2af}󰁨 %d (errores: %e)󰁨%f'
 zstyle ':completion:*' group-name ''
 zstyle ':completion:*' special-dirs true
 
@@ -95,7 +96,7 @@ bindkey '^R' history-incremental-search-backward
 # ── Aliases ───────────────────────────────────────────────────
 if command -v eza &>/dev/null; then
     alias ls='eza --icons=auto'
-    alias ll='eza -la --icons=auto--git'
+    alias ll='eza -la --icons=auto --git'
     alias la='eza -a --icons=auto'
     alias tree='eza --tree --icons=auto'
 else
@@ -110,7 +111,7 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias cls='clear'
 alias reload='source ~/.zshrc'
-alias zshconfig='nvim ~/.zshrc'
+alias zshconf='nvim ~/.zshrc'
 
 alias nvim='nvim'
 alias vim='vim'
@@ -119,56 +120,13 @@ if command -v bat &>/dev/null; then
     alias cat='bat --style=plain'
 fi
 
-alias hyprconf='nvim ~/.config/hypr/hyprland.conf'
-alias nyx='~/Nyx-Python/start.sh'
-
 # ── Variables de entorno ──────────────────────────────────────
 export EDITOR='nvim'
 export VISUAL='nvim'
-export TERM='xterm-256color'
 export PATH="$HOME/.local/bin:$PATH"
 export LS_COLORS="di=38;5;218:ln=38;5;183:so=38;5;183:pi=38;5;223:ex=38;5;157"
 
-# # ── NixOS Helpers ─────────────────────────────────────────────
-# export NIXOS_FLAKE="/etc/nixos"
-# export NIXOS_HOST="nixos"
-
-# flake() {
-#     if [[ "$1" == "update" ]]; then
-#         shift
-#         echo "🌸 Actualizando flake en $NIXOS_FLAKE..."
-#         command nix flake update --flake "$NIXOS_FLAKE" "$@"
-#     else
-#         command nix flake "$@"
-#     fi
-# }
-
-# sys() {
-#     case "$1" in
-#         test)
-#             shift
-#             echo "✨ Probando NixOS ($NIXOS_HOST)..."
-#             sudo nixos-rebuild build --flake "$NIXOS_FLAKE#$NIXOS_HOST" "$@"
-#             ;;
-#         rebuild|switch)
-#             shift
-#             echo "🎀 Aplicando NixOS ($NIXOS_HOST)..."
-#             sudo nixos-rebuild switch --flake "$NIXOS_FLAKE#$NIXOS_HOST" "$@"
-#             ;;kon
-#         boot)
-#             shift
-#             echo "🚀 Configurando para el próximo arranque..."
-#             sudo nixos-rebuild boot --flake "$NIXOS_FLAKE#$NIXOS_HOST" "$@"
-#             ;;
-#         *)
-#             echo "Uso: sys {test|rebuild|boot}"
-#             return 1
-#             ;;
-#     esac
-# }
-
 # ── NixOS Helpers ─────────────────────────────────────────────
-# Si estás en un repo local usa '.', si no, usa ~/nixos-config
 export NIXOS_FLAKE="$HOME/nixos-config"
 export NIXOS_HOST="nixos"
 
@@ -176,7 +134,7 @@ flake() {
     local target="${1:-update}"
     if [[ "$target" == "update" ]]; then
         shift 2>/dev/null
-        echo "🌸 Actualizando flake en $NIXOS_FLAKE..."
+        echo -e "\e[38;2;245;194;231m󰚰 Actualizando flake en $NIXOS_FLAKE...\e[0m"
         command nix flake update --flake "$NIXOS_FLAKE" "$@"
     else
         command nix flake "$@"
@@ -184,7 +142,6 @@ flake() {
 }
 
 sys() {
-    # Detecta si estás dentro de la carpeta del repo para usar '.' o la ruta guardada
     local flake_dir="$NIXOS_FLAKE"
     if [[ -f "./flake.nix" ]]; then
         flake_dir="."
@@ -193,25 +150,43 @@ sys() {
     case "$1" in
         test)
             shift
-            echo "✨ Probando NixOS ($NIXOS_HOST) desde $flake_dir..."
+            echo -e "\e[38;2;249;226;175m󰘦 Testing NixOS build ($NIXOS_HOST) from $flake_dir...\e[0m"
             sudo nixos-rebuild build --flake "$flake_dir#$NIXOS_HOST" "$@"
             ;;
         rebuild|switch)
             shift
-            echo "🎀 Aplicando NixOS ($NIXOS_HOST) desde $flake_dir..."
+            echo -e "\e[38;2;245;194;231m󰄬 Applying NixOS ($NIXOS_HOST) from $flake_dir...\e[0m"
             sudo nixos-rebuild switch --flake "$flake_dir#$NIXOS_HOST" "$@"
             ;;
         boot)
             shift
-            echo "🚀 Configurando para el próximo arranque desde $flake_dir..."
+            echo -e "\e[38;2;148;226;213m󰜎 Setting for the next boot from $flake_dir...\e[0m"
             sudo nixos-rebuild boot --flake "$flake_dir#$NIXOS_HOST" "$@"
             ;;
+        update)
+            shift
+            echo -e "\e[38;2;166;227;161m󰚰 Updating flake locks and applying changes ($NIXOS_HOST)...\e[0m"
+            nix flake update --flake "$flake_dir" && sudo nixos-rebuild switch --flake "$flake_dir#$NIXOS_HOST" "$@"
+            ;;
         *)
-            echo "Uso: sys {test|rebuild|boot}"
+            echo "Use: sys {test|rebuild|switch|boot|update}"
             return 1
             ;;
     esac
 }
 
-# ── Inicializar Starship ──────────────────────────────────────
-eval "$(starship init zsh)"
+
+
+# ── Starship ──────────────────────────────────────────────────
+
+if command -v starship &>/dev/null; then
+    eval "$(starship init zsh)"
+fi
+
+# Redibuja Starship cuando recibe SIGUSR1
+TRAPUSR1() {
+    if zle; then
+        zle reset-prompt
+    fi
+}
+

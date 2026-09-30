@@ -1,0 +1,100 @@
+# ============================================================
+# Ghostty — OozeSoft 🌸
+# ============================================================
+
+# ── Tema ─────────────────────────────────────────────────────
+
+theme = OozeSoft
+
+# ── Fuente ───────────────────────────────────────────────────
+
+font-family = JetBrainsMono Nerd Font Regular
+font-size = 12
+
+# ── Ventana ─────────────────────────────────────────────────
+
+window-padding-x = 12
+window-padding-y = 12
+
+window-padding-balance = true
+
+window-decoration = false
+
+background-opacity = 0.85
+
+# ── Cursor ──────────────────────────────────────────────────
+
+cursor-style = bar
+
+cursor-style-blink = true
+
+cursor-click-to-move = true
+
+# ── Shell ───────────────────────────────────────────────────
+
+command = zsh
+shell-integration = zsh
+
+# ── Scrollback ──────────────────────────────────────────────
+
+scrollback-limit = 10000
+
+# ── Rendimiento ────────────────────────────────────────────
+
+window-vsync = true
+
+# ── Mouse ──────────────────────────────────────────────────
+
+mouse-hide-while-typing = true
+
+# ── Selección ───────────────────────────────────────────────
+
+copy-on-select = false
+
+# ── Bell ────────────────────────────────────────────────────
+
+bell-features = false
+
+# ── Tabs ────────────────────────────────────────────────────
+
+gtk-tabs-location = hidden
+
+# ── Atajos ──────────────────────────────────────────────────
+
+keybind = ctrl+shift+q=close_surface
+
+keybind = ctrl+shift+enter=new_window
+
+# ── Splits ──────────────────────────────────────────────────
+
+keybind = ctrl+shift+d=new_split:right
+
+keybind = ctrl+shift+r=new_split:down
+
+# ── Navegación ──────────────────────────────────────────────
+
+keybind = ctrl+shift+h=goto_split:left
+
+keybind = ctrl+shift+j=goto_split:down
+
+keybind = ctrl+shift+k=goto_split:up
+
+keybind = ctrl+shift+l=goto_split:right
+
+# ── Zoom ────────────────────────────────────────────────────
+
+keybind = ctrl+shift+w=toggle_split_zoom
+
+# ── Copiar / pegar ──────────────────────────────────────────
+
+keybind = ctrl+shift+c=copy_to_clipboard
+
+keybind = ctrl+shift+v=paste_from_clipboard
+
+# ── Búsqueda ────────────────────────────────────────────────
+
+keybind = ctrl+shift+f=start_search
+
+# ── Recargar ────────────────────────────────────────────────
+
+keybind = ctrl+shift+,=reload_config

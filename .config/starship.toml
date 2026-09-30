@@ -1,65 +1,135 @@
-# Plantilla corregida para Matugen (~/.config/matugen/templates/starship.toml)
+# ~/.config/matugen/templates/starship.toml
+# Starship + Matugen
+# Unicode nativo — sin Nerd Fonts ni emojis dependientes de la fuente
 
 format = """
-[](fg:#ffb694)\
+[█](fg:#deb8f6)\
 $username\
-[](bg:#efbc95 fg:#ffb694)\
+[█](bg:#d3c0db fg:#deb8f6)\
 $hostname\
-[](bg:#f1be7a fg:#efbc95)\
+[█](bg:#ffb0ca fg:#d3c0db)\
 $directory\
-[](fg:#f1be7a bg:#7b2f00)\
+[█](fg:#ffb0ca bg:#503266)\
 $git_branch\
 $git_status\
-[](fg:#7b2f00)\
+[█](fg:#503266)\
 $cmd_duration\
+$time\
 $line_break\
 $character"""
 
 add_newline = true
 
+
+# ─────────────────────────────────────────────
+# Usuario
+# ─────────────────────────────────────────────
+
 [username]
 show_always = true
-style_user = "bg:#ffb694 fg:#571f00 bold"
+
+style_user = "bg:#deb8f6 fg:#402356 bold"
 style_root = "bg:#ffb4ab fg:#690005 bold"
-format = "[󱄅 $user]($style)"
+
+format = "[✦ $user]($style)"
+
+
+# ─────────────────────────────────────────────
+# Hostname
+# ─────────────────────────────────────────────
 
 [hostname]
 ssh_only = false
-style = "bg:#efbc95 fg:#48290c bold"
+
+style = "bg:#d3c0db fg:#382c41 bold"
+
 format = "[@$hostname]($style)"
 
+
+# ─────────────────────────────────────────────
+# Directorio
+# ─────────────────────────────────────────────
+
 [directory]
-style = "bg:#f1be7a fg:#452b00 bold"
-format = "[ 󰉋 $path ]($style)"
+style = "bg:#ffb0ca fg:#541d33 bold"
+
+format = "[ ◈ $path ]($style)"
+
 truncation_length = 3
 truncation_symbol = "…/"
 
+
+[directory.substitutions]
+"Documents" = "▣"
+"Downloads" = "⇩"
+"Music" = "♫"
+"Pictures" = "▧"
+"Videos" = "▶"
+"Projects" = "⌘"
+
+
+# ─────────────────────────────────────────────
+# Git branch
+# ─────────────────────────────────────────────
+
 [git_branch]
-symbol = "󰊢 "
-style = "bg:#7b2f00 fg:#ffdbcc bold"
+symbol = "⎇ "
+
+style = "bg:#503266 fg:#eac7ff bold"
+
 format = "[ $symbol$branch]($style)"
 
+
+# ─────────────────────────────────────────────
+# Git status
+# ─────────────────────────────────────────────
+
 [git_status]
-style = "bg:#7b2f00 fg:#ffdbcc bold"
-format = "[($all_status$ahead_behind)]($style) "
-conflicted = "⚔ "
-ahead = "⇡${count} "
-behind = "⇣${count} "
-untracked = "󰞋 "
-modified = "󰏫 "
-staged = "󰸞 "
+style = "bg:#503266 fg:#eac7ff bold"
+
+format = "[($all_status$ahead_behind)]($style)"
+
+conflicted = "✖ "
+ahead = "↑${count} "
+behind = "↓${count} "
+diverged = "↕${ahead_count}↓${behind_count} "
+untracked = "… "
+modified = "● "
+staged = "✓ "
+renamed = "» "
+deleted = "− "
+
+
+# ─────────────────────────────────────────────
+# Duración del comando
+# ─────────────────────────────────────────────
 
 [cmd_duration]
 min_time = 2_000
-style = "bold #f1be7a"
-format = " 󱦟 [$duration]($style)"
+
+style = "bold #ffb0ca"
+
+format = " ⏱ [$duration]($style)"
+
+
+# ─────────────────────────────────────────────
+# Hora
+# ─────────────────────────────────────────────
 
 [time]
 disabled = false
-style = "bold #ffb694"
-format = "󰥔 [$time]($style)"
+
+style = "bold #deb8f6"
+
+format = " ⯈ [$time]($style)"
+
 time_format = "%H:%M"
 
+
+# ─────────────────────────────────────────────
+# Prompt
+# ─────────────────────────────────────────────
+
 [character]
-success_symbol = "[╭─ 󰅂](bold #ffb694) "
-error_symbol = "[╭─ 󰅂](bold #ffb4ab) "
+success_symbol = "[╭─ ⮞](bold #deb8f6) "
+error_symbol = "[╭─ ⮞](bold #ffb4ab) "

@@ -1,0 +1,83 @@
+# ============================================================
+# Alacritty — Matugen Dynamic Colors
+# ============================================================
+
+[colors.primary]
+background = '#11131c'
+foreground = '#e2e1ef'
+
+[colors.cursor]
+text = '#e2e1ef'
+cursor = '#b9c3ff'
+
+[colors.vi_mode_cursor]
+text = '#11131c'
+cursor = '#b9c3ff'
+
+# ── Search ──────────────────────────────────────────────────
+
+[colors.search.matches]
+foreground = '#e2e1ef'
+background = '#474364'
+
+[colors.search.focused_match]
+foreground = '#002388'
+background = '#b9c3ff'
+
+# ── Footer ──────────────────────────────────────────────────
+
+[colors.footer_bar]
+foreground = '#c5c5d3'
+background = '#1d1f29'
+
+# ── Hints ───────────────────────────────────────────────────
+
+[colors.hints.start]
+foreground = '#e5deff'
+background = '#474364'
+
+[colors.hints.end]
+foreground = '#e5deff'
+background = '#474364'
+
+# ── Selection ────────────────────────────────────────────────
+
+[colors.selection]
+text = '#002388'
+background = '#b9c3ff'
+
+# ── ANSI normal ──────────────────────────────────────────────
+
+[colors.normal]
+black = '#0c0e17'
+red = '#ffb4ab'
+green = '#b9c3ff'
+yellow = '#d6bcf4'
+blue = '#0034bf'
+magenta = '#523d6c'
+cyan = '#c8c2ea'
+white = '#e2e1ef'
+
+# ── ANSI bright ─────────────────────────────────────────────
+
+[colors.bright]
+black = '#8f909c'
+red = '#ffb4ab'
+green = '#b9c3ff'
+yellow = '#d6bcf4'
+blue = '#b9c3ff'
+magenta = '#d6bcf4'
+cyan = '#c8c2ea'
+white = '#e2e1ef'
+
+# ── ANSI dim ────────────────────────────────────────────────
+
+[colors.dim]
+black = '#454651'
+red = '#ffb4ab'
+green = '#b9c3ff'
+yellow = '#d6bcf4'
+blue = '#0034bf'
+magenta = '#523d6c'
+cyan = '#c8c2ea'
+white = '#c5c5d3'

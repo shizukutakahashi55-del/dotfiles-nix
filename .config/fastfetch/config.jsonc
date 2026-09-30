@@ -1,8 +1,201 @@
+// {
+//   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
+//   "logo": {
+//     "source": "~/.config/fastfetch/images/g7.png",
+//     "type": "kitty",
+//     "width": 22,
+//     "padding": {
+//       "top": 3,
+//       "left": 2,
+//       "right": 2
+//     }
+//   },
+
+//   "display": {
+//     "separator": " 󰄾 "
+//   },
+
+//   "modules": [
+
+//     // ── BANNER / HEADER ───────────────────────────────────────────────
+
+//     {
+//       "type": "custom",
+//       "format": "\u001b[38;5;181m╭──────────────────────────────󰄛──────────────────────────────╮\u001b[0m"
+//     },
+
+//     {
+//       "type": "title",
+//       "format": "                         {user-name-colored}{at-symbol-colored}{host-name-colored}"
+//     },
+
+//     {
+//       "type": "custom",
+//       "format": "\u001b[38;5;181m╰──────────────────────────────󰄛──────────────────────────────╯\u001b[0m"
+//     },
+
+//     {
+//       "type": "custom",
+//       "format": "        \u001b[38;5;174m󰣐   \u001b[38;5;216m󰞅   \u001b[38;5;151m󰤄   \u001b[38;5;152m󰅶   \u001b[38;5;183m󰂰   \u001b[38;5;146m󰌪   \u001b[38;5;230m󰅵   \u001b[38;5;183m󰂰   \u001b[38;5;152m󰅶   \u001b[38;5;151m󰤄   \u001b[38;5;216m󰞅   \u001b[38;5;174m󰣐"
+//     },
+
+//     // ── SOFTWARE & SISTEMA ───────────────────────────────────────────
+
+//     {
+//       "type": "custom",
+//       "format": "\u001b[38;5;183m╭─ Software ──────────────────────────────────────────────────╮\u001b[0m"
+//     },
+
+//     {
+//       "type": "os",
+//       "key": "  󰣐 OS",
+//       "keyColor": "magenta"
+//     },
+
+//     {
+//       "type": "kernel",
+//       "key": "  │ ├ Kernel",
+//       "keyColor": "magenta"
+//     },
+
+//     {
+//       "type": "packages",
+//       "key": "  │ ├󰏖 Pkgs",
+//       "keyColor": "magenta",
+//       "format": "{all}"
+//     },
+
+//     {
+//       "type": "shell",
+//       "key": "  │ └󰞷 Shell",
+//       "keyColor": "magenta"
+//     },
+
+//     // ── DESKTOP & ENVIRONMENT ────────────────────────────────────────
+
+//     {
+//       "type": "custom",
+//       "format": "\u001b[38;5;151m├─ Desktop & Environment ──────────────────────────────────────┤\u001b[0m"
+//     },
+
+//     {
+//       "type": "de",
+//       "key": "  󰀻 DE",
+//       "keyColor": "green"
+//     },
+
+//     {
+//       "type": "wm",
+//       "key": "  │ ├󰨇 WM",
+//       "keyColor": "green"
+//     },
+
+//     {
+//       "type": "lm",
+//       "key": "  │ ├󰧨 LM",
+//       "keyColor": "green"
+//     },
+
+//     {
+//       "type": "wmtheme",
+//       "key": "  │ ├󰉼 Theme",
+//       "keyColor": "green"
+//     },
+
+//     {
+//       "type": "icons",
+//       "key": "  │ ├󰀻 Icons",
+//       "keyColor": "green"
+//     },
+
+//     {
+//       "type": "terminal",
+//       "key": "  │ ├󰆍 Terminal",
+//       "keyColor": "green"
+//     },
+
+//     {
+//       "type": "wallpaper",
+//       "key": "  │ └󰸉 Wallpaper",
+//       "keyColor": "green"
+//     },
+
+//     // ── HARDWARE ─────────────────────────────────────────────────────
+
+//     {
+//       "type": "custom",
+//       "format": "\u001b[38;5;216m├─ Hardware Info ──────────────────────────────────────────────┤\u001b[0m"
+//     },
+
+//     {
+//       "type": "host",
+//       "key": "  󰍹 PC Host",
+//       "keyColor": "yellow"
+//     },
+
+//     {
+//       "type": "cpu",
+//       "key": "  │ ├󰍛 CPU",
+//       "keyColor": "yellow",
+//       "format": "{1}"
+//     },
+
+//     {
+//       "type": "gpu",
+//       "key": "  │ ├󰍛 GPU",
+//       "keyColor": "yellow",
+//       "format": "{2}"
+//     },
+
+//     {
+//       "type": "disk",
+//       "key": "  │ ├󰋊 Disk",
+//       "keyColor": "yellow",
+//       "format": "{1} / {2} ({3})"
+//     },
+
+//     {
+//       "type": "memory",
+//       "key": "  │ ├󰑭 Memory",
+//       "keyColor": "yellow"
+//     },
+
+//     {
+//       "type": "swap",
+//       "key": "  │ ├󰓡 Swap",
+//       "keyColor": "yellow"
+//     },
+
+//     {
+//       "type": "uptime",
+//       "key": "  │ ├󰅐 Uptime",
+//       "keyColor": "yellow"
+//     },
+
+//     // ── FOOTER ──────────────────────────────────────────────────────
+
+//     {
+//       "type": "custom",
+//       "format": "\u001b[38;5;181m╰──────────────────────────────󰣐──────────────────────────────╯\u001b[0m"
+//     },
+
+//     "break",
+
+//     {
+//       "type": "custom",
+//       "format": "        \u001b[38;5;174m󰣐   \u001b[38;5;216m󰞅   \u001b[38;5;151m󰤄   \u001b[38;5;152m󰅶   \u001b[38;5;183m󰂰   \u001b[38;5;146m󰌪   \u001b[38;5;230m󰅵   \u001b[38;5;183m󰂰   \u001b[38;5;152m󰅶   \u001b[38;5;151m󰤄   \u001b[38;5;216m󰞅   \u001b[38;5;174m󰣐"
+//     }
+
+//   ]
+// }
+
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+
   "logo": {
     "source": "~/.config/fastfetch/images/g7.png",
-    "type": "kitty",
+    "type": "sixel",
     "width": 22,
     "padding": {
       "top": 3,
@@ -10,154 +203,178 @@
       "right": 2
     }
   },
+
   "display": {
     "separator": " 󰄾 "
   },
+
   "modules": [
-    // ── BANNER / HEADER ──────────────────────────────────────────────────
+
+    // ── BANNER / HEADER ───────────────────────────────────────────────
+
     {
       "type": "custom",
-      "format": "\u001b[35m╭──────────────────────────────󰄛──────────────────────────────╮\u001b[0m"
-    },
-    {
-      "type": "title",
-      "format": "                         {user-name-colored}{at-symbol-colored}{host-name-colored}"  
-    },
-    {
-      "type": "custom",
-      "format": "\u001b[35m╰──────────────────────────────󰄛──────────────────────────────╯\u001b[0m"
-    },
-    { 
-      "type": "custom",
-      "format": "        \u001b[31m󰣐   \u001b[33m󰞅   \u001b[32m󰤄   \u001b[36m󰅶   \u001b[35m󰂰   \u001b[34m󰌪   \u001b[37m󰅵   \u001b[35m󰂰   \u001b[36m󰅶   \u001b[32m󰤄   \u001b[33m󰞅   \u001b[31m󰣐"
+      "format": "\u001b[90m╭──────────────────────────────󰄛──────────────────────────────╮\u001b[0m"
     },
 
-    // ── SECCIÓN 1: SOFTWARE & SISTEMA ─────────────────────────────────────
+    {
+      "type": "title",
+      "format": "                         \u001b[1m{user-name}@{host-name}\u001b[0m"
+    },
+
     {
       "type": "custom",
-      "format": "\u001b[35m╭─ Software ──────────────────────────────────────────────────╮\u001b[0m"
+      "format": "\u001b[90m╰──────────────────────────────󰄛──────────────────────────────╯\u001b[0m"
     },
+
+    {
+      "type": "custom",
+      "format": "        \u001b[1m󰣐   󰞅   󰤄   󰅶   󰂰   󰌪   󰅵   󰂰   󰅶   󰤄   󰞅   󰣐\u001b[0m"
+    },
+
+    // ── SOFTWARE & SISTEMA ───────────────────────────────────────────
+
+    {
+      "type": "custom",
+      "format": "\u001b[90m╭─\u001b[0m \u001b[1mSoftware\u001b[0m \u001b[90m──────────────────────────────────────────────────╮\u001b[0m"
+    },
+
     {
       "type": "os",
       "key": "  󰣐 OS",
-      "keyColor": "magenta"
+      "keyColor": "white"
     },
+
     {
       "type": "kernel",
       "key": "  │ ├ Kernel",
-      "keyColor": "magenta"
+      "keyColor": "white"
     },
+
     {
       "type": "packages",
       "key": "  │ ├󰏖 Pkgs",
-      "keyColor": "magenta",
+      "keyColor": "white",
       "format": "{all}"
     },
+
     {
       "type": "shell",
       "key": "  │ └󰞷 Shell",
-      "keyColor": "magenta"
+      "keyColor": "white"
     },
 
-    // ── SECCIÓN 2: ENTORNO & ESCRITORIO ───────────────────────────────────
+    // ── DESKTOP & ENVIRONMENT ────────────────────────────────────────
+
     {
       "type": "custom",
-      "format": "\u001b[36m├─ Desktop & Environment ──────────────────────────────────────┤\u001b[0m"
+      "format": "\u001b[90m├─\u001b[0m \u001b[1mDesktop & Environment\u001b[0m \u001b[90m──────────────────────────────────────┤\u001b[0m"
     },
+
     {
       "type": "de",
       "key": "  󰀻 DE",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
+
     {
       "type": "wm",
       "key": "  │ ├󰨇 WM",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
+
     {
       "type": "lm",
       "key": "  │ ├󰧨 LM",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
+
     {
       "type": "wmtheme",
       "key": "  │ ├󰉼 Theme",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
+
     {
       "type": "icons",
       "key": "  │ ├󰀻 Icons",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
+
     {
       "type": "terminal",
       "key": "  │ ├󰆍 Terminal",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
+
     {
       "type": "wallpaper",
       "key": "  │ └󰸉 Wallpaper",
-      "keyColor": "cyan"
+      "keyColor": "white"
     },
 
-    // ── SECCIÓN 3: HARDWARE ──────────────────────────────────────────────
+    // ── HARDWARE ─────────────────────────────────────────────────────
+
     {
       "type": "custom",
-      "format": "\u001b[33m├─ Hardware Info ──────────────────────────────────────────────┤\u001b[0m"
+      "format": "\u001b[90m├─\u001b[0m \u001b[1mHardware Info\u001b[0m \u001b[90m──────────────────────────────────────────────┤\u001b[0m"
     },
+
     {
       "type": "host",
       "key": "  󰍹 PC Host",
-      "keyColor": "yellow"
+      "keyColor": "white"
     },
+
     {
       "type": "cpu",
       "key": "  │ ├󰍛 CPU",
-      "keyColor": "yellow",
+      "keyColor": "white",
       "format": "{1}"
     },
+
     {
       "type": "gpu",
       "key": "  │ ├󰍛 GPU",
-      "keyColor": "yellow",
+      "keyColor": "white",
       "format": "{2}"
     },
+
     {
       "type": "disk",
       "key": "  │ ├󰋊 Disk",
-      "keyColor": "yellow",
+      "keyColor": "white",
       "format": "{1} / {2} ({3})"
     },
+
     {
       "type": "memory",
       "key": "  │ ├󰑭 Memory",
-      "keyColor": "yellow"
+      "keyColor": "white"
     },
+
     {
       "type": "swap",
       "key": "  │ ├󰓡 Swap",
-      "keyColor": "yellow"
+      "keyColor": "white"
     },
+
     {
       "type": "uptime",
       "key": "  │ ├󰅐 Uptime",
-      "keyColor": "yellow"
+      "keyColor": "white"
+    },
+
+    // ── FOOTER ──────────────────────────────────────────────────────
+
+    {
+      "type": "custom",
+      "format": "\u001b[90m╰──────────────────────────────󰣐──────────────────────────────╯\u001b[0m"
     },
     // {
-    //   "type": "display",
-    //   "key": "  │ └󰍹 Display",
-    //   "keyColor": "yellow"
-    // },
+    //   "type": "custom",
+    //   "format": "        \u001b[1m󰣐   󰞅   󰤄   󰅶   󰂰   󰌪   󰅵   󰂰   󰅶   󰤄   󰞅   󰣐\u001b[0m"
+    // }
 
-    // ── FOOTER ────────────────────────────────────────────────────────────
-    {
-      "type": "custom",
-      "format": "\u001b[35m╰──────────────────────────────󰣐──────────────────────────────╯\u001b[0m"
-    },
-    "break",
-    {
-      "type": "custom",
-      "format": "        \u001b[31m󰣐   \u001b[33m󰞅   \u001b[32m󰤄   \u001b[36m󰅶   \u001b[35m󰂰   \u001b[34m󰌪   \u001b[37m󰅵   \u001b[35m󰂰   \u001b[36m󰅶   \u001b[32m󰤄   \u001b[33m󰞅   \u001b[31m󰣐"
-    }
   ]
 }

@@ -1,94 +1,112 @@
 /**
- * @name Material You Discord · Matugen Edition
- * @version 1.0.0
- * @description Fork con paleta dinámica generada por Matugen (Material You),
- *              pensado para coincidir con el theme de rofi del mismo setup.
+ * @name Material You Discord · OozeShell Edition
+ * @version 2.0.0
+ * @description Tema dinámico personalizado sincronizado con Matugen y la estética de OozeShell/KDE.
  * @base-theme Material Discord by CapnKitten
  * @source-original https://github.com/CapnKitten/BetterDiscord/blob/master/Themes/Material-Discord/css/source.css
- *
- * Este archivo es una PLANTILLA de Matugen: las llaves dobles se reemplazan
- * al ejecutar `matugen image <wallpaper>` (o `matugen color hex <color>`),
- * generando el CSS final que carga BetterDiscord.
  */
 
 @import url("https://capnkitten.github.io/BetterDiscord/Themes/Material-Discord/css/source.css");
-
-/* Material You addon */
 @import url("https://capnkitten.github.io/BetterDiscord/Themes/Material-Discord/css/addons/material-you/source.css");
 
-/* MATERIAL YOU DARK THEME SETTINGS */
-.theme-dark {
-    --saturation-modifier: 0.31;
-    --lightness-modifier: 0.225;
-    --text-lightness-modifier: 1.0;
-}
-
-/* MATERIAL YOU LIGHT THEME SETTINGS */
-.theme-light {
-    --saturation-modifier: 0.74;
-    --lightness-modifier: 2.125;
-    --text-lightness-modifier: 1.0;
-}
+/* ============================================================
+   PALETA DINÁMICA DE MATUGEN (Coincide con tu Widget)
+   ============================================================ */
 
 :root {
-    /* APP FONT SETTINGS */
-    --app-font: "Google Sans Flex";
-    --app-font-width: 100;
-    --app-font-roundness: 100;
+    /* Tipografía mono/moderna tipo consola/shell */
+    --app-font: "JetBrains Mono", "Geist Mono", "Google Sans Flex", sans-serif;
+    
+    /* Bordes redondeados más pronunciados tipo Pill/Parchment */
+    --message-radius: 16px;
+    --card-radius: 16px;
+    --card-radius-big: 24px;
+    --popout-radius: 18px;
+    --popout-radius-big: 24px;
+    --button-radius: 12px;
+    
+    /* Colores directos mapeados desde Matugen */
+    --accent-hue: 19;
+    --accent-saturation: 100%;
+    --accent-lightness: 79%;
+    
+    /* Mapeo de superficies para replicar los contenedores del widget */
+    --bg-base: #1d100a;                      /* Fondo general más oscuro */
+    --bg-surface: #261812;      /* Fondo de paneles laterales */
+    --bg-card: #2b1c16;             /* Tarjetas/Contenedores (ej. tarjetas CPU) */
+    --bg-card-hover: #36261f;    /* Estado hover de tarjetas */
+    --accent-color: #7b2f00;        /* Azul pastel del botón activo (ej. Balanced) */
+    --accent-text: #ffdbcc;      /* Texto sobre el botón activo */
+    
+    --text-normal: #f8ddd2;                /* Texto principal */
+    --text-muted: #dbc1b6;         /* Texto secundario/etiquetas */
+}
 
-	/*****----- Acento (equivale a @primary en el rofi) -----*****/
-	--accent-hue: 19;
-	--accent-saturation: 100%;
-	--accent-lightness: 79%;
-	--accent-text-color: #571f00; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
-	--accent-button-action: #571f00;
+/* ============================================================
+   SOBREESCRITURA DE ESTILOS PARA COINCIDIR CON LA CAPA DE UI
+   ============================================================ */
 
-	/*****----- Alerta / error (equivale a @ml-error en el rofi) -----*****/
-	--alert-hue: 6;
-    --alert-saturation: 100%;
-    --alert-lightness: 83%;
-	--alert-text-color: #690005; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+/* Fondo general de la aplicación */
+.theme-dark, .theme-light {
+    --background-primary: var(--bg-base) !important;
+    --background-secondary: var(--bg-surface) !important;
+    --background-secondary-alt: var(--bg-surface) !important;
+    --background-tertiary: var(--bg-base) !important;
+    --background-floating: var(--bg-card) !important;
+    
+    /* Estilo de tarjetas y mensajes */
+    --background-message-hover: var(--bg-card) !important;
+    --channeltextarea-background: var(--bg-card) !important;
+    
+    /* Colores de texto */
+    --text-normal: #f8ddd2 !important;
+    --text-muted: #dbc1b6 !important;
+}
 
-	/*****----- Advertencia (mapeado a tertiary, el 3er tono M3 ·
-	            equivale al rol que @secondary cumple en el rofi) -----*****/
-	--warning-hue: 34;
-    --warning-saturation: 80%;
-    --warning-lightness: 71%;
-	--warning-text-color: #452b00; /* DOES NOTHING WITH MATERIAL YOU ENABLED */
+/* Contenedores redondos e independientes estilo Widget */
+.container__590e2, 
+.members__9bfb1, 
+.sidebar_ded4b5 {
+    border-radius: 20px !important;
+    margin: 4px !important;
+}
 
-	/* MESSAGE SETTINGS */
-	--message-radius: 18px;
-	--message-padding-top: 8px;
-	--message-padding-side: 12px;
+/* Botones seleccionados o activos (Como el botón "Balanced" de tu imagen) */
+.option-1234, 
+.selected__0b431,
+.categoryItemDefaultCategorySelected__75837 {
+    background-color: #7b2f00 !important;
+    color: #ffdbcc !important;
+    border-radius: 12px !important;
+}
 
-	/* MESSAGE MEDIA SETTINGS */
-	--media-radius: 10px;
+/* Barras de desplazamiento estilizadas y delgadas */
+::-webkit-scrollbar-thumb {
+    background-color: #55433b !important;
+    border-radius: 8px !important;
+}
 
-	/* CARD SETTINGS */
-	--card-radius: 8px;
-	--card-radius-big: 18px;
+/* ============================================================
+   CANALES LEÍDOS / SIN MENSAJES NUEVOS (MÁS OPACOS)
+   ============================================================ */
 
-	/* BUTTON SETTINGS */
-	--button-height: 40px;
-	--button-padding: 16px;
-	--button-action-color: #571f00;
+/* Texto e icono de canales normales (sin novedades) */
+.channel_c91f08:not(.modeUnread_c91f08) .name__2ea32,
+.channel_c91f08:not(.modeUnread_c91f08) .icon__2ea32 {
+    opacity: 0.35 !important;
+    transition: opacity 0.15s ease-in-out;
+}
 
-	/* INPUT SETTINGS */
-	--input-height: 40px;
-	--input-padding: 12px;
+/* Al pasar el cursor por encima (hover), recuperan un poco de visibilidad */
+.channel_c91f08:not(.modeUnread_c91f08):hover .name__2ea32,
+.channel_c91f08:not(.modeUnread_c91f08):hover .icon__2ea32 {
+    opacity: 0.85 !important;
+}
 
-	/* POPOUT AND MODAL SETTINGS */
-	--popout-radius: 8px;
-	--popout-radius-big: 18px;
-
-	/* TOOLTIP SETTINGS */
-	--tooltip-color: #36261f;
-	--tooltip-text-color: #f8ddd2;
-	--tooltip-font-size: 12px;
-	--tooltip-padding: 8px;
-	--tooltip-radius: 8px;
-
-	/* SCROLLBAR SETTINGS */
-	--scrollbar-width: 10px;
-	--scrollbar-thin-width: 6px;
+/* Canales CON mensajes no leídos (se mantienen resaltados y claros) */
+.modeUnread_c91f08 .name__2ea32,
+.modeUnread_c91f08 .icon__2ea32 {
+    opacity: 1 !important;
+    color: #ffb694 !important;
+    font-weight: 600 !important;
 }

@@ -8,14 +8,20 @@
 ---- ENVIRONMENT VARIABLES ----
 -------------------------------
 
+hl.env("XCURSOR_THEME", "Bibata-Modern-Classic")
+hl.env("HYPRCURSOR_THEME", "Bibata-Modern-Classic")
 hl.env("XCURSOR_SIZE", "24")
 hl.env("HYPRCURSOR_SIZE", "24")
 
 -----------------------------------------------------------------
 ---- Nvidia Variables -------------------------------------------
 -----------------------------------------------------------------
-hl.env("LIBVA_DRIVER_NAME", "nvidia")
-hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
+-- This ones are listed on my nix-home dotfiles 
+-- in the section nvidia.nix 
+-- https://github.com/shizukutakahashi55-del/nix-home/blob/main/modules/nvidia.nix
+
+-- hl.env("LIBVA_DRIVER_NAME", "nvidia")
+-- hl.env("__GLX_VENDOR_LIBRARY_NAME", "nvidia")
 
 -----------------------------------------------------------------
 ---- Qt: Use Wayland if available, fall back to X11 if not. -----

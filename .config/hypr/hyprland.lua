@@ -39,7 +39,7 @@ require("modules.rules.windowrules")
 -- ============================================================================
 -- HARDWARE
 -- ============================================================================
-require("modules.hardware.monitors")
+require("modules.hardware.settings.monitors")
 
 -- ============================================================================
 -- STARTUP/PROGRAMS

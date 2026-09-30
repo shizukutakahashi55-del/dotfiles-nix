@@ -17,23 +17,23 @@
 
     "cssPriority": "user",
 
-    "control-center-margin-top": 8,
+    "control-center-margin-top": 1,
     "control-center-margin-bottom": 8,
     "control-center-margin-right": 8,
     "control-center-margin-left": 8,
 
-    "control-center-width": 500,
-    "control-center-height": -1,
+    "control-center-width": 460,
+    "control-center-height": 590,
 
-    "notification-window-width": 500,
+    "notification-window-width": 400,
 
     "fit-to-screen": false,
 
     "notification-2fa-action": true,
     "notification-inline-replies": true,
 
-    "notification-body-image-height": 100,
-    "notification-body-image-width": 200,
+    "notification-body-image-height": 80,
+    "notification-body-image-width": 160,
 
     "timeout": 10,
     "timeout-low": 5,
@@ -82,7 +82,7 @@
         },
 
         "notifications": {
-            "vexpand": false
+            "vexpand": true
         }
     }
 }

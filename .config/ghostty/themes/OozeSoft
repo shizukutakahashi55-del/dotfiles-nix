@@ -1,0 +1,36 @@
+# ============================================================
+# Ghostty — OozeSoft / Matugen
+# ============================================================
+
+background = #151216
+foreground = #e8e0e6
+
+cursor-color = #deb8f6
+cursor-text = #402356
+
+selection-background = #deb8f6
+selection-foreground = #402356
+
+
+# ── ANSI normal ──────────────────────────────────────────────
+
+palette = 0=#100d11
+palette = 1=#ffb4ab
+palette = 2=#deb8f6
+palette = 3=#ffb0ca
+palette = 4=#503266
+palette = 5=#662b42
+palette = 6=#d3c0db
+palette = 7=#e8e0e6
+
+
+# ── ANSI bright ─────────────────────────────────────────────
+
+palette = 8=#978e98
+palette = 9=#ffb4ab
+palette = 10=#deb8f6
+palette = 11=#ffb0ca
+palette = 12=#deb8f6
+palette = 13=#ffb0ca
+palette = 14=#d3c0db
+palette = 15=#e8e0e6

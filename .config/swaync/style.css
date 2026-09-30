@@ -6,25 +6,20 @@
 
 /* ── Material You ───────────────────────────────────────────── */
 
-@define-color base         #1d100a;
-@define-color mantle       #180b06;
-@define-color surface      #2b1c16;
-@define-color surface_alt  #36261f;
-
-@define-color text         #f8ddd2;
-@define-color subtext      #dbc1b6;
-
-@define-color primary      #ffb694;
-@define-color p_container  #7b2f00;
-
-@define-color on_primary   #571f00;
-@define-color on_p_cont    #ffdbcc;
-
-@define-color tertiary     #f1be7a;
-@define-color t_container  #624005;
-@define-color on_t_cont    #ffddb4;
-
-@define-color outline      #55433b;
+@define-color base         #1c1015;
+@define-color mantle       #160b10;
+@define-color surface      #291c21;
+@define-color surface_alt  #34262c;
+@define-color text         #f4dce4;
+@define-color subtext      #d7c1c8;
+@define-color primary      #ffafd2;
+@define-color p_container  #8b005a;
+@define-color on_primary   #63003e;
+@define-color on_p_cont    #ffd8e6;
+@define-color tertiary     #ffb3b3;
+@define-color t_container  #6f3637;
+@define-color on_t_cont    #ffdad9;
+@define-color outline      #534248;
 
 
 /* ============================================================
@@ -32,19 +27,15 @@
  * ============================================================ */
 
 :root {
-
   --border-radius: 22px;
 
-  --cc-bg: transparent;
+  /* Sin transparencia */
+  --cc-bg: @base;
 
-  /*
-   * Base surface used by most widgets.
-   * Same visual logic as Waybar.
-   */
+  /* Superficie completamente opaca */
+  --widget-background: @surface;
 
-  --widget-background: alpha(@surface, 0.94);
-
-  --noti-bg-alpha: 0.60;
+  --noti-bg-alpha: 1.0;
 
   --padding: calc(var(--border-radius) / 2);
 }
@@ -55,14 +46,10 @@
  * ============================================================ */
 
 .control-center {
-
-  background: transparent;
-
-  border-radius: 0;
-
-  margin-top: 1px;
-  margin-bottom: 20px;
-
+  background: @base;
+  border-radius: 22px;
+  margin: 8px;
+  padding: 8px;
   color: @text;
 }
 
@@ -72,27 +59,24 @@
  * ============================================================ */
 
 .control-center-list {
+  background: @base;
 
-  min-height: 50px;
+  /* Ocupa el espacio disponible */
+  min-height: 0;
 
-  /*
-   * Do not force the notification list to expand vertically.
-   * This keeps the notification area from becoming an
-   * unnecessarily large internal scroll container.
-   */
+  /* Permite que la lista crezca */
+  padding: 0;
 
-  background: transparent;
+  /* Scroll interno */
+  overflow-y: auto;
 }
-
 
 /* ============================================================
  * Empty Notification List
  * ============================================================ */
 
 .control-center-list-placeholder {
-
   padding: var(--border-radius);
-
   color: @subtext;
 }
 
@@ -102,20 +86,14 @@
  * ============================================================ */
 
 .widget-title {
-
   color: @text;
 }
 
 .widget-title > button {
-
   background: @p_container;
-
   color: @on_p_cont;
-
-  border: 1px solid alpha(@primary, 0.45);
-
+  border: 1px solid @primary;
   border-radius: var(--border-radius);
-
   padding: 8px 14px;
 
   transition:
@@ -124,29 +102,27 @@
 }
 
 .widget-title > button:hover {
-
-  background: alpha(@p_container, 0.78);
-
-  border-color: alpha(@primary, 0.65);
+  background: @primary;
+  color: @on_primary;
+  border-color: @primary;
 }
 
 
 /* ============================================================
- * Widgets
+ * Widgets — Espaciado uniforme
  * ============================================================ */
 
-.widgets > .widget,
-.widget-mpris > carouselindicatordots,
-.widget-mpris > box > button {
+.widgets {
+  padding: 0;
+  margin: 0;
+}
 
-  background: var(--widget-background);
-
-  border: 1px solid alpha(@outline, 0.32);
-
+.widgets > .widget {
+  background: @surface;
+  border: 1px solid @outline;
   border-radius: var(--border-radius);
-
   padding: var(--padding);
-
+  margin: 4px 0;
   color: @text;
 
   transition:
@@ -160,11 +136,9 @@
  * ============================================================ */
 
 .notification-group {
-
   border-radius: var(--border-radius);
-
-  padding: 8px;
-
+  padding: 0;
+  margin: 4px 0;
 }
 
 
@@ -173,97 +147,68 @@
  * ============================================================ */
 
 .widget.widget-mpris {
-
-  background: var(--widget-background);
-
-  border: 1px solid alpha(@outline, 0.32);
-
+  background: @surface;
+  border: 1px solid @outline;
   border-radius: var(--border-radius);
-
   padding: var(--padding);
-
-  margin-top: 0;
-
+  margin: 4px 0;
   min-height: 140px;
-
   color: @text;
 }
 
 .widget-mpris > carouselindicatordots {
-
   --dots-padding: 4px;
 
   padding: var(--dots-padding);
-
   padding-left: var(--dots-padding);
-
   padding-right: calc(6px + var(--dots-padding));
 
   margin: 0;
-
   margin-top: var(--padding);
 
-  background: transparent;
-
+  background: @surface;
   border: none;
 }
 
 .widget-mpris > box > button {
-
-  background: transparent;
-
+  background: @surface;
   color: @text;
-
   border: none;
-
   box-shadow: none;
-
   outline: none;
 }
 
 .widget-mpris > box > button:hover {
-
-  background: alpha(@tertiary, 0.18);
-
+  background: @tertiary;
   color: @text;
-
   border: none;
-
   box-shadow: none;
-
   outline: none;
 }
 
 .widget-mpris-player {
-
   box-shadow: none;
-
   border: none;
-
   margin: 0;
-
   min-height: 140px;
 }
 
 .widget-mpris-player:only-child {
-
   margin: 0;
 }
 
 
 /* ============================================================
- * Notifications
+ * Notificaciones
  * ============================================================ */
 
 .notification {
-
-  background: alpha(@surface, 0.96);
-
-  border: 1px solid alpha(@outline, 0.32);
-
+  background: @surface;
+  border: 1px solid @outline;
   border-radius: var(--border-radius);
-
   color: @text;
+
+  margin: 4px 0;
 
   transition:
     background 0.2s ease,
@@ -276,9 +221,7 @@
  * ============================================================ */
 
 .notification .summary {
-
   color: @primary;
-
   font-weight: 700;
 }
 
@@ -288,7 +231,6 @@
  * ============================================================ */
 
 .notification .body {
-
   color: @text;
 }
 
@@ -298,7 +240,6 @@
  * ============================================================ */
 
 .notification image {
-
   color: @primary;
 }
 
@@ -308,10 +249,8 @@
  * ============================================================ */
 
 .notification:hover {
-
-  background: alpha(@surface_alt, 0.82);
-
-  border-color: alpha(@primary, 0.50);
+  background: @surface_alt;
+  border-color: @primary;
 }
 
 
@@ -320,18 +259,14 @@
  * ============================================================ */
 
 .notification.low {
-
-  background: alpha(@surface, 0.94);
-
-  border: 1px solid alpha(@primary, 0.42);
-
+  background: @surface;
+  border: 1px solid @primary;
   border-radius: var(--border-radius);
-
   color: @text;
 
   box-shadow:
-    0 8px 30px alpha(@base, 0),
-    0 0 20px alpha(@primary, 0);
+    0 8px 30px @base,
+    0 0 20px @primary;
 }
 
 
@@ -340,11 +275,8 @@
  * ============================================================ */
 
 .notification.low .summary {
-
   color: @primary;
-
   font-size: 13px;
-
   font-weight: 700;
 }
 
@@ -354,10 +286,7 @@
  * ============================================================ */
 
 .notification.low .body {
-
   color: @text;
-
-  font-size: 20px;
-
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 500;
 }

@@ -9,8 +9,8 @@
     "height": 30,
     "margin-top": 1,
     "margin-bottom": 1,
-    "margin-left": 8,
-    "margin-right": 8,
+    "margin-left": 5,
+    "margin-right": 5,
 
     "modules-left": [
         "custom/power",
@@ -31,7 +31,7 @@
         "memory",
         "custom/gpu",
         "pulseaudio",
-        "bluetooth",
+         "bluetooth",
         "network",
         "privacy",
         "wlr/taskbar",
@@ -132,27 +132,34 @@
         }
     },
 
-    // ========================================================================
-    // MODULES-CENTER
-    // ========================================================================
+    // // ========================================================================
+    // // MODULES-CENTER
+    // // ========================================================================
 
     "custom/notifications": {
-        "format": "󰂚 {}",
+        "tooltip": true,
+        "format": "<span size='16pt'>{icon}</span>",
+        "format-icons": {
+        "notification": "󱅫",
+        "none": "󰂜",
+        "dnd-notification": "󰂠",
+        "dnd-none": "󰪓",
+        "inhibited-notification": "󰂛",
+        "inhibited-none": "󰪑",
+        "dnd-inhibited-notification": "󰂛",
+        "dnd-inhibited-none": "󰪑"
+        },
         "return-type": "json",
-        "exec": "swaync-client -swb",
         "exec-if": "which swaync-client",
-
+        "exec": "swaync-client -swb",
         "on-click": "swaync-client -t -sw",
         "on-click-right": "swaync-client -d -sw",
-
-        "restart-interval": 1,
-        "escape": true,
-        "tooltip": false
+        "escape": true
     },
 
-    // ========================================================================
-    // HYPRLAND WORKSPACES
-    // ========================================================================
+    // // ========================================================================
+    // // HYPRLAND WORKSPACES
+    // // ========================================================================
 
     "hyprland/workspaces": {
         "disable-scroll": true,
@@ -179,9 +186,9 @@
         }
     },
 
-    // ========================================================================
-    // CLOCK
-    // ========================================================================
+    // // ========================================================================
+    // // CLOCK
+    // // ========================================================================
 
     "clock": {
         "format": "󱑂 {:%H:%M}",
@@ -203,13 +210,13 @@
     // MODULES-RIGHT
     // ========================================================================
 
-    // "user": {
-    //     "format": "{user}",
-    //     "interval": 60,
-    //     "height": 30,
-    //     "width": 30,
-    //     "icon": true,
-    // },
+    "user": {
+        "format": "{user}",
+        "interval": 60,
+        "height": 30,
+        "width": 30,
+        "icon": true,
+    },
 
     // ========================================================================
     // CPU

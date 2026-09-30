@@ -1,193 +1,120 @@
-// OozeShell — Selector de idioma (mismo patrón que MonitorSelect)
-// Chips clickeables: English / Español / Bahasa Indonesia.
-// Al elegir uno emite languageChosen(code) y se cierra.
-//
-// Se dispara vía IPC:
+// LanguagePicker — selector de idioma, como submenú de Ajustes (pestaña General).
+// Atajo de teclado (IPC):
 //   quickshell ipc -p .../shell.qml call -- lang togglePicker
-// (bindealo a una tecla en tu config de Hyprland, ej. SUPER+G)
-
 import Quickshell
-import Quickshell.Io
-import Quickshell.Wayland
 import QtQuick
+import QtQuick.Layouts
+import "../COMMON"
 import "../LANG"
 
 Item {
-  id: pickerRoot
+  id: root
 
   property bool open: false
   property string current: "en"
+  property string targetScreen: ""
+
+  property int cardWidth: 420
+  property int edgeMargin: 10
+  readonly property int pad: 18
+
   signal closeRequested()
+  signal backRequested()
   signal languageChosen(string code)
 
-  // ─── Colores desde matugen (mismo patrón que el resto) ─────────
-  property var colors: ({
-    bg: "#0d0e11", border: "#4a90d9", accent: "#4a90d9",
-    text: "#e1e2e8", subtext: "#8e9ab0"
-  })
+  FusedWindow {
+    id: fw
+    active: root.open || panel.shown
+    targetScreen: root.targetScreen
+    namespace: "oozeshell-lang"
+    onCloseRequested: root.closeRequested()
 
-  function withAlpha(hex, alpha) {
-    var h = String(hex).replace('#', '')
-    var r = parseInt(h.substring(0, 2), 16) / 255
-    var g = parseInt(h.substring(2, 4), 16) / 255
-    var b = parseInt(h.substring(4, 6), 16) / 255
-    return Qt.rgba(r, g, b, alpha)
-  }
+    FusedPanel {
+      id: panel
 
-  Process {
-    id: loadColors
-    command: ["cat", "/tmp/matugen-colors.json"]
-    running: false
-    property string buffer: ""
-    stdout: SplitParser { onRead: line => loadColors.buffer += line }
-    onRunningChanged: {
-      if (!running && buffer !== "") {
-        try {
-          const palette = JSON.parse(buffer)
-          const c = palette.colors
-          pickerRoot.colors = {
-            bg:      c.surface?.dark?.color    ?? c.background?.dark?.color ?? "#0d0e11",
-            border:  c.primary?.dark?.color    ?? "#4a90d9",
-            accent:  c.primary?.dark?.color    ?? "#4a90d9",
-            text:    c.on_surface?.dark?.color ?? c.on_background?.dark?.color ?? "#e1e2e8",
-            subtext: c.secondary?.dark?.color  ?? "#8e9ab0"
-          }
-        } catch (e) {
-          console.log("language picker color parse error:", e)
+      open: root.open
+      panelWidth: root.cardWidth
+      contentHeight: col.implicitHeight + root.pad * 2
+
+      // Cuelga de la barra, del lado de su botón (derecha si es horizontal,
+      // abajo si es vertical). FusedPanel se coloca solo según Theme.barPosition.
+      align: "end"
+      alignMargin: root.edgeMargin + Theme.barEdge + Theme.frameSideArm
+
+      ColumnLayout {
+        id: col
+        x: root.pad
+        y: root.pad
+        width: parent.width - root.pad * 2
+        spacing: 12
+
+        PanelHeader {
+          Layout.fillWidth: true
+          icon: "󰗊"
+          title: Translations.t("chooseLanguage")
+          onBackRequested: root.backRequested()
         }
-        buffer = ""
-      }
-    }
-  }
 
-  onOpenChanged: {
-    if (open) {
-      loadColors.running = false
-      loadColors.running = true
-    }
-  }
+        ColumnLayout {
+          Layout.fillWidth: true
+          spacing: 4
 
-  Variants {
-    model: Quickshell.screens
+          Repeater {
+            // Nombres de idioma NUNCA se traducen: siempre se muestran en
+            // su propio idioma, para que se reconozcan aunque no entiendas
+            // el activo.
+            model: Translations.availableLanguages
 
-    delegate: Component {
-      PanelWindow {
-        id: pickerPanel
-        property var modelData
-        screen: modelData
-        WlrLayershell.layer: WlrLayer.Overlay
-        WlrLayershell.namespace: "language-picker"
-        WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
-        anchors { top: true; left: true; right: true; bottom: true }
-        color: "transparent"
-        exclusiveZone: -1
-        visible: pickerRoot.open
+            delegate: Rectangle {
+              id: row
+              readonly property bool active: modelData.code === root.current
 
-        Rectangle {
-          anchors.fill: parent
-          color: Qt.rgba(0, 0, 0, 0.35)
-          opacity: pickerRoot.open ? 1.0 : 0.0
-          Behavior on opacity { NumberAnimation { duration: 150 } }
+              Layout.fillWidth: true
+              Layout.preferredHeight: 44
+              radius: 10
+              color: active
+                ? Qt.rgba(Theme.primary.r, Theme.primary.g, Theme.primary.b, 0.16)
+                : (rowArea.containsMouse ? Theme.surface : "transparent")
+              Behavior on color { ColorAnimation { duration: 120 } }
 
-          MouseArea {
-            anchors.fill: parent
-            onClicked: pickerRoot.closeRequested()
-          }
+              RowLayout {
+                anchors { fill: parent; leftMargin: 14; rightMargin: 14 }
+                spacing: 10
 
-          focus: pickerRoot.open
-          Keys.onPressed: (event) => {
-            if (event.key === Qt.Key_Escape) {
-              pickerRoot.closeRequested()
-              event.accepted = true
-            }
-          }
+                Text {
+                  Layout.fillWidth: true
+                  text: modelData.name
+                  color: row.active ? Theme.primary : Theme.text
+                  font.bold: row.active
+                  font.pixelSize: Theme.fs(13)
+                  font.family: Theme.fontFamily
+                  elide: Text.ElideRight
+                }
 
-          // ─── Tarjeta central ────────────────────────────────
-          Rectangle {
-            id: card
-            anchors.centerIn: parent
-            width: Math.max(280, chipCol.implicitWidth + 40)
-            height: col.implicitHeight + 40
-            radius: 22
-            color: pickerRoot.withAlpha(pickerRoot.colors.bg, 0.94)
-            border.color: pickerRoot.withAlpha(pickerRoot.colors.border, 0.55)
-            border.width: 1
+                Text {
+                  text: modelData.code.toUpperCase()
+                  color: Theme.subtext
+                  font.pixelSize: Theme.fs(10)
+                  font.family: Theme.fontFamily
+                }
 
-            Behavior on color        { ColorAnimation { duration: 300 } }
-            Behavior on border.color { ColorAnimation { duration: 300 } }
-
-            MouseArea { anchors.fill: parent; onClicked: {} }
-
-            Column {
-              id: col
-              anchors { fill: parent; margins: 20 }
-              spacing: 12
-
-              Text {
-                text: "󰗊  " + Translations.t("chooseLanguage")
-                color: pickerRoot.colors.text
-                font.pixelSize: 13
-                font.bold: true
-                font.family: "JetBrainsMono Nerd Font"
+                Text {
+                  visible: row.active
+                  text: "󰄬"
+                  color: Theme.primary
+                  font.pixelSize: Theme.fs(15)
+                  font.family: Theme.monoFamily
+                }
               }
 
-              Column {
-                id: chipCol
-                width: col.width
-                spacing: 8
-
-                Repeater {
-                  // Nombres de idioma NUNCA se traducen: siempre se
-                  // muestran en su propio idioma, para que se
-                  // reconozcan aunque no entiendas el activo.
-                  model: Translations.availableLanguages
-
-                  delegate: Rectangle {
-                    id: chip
-                    readonly property bool active: modelData.code === pickerRoot.current
-                    width: chipCol.width
-                    height: 40
-                    radius: 12
-                    color: active ? pickerRoot.colors.accent : Qt.rgba(1, 1, 1, 0.08)
-                    border.color: active ? "#ffffff" : Qt.rgba(1, 1, 1, 0.18)
-                    border.width: 1
-                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                    Text {
-                      anchors {
-                        left: parent.left
-                        verticalCenter: parent.verticalCenter
-                        leftMargin: 16
-                      }
-                      text: modelData.name
-                      color: chip.active ? pickerRoot.colors.bg : pickerRoot.colors.text
-                      font.pixelSize: 14
-                      font.bold: chip.active
-                      font.family: "JetBrainsMono Nerd Font"
-                    }
-
-                    Text {
-                      visible: chip.active
-                      anchors {
-                        right: parent.right
-                        verticalCenter: parent.verticalCenter
-                        rightMargin: 14
-                      }
-                      text: "󰄬"
-                      color: pickerRoot.colors.bg
-                      font.pixelSize: 15
-                      font.family: "JetBrainsMono Nerd Font"
-                    }
-
-                    MouseArea {
-                      anchors.fill: parent
-                      cursorShape: Qt.PointingHandCursor
-                      onClicked: {
-                        pickerRoot.languageChosen(modelData.code)
-                        pickerRoot.closeRequested()
-                      }
-                    }
-                  }
+              MouseArea {
+                id: rowArea
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                  root.languageChosen(modelData.code)
+                  root.closeRequested()
                 }
               }
             }
