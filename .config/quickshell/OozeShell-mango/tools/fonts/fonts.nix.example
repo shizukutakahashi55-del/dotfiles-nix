@@ -1,0 +1,17 @@
+# NixOS (configuration.nix) — o el mismo bloque en home-manager con `fonts.fontconfig.enable = true;`
+{ pkgs, ... }:
+{
+  fonts.packages = [
+    # Íconos (todos los glifos del shell)
+    pkgs.nerd-fonts.jetbrains-mono
+    pkgs.nerd-fonts.symbols-only
+
+    # Texto pixel: solo las familias que necesitas (google-fonts completo pesa mucho)
+    (pkgs.google-fonts.override {
+      fonts = [ "PixelifySans" "Jersey10" "Silkscreen" "VT323" "DotGothic16" ];
+    })
+  ];
+
+  # Glifos que la fuente pixel no tenga -> Nerd Font (evita íconos "tofu")
+  fonts.fontconfig.defaultFonts.monospace = [ "JetBrainsMono Nerd Font" ];
+}

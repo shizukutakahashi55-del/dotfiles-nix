@@ -1,0 +1,3 @@
+singleton AudioBackend 1.0 AudioBackend.qml
+AudioMenu 1.0 AudioMenu.qml
+AudioOSD 1.0 AudioOSD.qml

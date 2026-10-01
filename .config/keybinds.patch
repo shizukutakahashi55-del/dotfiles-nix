@@ -1,0 +1,21 @@
+--- a/mango/conf/keybinds.conf	2026-10-01 18:37:06.211425139 +0000
++++ b/mango/conf/keybinds.conf	2026-10-01 18:37:06.222554506 +0000
+@@ -86,6 +86,18 @@
+ circle_layout=scroller,grid,tile,vertical_scroller,dwindle
+ 
+ bind=SUPER,k,switch_layout
++
++# ---------------- LAYOUT DIRECTO ----------------
++bind=SUPER+CTRL,1,setlayout,scroller
++bind=SUPER+CTRL,2,setlayout,grid
++bind=SUPER+CTRL,3,setlayout,tile
++bind=SUPER+CTRL,4,setlayout,vertical_scroller
++bind=SUPER+CTRL,5,setlayout,dwindle
++
++# ---------------- TAG ANTERIOR / SIGUIENTE ----------------
++bind=SUPER+CTRL,Left,viewtoleft_have_client
++bind=SUPER+CTRL,Right,viewtoright_have_client
++
+ # ---------------- OOZESHELL ----------------
+ # Wallpaper selector
+ bind=SUPER,w,spawn_shell,quickshell ipc -p ~/.config/quickshell/OozeShell-mango/shell.qml call toggleWalls handle
