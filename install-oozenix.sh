@@ -19,6 +19,8 @@ IS_ARCH=false
 IS_UPDATE=false         # true si ~/.config/hypr ya apunta a este repo (re-ejecucion / actualizacion)
 HAS_NVIDIA=false        # solo Arch: activa las variables de entorno de Nvidia en env.lua
 SUWAYOMI_OK=false       # solo Arch: Suwayomi instalado + servicio/comando `tachidesk` listos
+NATIVE_OK=false         # true si se compilo el modulo nativo OozeShell.Native (opcional)
+NATIVE_PREFIX="$HOME/.local/share/oozeshell/qml"
 AUR_HELPER=""
 FAILED=()              # paquetes que no se pudieron instalar (resumen final)
 
@@ -86,6 +88,69 @@ extract_oozeshell() {
   fi
 }
 
+# Compila el modulo C++ opcional (OozeShell.Native) con tools/build-native.sh.
+# Si no se compila, OozeShell funciona igual (Theme cae a QML puro), asi que un
+# fallo aqui NUNCA aborta el instalador.  $1 = "nix" -> usa native/shell.nix.
+build_native() {
+  local runner="${1:-}"
+  local script="$QS_DIR/OozeShell/tools/build-native.sh"
+  local shellnix="$QS_DIR/OozeShell/native/shell.nix"
+  local ok=false
+
+  if [ ! -f "$script" ]; then
+    echo "  [i] This OozeShell build has no native module; skipping."
+    return 0
+  fi
+  if [ -d "$NATIVE_PREFIX/OozeShell/Native" ]; then
+    echo "  [i] Native core already built: rebuilding it against your current Qt."
+  fi
+
+  if [ "$runner" = "nix" ]; then
+    nix-shell "$shellnix" --run "bash '$script' '$NATIVE_PREFIX'" && ok=true
+  else
+    bash "$script" "$NATIVE_PREFIX" && ok=true
+  fi
+
+  if $ok; then
+    NATIVE_OK=true
+    echo "  [✓] Native core installed in $NATIVE_PREFIX/OozeShell/Native"
+    # La carpeta build/ queda dentro del repo: que git no la vea
+    if git -C "$DOTFILES" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+      local excl
+      excl="$(git -C "$DOTFILES" rev-parse --git-path info/exclude)"
+      mkdir -p "$(dirname "$excl")"
+      grep -qxF ".config/quickshell/OozeShell/native/AnimationController/build/" "$excl" 2>/dev/null \
+        || echo ".config/quickshell/OozeShell/native/AnimationController/build/" >> "$excl"
+    fi
+  else
+    echo "  [!] The native core did not build. OozeShell still works in pure QML."
+    if [ "$runner" = "nix" ]; then
+      echo "      On NixOS the Qt in native/shell.nix must be the SAME one quickshell uses"
+      echo "      (see the header of native/shell.nix). Retry later with:"
+      echo "        nix-shell $shellnix --run 'bash $script'"
+    else
+      echo "      Retry later with:  bash $script"
+    fi
+  fi
+  return 0
+}
+
+# Elige como compilar el modulo en distros que no son Arch y pregunta antes.
+maybe_build_native_other() {
+  local runner=""
+  if [ ! -f "$QS_DIR/OozeShell/tools/build-native.sh" ]; then return 0; fi
+  if command -v nix-shell >/dev/null 2>&1; then
+    runner="nix"
+  elif ! command -v cmake >/dev/null 2>&1; then
+    echo "[i] Optional native core skipped (no nix-shell and no cmake)."
+    return 0
+  fi
+  echo
+  if ask_yes_no "Build the optional native animation core (C++, ~1 min)? OozeShell works without it"; then
+    build_native "$runner"
+  fi
+}
+
 echo "=========================================="
 echo "      Installing Oozenix / OozeShell"
 echo "=========================================="
@@ -121,7 +186,9 @@ if ask_yes_no "Are you using Arch Linux?"; then
 fi
 
 
-if $IS_ARCH; then ZIP_FILE="$DOTFILES/OozeShell-arch.zip"; else ZIP_FILE="$DOTFILES/OozeShell.zip"; fi
+# Un solo build para todo: OozeShell detecta solo la distro (Arch/NixOS) y el
+# compositor (Hyprland/Mango/Niri) al arrancar; no hay zip aparte para Arch.
+ZIP_FILE="$DOTFILES/OozeShell.zip"
 if [ ! -f "$ZIP_FILE" ]; then
   echo "[✗] Could not find $ZIP_FILE"
   echo "    Put it there and re-run the installer."
@@ -130,7 +197,7 @@ fi
 echo "[✓] Found $(basename "$ZIP_FILE")"
 
 # ============================================================================
-# 2a. ARCH BRANCH — installs real dependencies and unzips OozeShell-arch.zip
+# 2a. ARCH BRANCH — installs real dependencies and unzips OozeShell.zip
 # ============================================================================
 if $IS_ARCH; then
   echo
@@ -465,7 +532,7 @@ MDEOF
   # ---- Base ------------------------------------------------------------------
 
   BASE=(
-    base-devel git curl unzip zip zsh jq
+    base-devel git curl unzip zip zsh jq python
     hyprland hyprpaper hypridle hyprlock
     hyprpolkitagent hyprshot hyprsunset hyprshutdown hyprsysteminfo
     qt6-base qt6-declarative qt6-svg qt6-shadertools qt6ct
@@ -473,7 +540,7 @@ MDEOF
     brightnessctl power-profiles-daemon upower
     networkmanager network-manager-applet
     playerctl bluez bluez-utils blueman
-    mpv mpvpaper ffmpeg socat wl-clipboard xdg-utils
+    mpv mpvpaper ffmpeg socat xdg-utils
     libnotify imagemagick wtype wev grim slurp cava pavucontrol fastfetch
     matugen
     ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-mono
@@ -486,6 +553,31 @@ MDEOF
   echo "Installing quickshell and awww (release or -git, whichever is available)..."
   install_first quickshell quickshell-git
   install_first awww awww-git
+  echo
+
+  # ---- Portapapeles (historial de OozeShell: `ipc call clipboard toggle`) ----
+  # ClipboardHistory.qml necesita DOS comandos en el PATH de la sesion:
+  #   wl-paste / wl-copy  -> wl-clipboard (o wl-clipboard-rs, que los trae y
+  #                          CONFLICTUA con wl-clipboard: no instalar los dos)
+  #   cliphist            -> repo `extra`; `cliphist-git` en el AUR
+  # Si falta cualquiera, el panel muestra "Requiere wl-clipboard y cliphist".
+  echo "Installing clipboard tools (wl-clipboard + cliphist)..."
+  if command -v wl-copy >/dev/null 2>&1 && command -v wl-paste >/dev/null 2>&1; then
+    echo "  [✓] wl-copy / wl-paste already available"
+  else
+    install_first wl-clipboard wl-clipboard-rs
+  fi
+  if command -v cliphist >/dev/null 2>&1; then
+    echo "  [✓] cliphist already available"
+  else
+    install_first cliphist cliphist-git
+  fi
+  for c in wl-copy wl-paste cliphist; do
+    if ! command -v "$c" >/dev/null 2>&1; then
+      echo "  [!] '$c' is still missing: the clipboard history panel will show its 'missing dependencies' notice."
+      FAILED+=("clipboard: $c")
+    fi
+  done
   echo
 
   # --- Terminal ---
@@ -508,8 +600,8 @@ MDEOF
   echo
 
   # --- Package search ---
-  echo "[i] Package search (SUPER+U) uses PacSearch (paru/pacman + AUR) on Arch; no Nix needed."
-  echo "    The keybind will be switched from nixsearch to pacsearch after linking the configs."
+  echo "[i] Package search (SUPER+U): OozeShell detects Arch on its own and searches with"
+  echo "    paru/yay/pacman + AUR (no Nix needed). The keybind stays on 'nixsearch' (IPC name)."
   echo
 
   # --- Tools OozeShell replaces ---
@@ -553,7 +645,7 @@ MDEOF
   fi
 
   echo
-  echo "[✓] Unzipping OozeShell-arch.zip..."
+  echo "[✓] Unzipping OozeShell.zip..."
   extract_oozeshell "$ZIP_FILE"
 
   FC_SRC="$QS_DIR/OozeShell/tools/fonts/99-oozeshell-pixel.conf"
@@ -562,6 +654,19 @@ MDEOF
     cp -f "$FC_SRC" "$HOME/.config/fontconfig/conf.d/"
     fc-cache -f >/dev/null 2>&1 || true
     echo "[✓] fontconfig installed (icon fallback)"
+  fi
+
+  # --- Modulo nativo opcional (OozeShell.Native) ---
+  if [ -f "$QS_DIR/OozeShell/tools/build-native.sh" ]; then
+    echo
+    if ask_yes_no "Build the optional native animation core (C++, needs cmake, ~1 min)? OozeShell works without it"; then
+      install_pkgs cmake
+      if command -v cmake >/dev/null 2>&1; then
+        build_native
+      else
+        echo "  [!] cmake is missing; skipping the native core."
+      fi
+    fi
   fi
 
 # ============================================================================
@@ -592,6 +697,8 @@ else
       exit 1
     fi
   fi
+
+  maybe_build_native_other
 
   echo
   if ask_yes_no "OozeShell already integrates the bar/notifications/launcher/logout. Set up the swaync, waybar, swayosd, wlogout and rofi configs anyway, in case you ever want them?"; then
@@ -631,9 +738,12 @@ You can also skip all of this by using directly:
 - mpvpaper (+ mpv)
 - ffmpeg
 - socat
-- wl-copy (wl-clipboard)
+- wl-copy / wl-paste (wl-clipboard)
+- cliphist (clipboard history panel; needs wl-clipboard too)
 - xdg-utils (xdg-open)
 - jq
+- python3 >= 3.11 (palette-apply.py: applies the fixed Palettes to the matugen
+  templates, i.e. terminals, Hyprland, Qt/KDE, etc.)
 - fastfetch
 - pgrep
 - A terminal: foot, kitty, alacritty, wezterm, or ghostty
@@ -646,6 +756,33 @@ You can also skip all of this by using directly:
 - cava
 - pavucontrol
 - awww (current successor to swww)
+- Optional, GPU stats: nvidia-smi (NVIDIA) or the amdgpu sysfs counters
+- Optional, to-do alarm sound: pw-play or paplay (pipewire / libpulse)
+
+## Optional — native animation core (C++)
+
+OozeShell ships a small C++ module (`OozeShell.Native`). Without it everything
+still works in pure QML; with it the animation maths run natively.
+
+- Build tools: cmake >= 3.21, a C++17 compiler, Qt6 qtbase + qtdeclarative
+  (with dev headers). On NixOS use the provided shell:
+
+```bash
+nix-shell ~/.config/quickshell/OozeShell/native/shell.nix \
+  --run 'bash ~/.config/quickshell/OozeShell/tools/build-native.sh'
+```
+
+- The Qt used to build MUST be the same one your `quickshell` uses, or Qt
+  rejects the plugin (details in `native/shell.nix`).
+- Quickshell must be told where the module lives (once, in the Hyprland
+  session environment; the installer adds it to `env.lua` when the build works):
+
+```lua
+hl.env("QML_IMPORT_PATH", os.getenv("HOME") .. "/.local/share/oozeshell/qml")
+```
+
+- On start OozeShell logs `[theme] núcleo nativo: activo` (or the reason it
+  is not available).
 
 ## Optional — NixSearch
 
@@ -712,6 +849,11 @@ if $INSTALL_LEGACY; then
   config_items+=("rofi" "swaync" "swayosd" "waybar")
 fi
 
+# OozeShell tambien soporta Niri y Mango: solo se enlazan si el repo las trae
+for wm in niri mango; do
+  if [ -e "$DOTFILES/.config/$wm" ]; then config_items+=("$wm"); fi
+done
+
 for item in "${config_items[@]}"; do
   create_symlink "$DOTFILES/.config/$item" "$HOME/.config/$item"
 done
@@ -733,6 +875,11 @@ echo "Granting execution permissions..."
 
 scripts=(
   "$QS_DIR/OozeShell/OozeAudio/backend/audio.sh"
+  "$QS_DIR/OozeShell/PackageSearch/installed.sh"
+  "$QS_DIR/OozeShell/tools/build-native.sh"
+  "$QS_DIR/OozeShell/tools/live-optimize.sh"
+  "$QS_DIR/OozeShell/tools/check.sh"
+  "$QS_DIR/OozeShell/tools/palette-apply.py"
 )
 
 if ! $IS_ARCH; then
@@ -758,21 +905,21 @@ for script in "${scripts[@]}"; do
 done
 
 # ----------------------------------------------------------------------------
-# Arch only: SUPER+U -> PacSearch instead of NixSearch
+# Arch only: SUPER+U
+# OozeShell ya trae el buscador unificado y detecta la distro; solo existe el
+# IPC `nixsearch`. Versiones anteriores del instalador dejaban activo un bind
+# a `pacsearch` (target que ya no existe): si lo encuentra, lo revierte.
 # ----------------------------------------------------------------------------
 if $IS_ARCH; then
   KEYBINDS="$HOME/.config/hypr/modules/input/keybinds.lua"
-  if [ -f "$KEYBINDS" ]; then
+  if [ -f "$KEYBINDS" ] \
+     && grep -qE '^hl\.bind\(mainMod \.\. " \+ U".*pacsearch toggle' "$KEYBINDS"; then
     cp -f "$KEYBINDS" "${KEYBINDS}.bak-${STAMP}"
-    # comment the active nixsearch bind (skip if already commented)
-    sed -i -E '/^hl\.bind\(mainMod \.\. " \+ U".*nixsearch toggle/ s/^/-- /' "$KEYBINDS"
-    # uncomment the pacsearch bind
-    sed -i -E 's/^--[[:space:]]*(hl\.bind\(mainMod \.\. " \+ U".*pacsearch toggle.*)$/\1/' "$KEYBINDS"
-    echo "  [✓] keybinds.lua: SUPER+U now opens PacSearch (backup: ${KEYBINDS}.bak-${STAMP})"
-  else
-    echo "  [✗] keybinds.lua not found: $KEYBINDS"
+    sed -i -E '/^hl\.bind\(mainMod \.\. " \+ U".*pacsearch toggle/ s/^/-- /' "$KEYBINDS"
+    sed -i -E 's/^--[[:space:]]*(hl\.bind\(mainMod \.\. " \+ U".*nixsearch toggle.*)$/\1/' "$KEYBINDS"
+    echo "  [✓] keybinds.lua: SUPER+U back on the unified search (backup: ${KEYBINDS}.bak-${STAMP})"
+    echo
   fi
-  echo
 fi
 
 # ----------------------------------------------------------------------------
@@ -792,6 +939,29 @@ if $IS_ARCH; then
     echo "      Backup: ${ENVLUA}.bak-${STAMP}"
   else
     echo "  [✗] env.lua not found: $ENVLUA"
+  fi
+  echo
+fi
+
+# ----------------------------------------------------------------------------
+# Modulo nativo: Quickshell necesita QML_IMPORT_PATH en el entorno de la sesion
+# (Arch y NixOS). Solo si se compilo bien; no se duplica si ya esta.
+# ----------------------------------------------------------------------------
+if $NATIVE_OK; then
+  ENVLUA="$HOME/.config/hypr/modules/system/env.lua"
+  QML_LINE='hl.env("QML_IMPORT_PATH", os.getenv("HOME") .. "/.local/share/oozeshell/qml")'
+  if [ -f "$ENVLUA" ]; then
+    if grep -q 'QML_IMPORT_PATH' "$ENVLUA"; then
+      echo "  [✓] env.lua already sets QML_IMPORT_PATH"
+    else
+      [ -f "${ENVLUA}.bak-${STAMP}" ] || cp -f "$ENVLUA" "${ENVLUA}.bak-${STAMP}"
+      printf '\n-- OozeShell native core (added by install-oozenix.sh)\n%s\n' "$QML_LINE" >> "$ENVLUA"
+      echo "  [✓] env.lua: QML_IMPORT_PATH added (log out and back in to apply)"
+    fi
+  else
+    echo "  [!] env.lua not found: $ENVLUA"
+    echo "      Add this to your Hyprland session environment by hand:"
+    echo "        $QML_LINE"
   fi
   echo
 fi
@@ -826,9 +996,14 @@ fi
 echo "=========================================="
 echo "       Oozenix installation complete!"
 echo "=========================================="
-if $IS_ARCH; then
-  echo "Start it with:  quickshell -c OozeShell"
-  if $SUWAYOMI_OK; then
-    echo "Tachidesk:      OozeShell -> Settings -> Services, or:  tachidesk start|stop|restart|status|enable|disable"
-  fi
+echo "Start it with:  quickshell -c OozeShell"
+if $NATIVE_OK; then
+  echo "Native core:    log out and back in once (QML_IMPORT_PATH); the log should say"
+  echo "                '[theme] núcleo nativo: activo'"
+fi
+if $IS_ARCH && $SUWAYOMI_OK; then
+  echo "Tachidesk:      OozeShell -> Settings -> Services, or:  tachidesk start|stop|restart|status|enable|disable"
+fi
+if ! $IS_ARCH; then
+  echo "Dependencies:   see $NIXOS_MD"
 fi

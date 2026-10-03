@@ -47,16 +47,6 @@ post_hook = "touch ~/.config/wezterm/wezterm.lua"
 
 
 # ─────────────────────────────────────────────
-# Hyprland
-# ─────────────────────────────────────────────
-
-[templates.hyprland]
-input_path = "~/.config/matugen/templates/colors.lua"
-output_path = "~/.config/hypr/modules/appearance/colors.lua"
-post_hook = "hyprctl reload"
-
-
-# ─────────────────────────────────────────────
 # Cava
 # ─────────────────────────────────────────────
 
@@ -82,16 +72,6 @@ output_path = "~/.config/yazi/theme.toml"
 [templates.vesktop]
 input_path = "~/.config/matugen/templates/vesktop.css"
 output_path = "~/.config/vesktop/themes/vesktop.css"
-
-
-# ─────────────────────────────────────────────
-# Hyprlock
-# ─────────────────────────────────────────────
-
-[templates.hyprlock]
-input_path = "~/.config/matugen/templates/hyprlock.conf"
-output_path = "~/.config/hypr/colors.conf"
-
 
 # ─────────────────────────────────────────────
 # Neovim
@@ -149,23 +129,39 @@ output_path = '~/.cache/wal/colors.json'
 post_hook = 'pywalfox update'
 
 # ─────────────────────────────────────────────
-# Niri-WM
+# Hyprlock
+# ─────────────────────────────────────────────
+
+[templates.hyprlock]
+input_path = "~/.config/matugen/templates/hyprlock.conf"
+output_path = "~/.config/hypr/colors.conf"
+
+# ─────────────────────────────────────────────
+# Hyprland
+# ─────────────────────────────────────────────
+
+[templates.hyprland]
+input_path = "~/.config/matugen/templates/colors.lua"
+output_path = "~/.config/hypr/modules/appearance/colors.lua"
+post_hook = "hyprctl reload >/dev/null 2>&1 || true"
+
+# ─────────────────────────────────────────────
+# Niri
 # ─────────────────────────────────────────────
 
 [templates.niri]
 input_path = '~/.config/matugen/templates/colors.kdl'
 output_path = '~/.config/niri/colors.kdl'
-post_hook = 'niri msg action load-config-file'
+post_hook = "niri msg action load-config-file >/dev/null 2>&1 || true"
 
 # ─────────────────────────────────────────────
-# Mango-WM
+# Mango
 # ─────────────────────────────────────────────
 
 [templates.mango]
 input_path = '~/.config/matugen/templates/mango.conf'
 output_path = '~/.config/mango/colors.conf'
-post_hook = 'mmsg -d reload_config'
-
+post_hook = "mmsg -d reload_config >/dev/null 2>&1 || true"
 # ─────────────────────────────────────────────
 # BTOP
 # ─────────────────────────────────────────────

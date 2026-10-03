@@ -5,22 +5,22 @@
 background = #131313
 foreground = #e2e2e2
 
-cursor-color = #82cfff
-cursor-text = #00344b
+cursor-color = #5cdbbd
+cursor-text = #00382d
 
-selection-background = #82cfff
-selection-foreground = #00344b
+selection-background = #5cdbbd
+selection-foreground = #00382d
 
 
 # ── ANSI normal ──────────────────────────────────────────────
 
 palette = 0=#0e0e0e
 palette = 1=#ffb4ab
-palette = 2=#82cfff
-palette = 3=#ccc1e9
-palette = 4=#004c6b
-palette = 5=#4a4263
-palette = 6=#b6c9d8
+palette = 2=#5cdbbd
+palette = 3=#a9cbe3
+palette = 4=#005142
+palette = 5=#294a5e
+palette = 6=#b1ccc3
 palette = 7=#e2e2e2
 
 
@@ -28,9 +28,9 @@ palette = 7=#e2e2e2
 
 palette = 8=#919191
 palette = 9=#ffb4ab
-palette = 10=#82cfff
-palette = 11=#ccc1e9
-palette = 12=#82cfff
-palette = 13=#ccc1e9
-palette = 14=#b6c9d8
+palette = 10=#5cdbbd
+palette = 11=#a9cbe3
+palette = 12=#5cdbbd
+palette = 13=#a9cbe3
+palette = 14=#b1ccc3
 palette = 15=#e2e2e2

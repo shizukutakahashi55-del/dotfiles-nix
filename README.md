@@ -33,8 +33,8 @@ OozeShell replaces the bar, launcher, notification center, lock screen, wallpape
 
 | System                   | Support                                                                                                                          |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| **NixOS**                | Main target. Uses `OozeShell.zip`. Search panel is **NixSearch**.                                                                |
-| **Arch Linux**           | Supported. The installer installs the dependencies for you and uses `OozeShell-arch.zip`. Search panel is **PacSearch** (pacman + AUR). |
+| **NixOS**                | Main target. Package search uses `nix-search`.                                                                                   |
+| **Arch Linux**           | Supported. The installer installs the dependencies for you. Package search uses pacman + AUR (`paru`/`yay`).                     |
 | **Any other distro**     | Not officially supported. The installer treats it as "non-Arch" and generates `NixOSInstallation.md` with the dependency list to adapt by hand. |
 
 ---
@@ -96,9 +96,7 @@ Normally Hyprland starts it for you from its startup module. On Arch the install
 
 1. Checks that it is not running as root and that `~/dotfiles` exists.
 2. Asks **"Are you using Arch Linux?"**
-3. Picks the right OozeShell archive from `~/dotfiles`:
-   * Arch → `OozeShell-arch.zip`
-   * Anything else → `OozeShell.zip`
+3. Uses `OozeShell.zip` from `~/dotfiles`. It is a single build for every system: at startup OozeShell detects the distro (Arch / NixOS) and the compositor (Hyprland / MangoWM / Niri) by itself.
 4. Extracts it into `~/dotfiles/.config/quickshell/OozeShell`. An existing `OozeShell` folder is **moved** to `OozeShell.bak-<timestamp>`, never deleted.
 5. Asks whether to also set up the legacy tools (swaync, waybar, swayosd, wlogout, rofi).
 6. Creates the symlinks and sets executable permissions (see below).
@@ -221,14 +219,14 @@ On **Arch** the installer takes care of all of this. On **NixOS** use [nix-home]
 | Media           | `playerctl`, `mpv`, `mpvpaper`, `ffmpeg`, `cava`                                                             |
 | Wallpaper       | `awww` (successor to `swww`), `imagemagick`                                                                  |
 | Theming         | `matugen`                                                                                                    |
-| Utilities       | `socat`, `jq`, `wl-clipboard` (`wl-copy`), `xdg-utils`, `libnotify`, `wtype`, `wev`, `grim`, `slurp`, `fastfetch`, `pgrep` |
+| Utilities       | `socat`, `jq`, `wl-clipboard` (`wl-copy`, `wl-paste`), `cliphist`, `xdg-utils`, `libnotify`, `wtype`, `wev`, `grim`, `slurp`, `fastfetch`, `pgrep` |
 | Fonts           | **JetBrainsMono Nerd Font**, **Symbols Nerd Font Mono**                                                      |
 | Terminal        | One of: foot, kitty, alacritty, wezterm, ghostty                                                             |
 
 ### Optional
 
-* **NixSearch** (NixOS): `nix-search` / `nix-search-cli` and `nix`. If missing, only that panel is affected.
-* **PacSearch** (Arch): uses `pacman` and `paru`/`yay`. No Nix needed. The Arch build keeps the `nixsearch` IPC name as an alias, so the same keybind keeps working.
+* **Package search on NixOS**: `nix-search` / `nix-search-cli` and `nix`. If missing, only that panel is affected.
+* **Package search on Arch**: uses `pacman` and `paru`/`yay`. No Nix needed. The IPC target is `nixsearch` on every system, so the same keybind works everywhere.
 * **Pixel style fonts** for the CoOzey theme: Pixelify Sans, Jersey 10, Silkscreen, VT323, DotGothic16. See `OozeShell/tools/fonts/fonts.nix.example` for a NixOS snippet.
 * **Extras bundle** (Arch installer option): yazi, neovim, starship, fd, ripgrep, dolphin, nomacs, lazygit, gh, gamemode, lutris, mangohud, wine, prismlauncher, protonplus, and more.
 
@@ -253,7 +251,7 @@ Two visual styles are available: **OozeSoft** (flat, thin borders) and **CoOzey*
 * **Bar / Pill / Dock**: taskbar, tray, workspaces, clock, privacy indicators, battery and brightness modules, and a separate floating **Dock** with pinned and running apps (auto-hide, top/bottom position, auto-flips away from a horizontal bar).
 * **Dashboard**: overview, performance gauges, audio, calendar, media (MPRIS), power and quick access.
 * **Launcher**: modes for **apps**, **windows**, **run** and **files**, with a built-in calculator.
-* **Package search**: NixSearch (NixOS) / PacSearch (Arch).
+* **Package search**: `nix-search` (NixOS) / pacman + AUR (Arch), chosen automatically. On **Arch** it also has an **Installed** button (or `Ctrl+L`) that lists your pacman + AUR packages, filters as you type and uninstalls them (`Ctrl+R`) after a confirmation, running `pacman -Rns` / `paru -Rns` in a terminal. `Ctrl+E` switches between explicitly installed packages and all (with dependencies). Not available on NixOS.
 * **Overview**: workspace overview with live window previews.
 * **Notification center** with toasts and Do Not Disturb.
 * **Agenda**: calendar with a to-do list and alarms (right-click the clock).
@@ -334,7 +332,7 @@ quickshell ipc -c OozeShell call <target> <function> [args]
 | `theme`         | `mode light\|dark`, `toggle`, `style cozy\|soft`, `styleGet`, `softfont`                     |
 | `appearance`    | `toggle`, `get`, `set <key> <value>`                                                         |
 | `launcher`      | `toggle`, `open <apps\|windows\|run\|files>`, `close`                                        |
-| `nixsearch`     | `toggle`, `open <query>`, `close`                                                            |
+| `nixsearch`     | `toggle`, `open <query>`, `installed` (Arch: installed packages), `close`                    |
 | `overview`      | `toggle`, `open`, `close`                                                                    |
 | `menu` / `network` / `bluetooth` / `mpris` / `keybinds` | `toggle`                                                     |
 | `audio`         | `toggle`, `raise`, `lower`, `mute`, `micToggle`, `micRaise`, `micLower`                      |
@@ -343,6 +341,7 @@ quickshell ipc -c OozeShell call <target> <function> [args]
 | `toggleWalls`   | `handle` (wallpaper selector)                                                                |
 | `screenshot`    | `areaCopy`, `areaSave`, `fullSave`                                                           |
 | `powermenu`     | `toggle`, `open`, `close`                                                                    |
+| `clipboard`     | `toggle`, `open`, `close` (clipboard history; needs `wl-clipboard` + `cliphist`)             |
 | `lock`          | `lock`, `locked`                                                                             |
 | `monitor`       | `set <name\|auto>`, `get`, `current`, `list`, `togglePicker`                                 |
 | `lang`          | `set <code>`, `get`, `list`, `togglePicker`                                                  |
@@ -460,8 +459,7 @@ dotfiles/
 ├── git-update
 ├── nix-rofi                   # NixOS only
 ├── install-oozenix.sh         # main installer
-├── OozeShell.zip              # NixOS build
-├── OozeShell-arch.zip         # Arch build
+├── OozeShell.zip              # single build (Arch + NixOS, all compositors)
 ├── NixOSInstallation.md       # generated on non-Arch installs
 ├── screenshots/
 └── README.md
@@ -511,9 +509,9 @@ rm -f ~/.local/bin/nix-rofi
 
 
 
-### `Could not find OozeShell.zip` / `OozeShell-arch.zip`
+### `Could not find OozeShell.zip`
 
-The installer looks for the archive in `~/dotfiles`. Arch needs exactly `OozeShell-arch.zip`; every other system needs `OozeShell.zip`. Put the file there and run the installer again.
+The installer looks for `OozeShell.zip` in `~/dotfiles` on every system. Put the file there and run the installer again.
 
 ### The installer refuses to run
 
@@ -561,8 +559,8 @@ Install **JetBrainsMono Nerd Font** and **Symbols Nerd Font Mono**. On Arch the 
 
 ### Package search keybind does nothing
 
-* NixOS: check `which nix-search` (NixSearch).
-* Arch: check that `pacman` and `paru`/`yay` are available (PacSearch).
+* NixOS: check `which nix-search`.
+* Arch: check that `pacman` and `paru`/`yay` are available.
 
 This does not affect the rest of OozeShell.
 
@@ -613,7 +611,7 @@ git diff
 ```
   ⚠️ This deletes **all** uncommitted changes in the repository.
 
-On **Arch**, the installer edits `keybinds.lua` and `env.lua` (PacSearch bind, Nvidia and Electron variables), so they will show up as modified. Decide per file whether to keep or revert them.
+On **Arch**, the installer edits `env.lua` (Nvidia and Electron variables), so they will show up as modified. Decide per file whether to keep or revert them.
 
 Then re-run the installer to re-apply the Arch-specific changes:
 
