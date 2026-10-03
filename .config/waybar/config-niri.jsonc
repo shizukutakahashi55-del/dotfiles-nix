@@ -22,7 +22,7 @@
 
     "modules-center": [
         "custom/notifications",
-        "hyprland/workspaces",
+        "niri/workspaces",
         "clock"
     ],
 
@@ -164,25 +164,28 @@
     "niri/workspaces": {
         "disable-scroll": true,
         "all-outputs": true,
-        "active-only": false,
-
+        "current-only": true,
+        //"show-empty": true,
         "on-click": "activate",
-        "format": "{icon}",
-
-        "format-icons": {
-            "1": "󰎤",
-            "2": "󰎧",
-            "3": "󰎪",
-            "4": "󰎭",
-            "5": "󰎱",
-
-            "urgent": "♡",
-            "active": "❄",
-            "default": "○"
+        "format": "{value}",
+        "format-window-separator": " ",
+        "window-rewrite-default": "󰣆",
+        "window-rewrite": {
+            "app_id<firefox>": "",
+            "app_id<google-chrome>": "",
+            "app_id<chromium>": "",
+            "app_id<kitty>": "󰄛",
+            "app_id<foot>": "",
+            "app_id<Alacritty>": "",
+            "app_id<code>": "󰨞",
+            "app_id<Code>": "󰨞",
+            "app_id<org.gnome.Nautilus>": "",
+            "app_id<discord>": "",
+            "app_id<spotify>": ""
         },
-
-        "persistent-workspaces": {
-            "*": 4
+        "workspace-taskbar": {
+            "enable": true,
+            "icon-size": 18
         }
     },
 

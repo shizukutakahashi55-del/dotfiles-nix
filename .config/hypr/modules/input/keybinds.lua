@@ -315,61 +315,90 @@ hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 
+-- -------------------------------------------------------------------------------
+-- -- LAYOUTS Cycle
+-- -------------------------------------------------------------------------------
+
 -------------------------------------------------------------------------------
--- LAYOUTS
+-- OSD helper (toast de Quickshell/OozeShell, NO crea notificaciones)
 -------------------------------------------------------------------------------
 
--- Cycle layout for current workspace Temporaly
---
--- SUPER + K
---
--- Order:
--- scrolling -> dwindle -> master -> monocle -> scrolling
+local QS_CONFIG = os.getenv("HOME") .. "/.config/quickshell/OozeShell"
+
+-- Escapa para shell con comillas simples
+local function sh(s)
+    return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
+end
+
+-- osd("icono", "Título", "Subtítulo", activo?)
+local function osd(icon, title, subtitle, active)
+    hl.exec_cmd(
+        "quickshell ipc -p " .. sh(QS_CONFIG) .. " call -- osd show " ..
+        sh(icon) .. " " .. sh(title) .. " " .. sh(subtitle) .. " " ..
+        (active and "true" or "false")
+    )
+end
+
+-------------------------------------------------------------------------------
+-- Hyprsunset
+-------------------------------------------------------------------------------
+
+local function toggleHyprsunset()
+    return hl.dsp.exec_cmd([[
+        osd() { quickshell ipc -p "$HOME/.config/quickshell/OozeShell" call -- osd show "$1" "$2" "$3" "$4"; }
+        if pgrep -x hyprsunset >/dev/null; then
+            pkill -x hyprsunset
+            osd "󰖔" "Hyprsunset" "OFF" false
+        else
+            hyprsunset & disown
+            osd "󰖙" "Hyprsunset" "ON" true
+        fi
+    ]])
+end
+
+hl.bind(mainMod .. " + Y", toggleHyprsunset())
 
 hl.bind("SUPER + K", function ()
-    local layouts = {
-        scrolling = "󰕰",
-        dwindle   = "󰕳",
-        master    = "󰓦",
-        monocle   = "󰖲",
-    }
-    local order = {
-        "scrolling",
-        "dwindle",
-        "master",
-        "monocle",
-    }
-    local workspace = hl.get_active_workspace()
-    if hl.get_active_special_workspace() then
-        workspace = hl.get_active_special_workspace()
-    end
-    if not workspace then
-        return
-    end
-    local next_layout = "dwindle"
-    for i = 1, #order do
-        if order[i] == workspace.tiled_layout then
-            local next_layout_idx = (i % #order) + 1
-            next_layout = order[next_layout_idx]
-            break
+    local ok, err = pcall(function ()
+        local layouts = {
+            scrolling = "󰕰",
+            dwindle   = "󰕳",
+            master    = "󰓦",
+            monocle   = "󰖲",
+        }
+        local order = { "scrolling", "dwindle", "master", "monocle" }
+
+        local workspace = hl.get_active_workspace()
+        if hl.get_active_special_workspace() then
+            workspace = hl.get_active_special_workspace()
         end
+        if not workspace then
+            return
+        end
+
+        local next_layout = "dwindle"
+        for i = 1, #order do
+            if order[i] == workspace.tiled_layout then
+                next_layout = order[(i % #order) + 1]
+                break
+            end
+        end
+
+        if workspace.special then
+            hl.workspace_rule({ workspace = tostring(workspace.name), layout = next_layout })
+        else
+            hl.workspace_rule({ workspace = tostring(workspace.id), layout = next_layout })
+        end
+
+        hl.exec_cmd(
+            'quickshell ipc -p "$HOME/.config/quickshell/OozeShell" call -- osd show "' ..
+            layouts[next_layout] .. '" "Layout" "' .. next_layout .. '" true'
+        )
+    end)
+
+    if not ok then
+        hl.exec_cmd("notify-send -u critical 'Error en SUPER+K' '" .. tostring(err):gsub("'", "") .. "'")
     end
-    if workspace.special then
-        hl.workspace_rule({
-            workspace = tostring(workspace.name),
-            layout = next_layout
-        })
-    else
-        hl.workspace_rule({
-            workspace = tostring(workspace.id),
-            layout = next_layout
-        })
-    end
-    -- Show current layout through Quickshell notification
-    hl.exec_cmd(
-        "notify-send " ..
-        "'Layout: " .. layouts[next_layout] .. "  " .. next_layout .. "'"
-    )
 end)
 
 
@@ -445,6 +474,9 @@ hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
 hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle"))
 
+-- Clipboard Toggle
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- clipboard toggle"))
+
 -- Pacman/Paru OozeShell
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- pacsearch toggle"))
 
@@ -474,20 +506,22 @@ hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshe
 -- Hyprsunset.
 -------------------------------------------------------------------------------
 
-local function toggleHyprsunset()
-    return hl.dsp.exec_cmd([[
-        if pgrep -x hyprsunset >/dev/null; then
-            pkill -x hyprsunset
-            notify-send -i weather-clear "Hyprsunset" "OFF 🌙"
-        else
-            hyprsunset & disown
-            notify-send -i weather-clear-night "Hyprsunset" "ON ☀️"
-        fi
-    ]])
-end
+-- local function toggleHyprsunset()
+--     return hl.dsp.exec_cmd([[
+--         if pgrep -x hyprsunset >/dev/null; then
+--             pkill -x hyprsunset
+--             notify-send -i weather-clear "Hyprsunset" "OFF 🌙"
+--         else
+--             hyprsunset & disown
+--             notify-send -i weather-clear-night "Hyprsunset" "ON ☀️"
+--         fi
+--     ]])
+-- end
 
--- Hyprsunset
-hl.bind(mainMod .. " + Y", toggleHyprsunset())
+-- -- Hyprsunset
+-- hl.bind(mainMod .. " + Y", toggleHyprsunset())
+
+
 -------------------------------------------------------------------------------
 -- MULTIMEDIA / VOLUME
 -------------------------------------------------------------------------------

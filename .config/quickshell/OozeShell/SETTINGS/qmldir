@@ -1,0 +1,14 @@
+AdvancedSettings 1.0 AdvancedSettings.qml
+LevelPicker 1.0 LevelPicker.qml
+NumberStepper 1.0 NumberStepper.qml
+ScaleSlider 1.0 ScaleSlider.qml
+ImageBrowser 1.0 ImageBrowser.qml
+BarSettings 1.0 BarSettings.qml
+LauncherSettings 1.0 LauncherSettings.qml
+TerminalSettings 1.0 TerminalSettings.qml
+SettingsBtn 1.0 SettingsBtn.qml
+TodoAlarmSettings 1.0 TodoAlarmSettings.qml
+SettingsPage 1.0 SettingsPage.qml
+SettingsSection 1.0 SettingsSection.qml
+SettingsPanelTitle 1.0 SettingsPanelTitle.qml
+singleton SettingsRegistry 1.0 SettingsRegistry.qml

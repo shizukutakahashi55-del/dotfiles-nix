@@ -1,0 +1,51 @@
+// ============================================================================
+// INPUT
+// ============================================================================
+
+// Hyprland:
+//   kb_layout  = "us,es"
+//   kb_options = "grp:alt_shift_toggle"
+// Niri passes these directly to libxkbcommon.
+input {
+    keyboard {
+        xkb {
+            layout "us,es"
+            options "grp:alt_shift_toggle"
+        }
+    }
+
+    // Hyprland had sensitivity=0, so no pointer acceleration override is
+    // necessary here.
+    mouse {
+        // natural-scroll intentionally omitted: Hyprland's mouse config did
+        // not enable it.
+    }
+
+    touchpad {
+        // Hyprland explicitly used natural_scroll=false.
+        // Your installed Niri rejected `natural-scroll false` during parsing,
+        // so this setting is intentionally omitted rather than leaving an
+        // invalid config. On this Niri version the touchpad keeps its default
+        // scrolling direction. Revisit this when updating Niri if boolean
+        // overrides for this flag are supported.
+    }
+
+    // Equivalent to Hyprland follow_mouse=1.
+    focus-follows-mouse
+
+    // Keep Super as the main modifier when running niri normally.
+    mod-key "Super"
+}
+
+// ---------------------------------------------------------------------------
+// Per-device mouse sensitivity
+// ---------------------------------------------------------------------------
+//
+// Hyprland had:
+//   name = "epic-mouse-v1"
+//   sensitivity = -0.5
+//
+// Niri currently applies pointer settings by device TYPE, not by individual
+// device name. Therefore this exact per-device override cannot be reproduced.
+// It is intentionally not translated into a global mouse sensitivity because
+// that would also affect every other mouse.

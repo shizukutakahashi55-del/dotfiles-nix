@@ -1,0 +1,24 @@
+// Auto-generado por OozeShell (APPEARANCE). No editar a mano.
+// Se regenera cada vez que cambias algo desde el panel de apariencia.
+layout {
+    gaps 6
+    border {
+        off
+    }
+    shadow {
+        off
+    }
+}
+
+window-rule {
+    geometry-corner-radius 0
+    clip-to-geometry true
+    background-effect {
+        blur true
+    }
+}
+
+blur {
+    passes 1
+    offset 3.0
+}

@@ -1,0 +1,299 @@
+// ============================================================================
+// KEYBINDS
+// ============================================================================
+//
+// This is the main Hyprland -> Niri translation of keybinds.lua.
+//
+// Niri's actions are compositor-native. Commands that launch Quickshell are
+// kept as shell commands because they need $HOME / ~/.config expansion.
+//
+// Niri bind syntax and action names follow the current Niri configuration
+// format.
+// ============================================================================
+
+binds {
+    // ------------------------------------------------------------------------
+    // APPLICATIONS
+    // ------------------------------------------------------------------------
+
+    // Terminal
+    Mod+T { spawn "foot"; }
+
+    // File manager
+    Mod+E { spawn "dolphin"; }
+
+    // OozeShell launcher
+    Mod+R {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- launcher toggle";
+    }
+
+    // OozeShell launcher
+    //Mod+R {
+    //    spawn-sh "~/.config/rofi/Launcher/launcher.sh";
+    //}
+
+    // Coding workspace toggle from Hyprland:
+    // Niri has no per-workspace "remove gaps + remove border" toggle matching
+    // the old Lua function, so this bind is intentionally not recreated.
+    // Mod+Q
+
+    // Salir de Niri
+    // No usa Mod+Shift+E para dejar ese atajo libre.
+    Mod+Q { quit; }
+
+    // Overview de Niri
+    // Niri tiene esta acción integrada; muestra todos los workspaces
+    // y ventanas en una vista alejada.
+    Mod+Tab { toggle-overview; }
+
+    // ------------------------------------------------------------------------
+    // WINDOW MANAGEMENT
+    // ------------------------------------------------------------------------
+
+    Mod+C { close-window; }
+
+    // Same behavior as Hyprland floating toggle.
+    Mod+V { toggle-window-floating; }
+
+    // Hyprland pseudo mode has no Niri equivalent.
+    // Mod+P
+
+    // Niri's native column model replaces "togglesplit".
+    // This action consumes/expels the focused window from the column.
+    Mod+J { consume-or-expel-window-left; }
+
+    // Fullscreen
+    Mod+F { fullscreen-window; }
+
+    // ------------------------------------------------------------------------
+    // COLUMNS / RESIZING
+    // ------------------------------------------------------------------------
+
+    // Move focused column left/right.
+    Mod+Comma { move-column-left; }
+    Mod+Period { move-column-right; }
+
+    // Resize current column using the same approximate step.
+    Mod+BracketLeft { set-column-width "-5%"; }
+    Mod+BracketRight { set-column-width "+5%"; }
+
+    // ------------------------------------------------------------------------
+    // FOCUS
+    // ------------------------------------------------------------------------
+
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+Up    { focus-window-up; }
+    Mod+Down  { focus-window-down; }
+
+    // Toggle focus between tiled and floating windows.
+    Mod+Space { switch-focus-between-floating-and-tiling; }
+
+    // ------------------------------------------------------------------------
+    // MOVE WINDOWS
+    // ------------------------------------------------------------------------
+
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+Up    { move-window-up; }
+    Mod+Shift+Down  { move-window-down; }
+
+    // ------------------------------------------------------------------------
+    // COLUMN DISPLAY / LAYOUT-LIKE CONTROLS
+    // ------------------------------------------------------------------------
+
+    // Hyprland SUPER+K cycled scrolling/dwindle/master/monocle.
+    // Niri has no such set of layouts. Instead, this toggles the focused
+    // column's tabbed display, which is a native Niri concept.
+    Mod+K { toggle-column-tabbed-display; }
+
+    // Width presets: useful replacement for Hyprland column resizing.
+    Mod+Shift+BracketRight { switch-preset-column-width; }
+    Mod+Shift+BracketLeft  { switch-preset-column-width-back; }
+
+    // ------------------------------------------------------------------------
+    // WORKSPACES
+    // ------------------------------------------------------------------------
+
+    Mod+1 { focus-workspace "1"; }
+    Mod+2 { focus-workspace "2"; }
+    Mod+3 { focus-workspace "3"; }
+    Mod+4 { focus-workspace "4"; }
+    Mod+5 { focus-workspace "5"; }
+    Mod+6 { focus-workspace "6"; }
+    Mod+7 { focus-workspace "7"; }
+    Mod+8 { focus-workspace "8"; }
+    Mod+9 { focus-workspace "9"; }
+    Mod+0 { focus-workspace "10"; }
+
+    // Niri's most direct equivalent here is moving the focused column to the
+    // named workspace. This also preserves a tabbed column as a unit.
+    Mod+Shift+1 { move-column-to-workspace "1"; }
+    Mod+Shift+2 { move-column-to-workspace "2"; }
+    Mod+Shift+3 { move-column-to-workspace "3"; }
+    Mod+Shift+4 { move-column-to-workspace "4"; }
+    Mod+Shift+5 { move-column-to-workspace "5"; }
+    Mod+Shift+6 { move-column-to-workspace "6"; }
+    Mod+Shift+7 { move-column-to-workspace "7"; }
+    Mod+Shift+8 { move-column-to-workspace "8"; }
+    Mod+Shift+9 { move-column-to-workspace "9"; }
+    Mod+Shift+0 { move-column-to-workspace "10"; }
+
+    // Scroll through workspaces.
+    Mod+WheelScrollDown cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
+
+    // ------------------------------------------------------------------------
+    // SPECIAL WORKSPACE / SCRATCHPAD
+    // ------------------------------------------------------------------------
+    //
+    // Niri has no hidden "special workspace" equivalent. A named workspace
+    // called "scratchpad" could be used, but it would be a normal persistent
+    // workspace. The Hyprland scratchpad behavior is therefore not faked.
+    //
+    // Mod+S
+    // Mod+Shift+S
+
+    // ------------------------------------------------------------------------
+    // MINIMIZE
+    // ------------------------------------------------------------------------
+    //
+    // Niri has no minimize action. The Hyprland implementation moved windows
+    // into a special hidden workspace, which does not have a direct Niri
+    // counterpart. Intentionally omitted.
+    //
+    // Mod+X
+
+    // ------------------------------------------------------------------------
+    // QUICKSHELL / OOZESHELL
+    // ------------------------------------------------------------------------
+
+    Mod+W {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call toggleWalls handle";
+    }
+
+    Mod+L {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- monitor togglePicker";
+    }
+
+    Mod+Shift+P {
+        spawn-sh "pkill quickshell; sleep 1; quickshell -p ~/.config/quickshell/OozeShell/shell.qml";
+    }
+
+    Mod+I {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call keybinds toggle";
+    }
+
+    Mod+G {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- lang togglePicker";
+    }
+
+    Mod+H {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- appearance toggle";
+    }
+
+    Mod+N {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- notify toggle";
+    }
+
+    Mod+Shift+M {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- powermenu toggle";
+    }
+
+    Mod+O {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- overview toggle";
+    }
+
+    Mod+M {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- menu toggle";
+    }
+
+    Mod+Shift+L {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- settings toggle";
+    }
+
+    Mod+Shift+Q {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock";
+    }
+
+    Mod+U {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle";
+    }
+
+    Mod+D {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- clipboard toggle";
+    }
+
+    // ------------------------------------------------------------------------
+    // HYPRSUNSET -> GENERIC WAYLAND ADAPTATION
+    // ------------------------------------------------------------------------
+    //
+    // The compositor itself does not provide Hyprsunset. Keep the same toggle
+    // concept, but call the existing hyprsunset process directly.
+    Mod+Y {
+        spawn-sh "if pgrep -x hyprsunset >/dev/null; then pkill -x hyprsunset; else hyprsunset & disown; fi";
+    }
+
+    // ------------------------------------------------------------------------
+    // AUDIO
+    // ------------------------------------------------------------------------
+
+    XF86AudioRaiseVolume allow-when-locked=true {
+        spawn "wpctl" "set-volume" "-l" "1" "@DEFAULT_AUDIO_SINK@" "5%+";
+    }
+
+    XF86AudioLowerVolume allow-when-locked=true {
+        spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-";
+    }
+
+    XF86AudioMute allow-when-locked=true {
+        spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle";
+    }
+
+    XF86AudioMicMute allow-when-locked=true {
+        spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle";
+    }
+
+    // ------------------------------------------------------------------------
+    // BRIGHTNESS
+    // ------------------------------------------------------------------------
+
+    XF86MonBrightnessUp allow-when-locked=true {
+        spawn "brightnessctl" "-e4" "-n2" "set" "5%+";
+    }
+
+    XF86MonBrightnessDown allow-when-locked=true {
+        spawn "brightnessctl" "-e4" "-n2" "set" "5%-";
+    }
+
+    // ------------------------------------------------------------------------
+    // MEDIA
+    // ------------------------------------------------------------------------
+
+    XF86AudioNext allow-when-locked=true { spawn "playerctl" "next"; }
+    XF86AudioPause allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPlay allow-when-locked=true { spawn "playerctl" "play-pause"; }
+    XF86AudioPrev allow-when-locked=true { spawn "playerctl" "previous"; }
+
+    // ------------------------------------------------------------------------
+    // SCREENSHOTS
+    // ------------------------------------------------------------------------
+    //
+    // Niri has a native screenshot UI, so the old Quickshell screenshot binds
+    // are kept exactly where practical, while Print gets Niri's native UI.
+    Print { screenshot; }
+
+    Mod+Print {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaCopy";
+    }
+
+    Mod+Shift+Print {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaSave";
+    }
+
+    // ------------------------------------------------------------------------
+    // SAFETY / SESSION
+    // ------------------------------------------------------------------------
+
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+}

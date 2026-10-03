@@ -1,0 +1,33 @@
+// ============================================================================
+// OUTPUTS / MONITORS
+// ============================================================================
+//
+// Original Hyprland setup:
+//   DP-3     preferred / auto position / auto scale
+//   HDMI-A-1 1920x1080@74.97Hz / position 10x260 / scale 1
+//
+// Niri can configure these directly with output sections.
+//
+// DP-3: mode/position/scale are omitted intentionally so Niri can use its
+// preferred mode and automatic positioning, matching the old "auto" setup.
+output "DP-3" {
+    // Intentionally left at Niri defaults:
+    // preferred mode, automatic placement, automatic scale.
+}
+
+// HDMI-A-1: preserve the explicit position and scale.
+//
+// The old refresh rate was 74.97 Hz. Niri requires the refresh rate to match
+// niri msg outputs exactly, including its decimal representation. To avoid a
+// config that fails after a driver/mode-reporting change, mode is intentionally
+// omitted here. If desired, run:
+//
+//   niri msg outputs
+//
+// and then set e.g.:
+//   mode "1920x1080@74.970"
+//
+output "HDMI-A-1" {
+    scale 1
+    position x=10 y=260
+}

@@ -1,0 +1,2 @@
+singleton NetworkBackend 1.0 NetworkBackend.qml
+NetworkMenu 1.0 NetworkMenu.qml

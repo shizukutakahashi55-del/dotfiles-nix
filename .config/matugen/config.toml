@@ -140,6 +140,42 @@ input_path = "~/.config/matugen/templates/OozeSoft.colors"
 output_path = "~/.local/share/color-schemes/OozeSoft.colors"
 
 # ─────────────────────────────────────────────
+# Pywalfox-Native
+# ─────────────────────────────────────────────
+
+[templates.pywalfox]
+input_path = '~/.config/matugen/templates/pywalfox.json'
+output_path = '~/.cache/wal/colors.json'
+post_hook = 'pywalfox update'
+
+# ─────────────────────────────────────────────
+# Niri-WM
+# ─────────────────────────────────────────────
+
+[templates.niri]
+input_path = '~/.config/matugen/templates/colors.kdl'
+output_path = '~/.config/niri/colors.kdl'
+post_hook = 'niri msg action load-config-file'
+
+# ─────────────────────────────────────────────
+# Mango-WM
+# ─────────────────────────────────────────────
+
+[templates.mango]
+input_path = '~/.config/matugen/templates/mango.conf'
+output_path = '~/.config/mango/colors.conf'
+post_hook = 'mmsg -d reload_config'
+
+# ─────────────────────────────────────────────
+# BTOP
+# ─────────────────────────────────────────────
+
+[templates.btop]
+input_path = '~/.config/matugen/templates/btop.theme'
+output_path = '~/.config/btop/themes/matugen.theme'
+post_hook = 'pkill -USR2 btop || true'
+
+# ─────────────────────────────────────────────
 # Opcionales
 # ─────────────────────────────────────────────
 

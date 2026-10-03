@@ -1,0 +1,97 @@
+// ============================================================================
+// WINDOW RULES
+// ============================================================================
+//
+// Niri rules are ordered. They use app-id/title regular expressions instead
+// of Hyprland class/title matching.
+//
+// Niri has no need for a "Steam main window must tile" rule because regular
+// windows already enter the tiling layout. The Steam secondary-window rule
+// is preserved.
+//
+// NOTE: Verify app IDs/titles with:
+//   niri msg pick-window
+// ============================================================================
+
+// ---------------------------------------------------------------------------
+// Steam
+// ---------------------------------------------------------------------------
+
+// Steam Friends / Settings and other secondary windows float.
+// The main Steam window is intentionally not forced because normal Niri
+// tiling already gives it the desired behavior.
+window-rule {
+    match app-id=r#"(?i)^steam$"#
+    // Rust's regex engine used by Niri does not support look-ahead.
+    // Exclude the main Steam window explicitly instead.
+    exclude title=r#"^Steam$"#
+    open-floating true
+    shadow {
+        off
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Touhou Fuujinroku
+// ---------------------------------------------------------------------------
+//
+// The original Hyprland rule used a Wine/XWayland class/title combination.
+// Niri's matcher is app-id/title. The title is kept broad enough to avoid
+// relying on the corrupted encoding visible in the old Lua file.
+window-rule {
+    match app-id=r#"(?i)^th10tr\.exe$"#
+    open-floating true
+    focus-ring {
+        off
+    }
+    border {
+        off
+    }
+}
+
+
+// ---------------------------------------------------------------------------
+// Ghostty
+// ---------------------------------------------------------------------------
+//
+// Hyprland removed the border for Ghostty. Niri's border is already globally
+// disabled, so this rule is unnecessary and is intentionally not duplicated.
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// Hyprland-specific rules not copied
+// ---------------------------------------------------------------------------
+//
+// qt-menu layer blur:
+//   Niri has layer-rule support, but the old rule targeted Hyprland-specific
+//   layer namespaces. It is omitted until the actual Niri namespace is known.
+//
+// Rofi blur:
+//   Same reason. If Rofi is still used, inspect its namespace and add a
+//   dedicated Niri layer-rule later.
+//
+// OozeShell no_anim:
+//   Niri's layer/window animation model differs and there is no direct
+//   per-layer "no_anim" translation here.
+//
+// suppress-maximize:
+//   Niri handles maximize/column behavior differently, so this is omitted.
+//
+// XWayland drag workaround:
+//   This was a Hyprland-specific matcher workaround and has no direct
+//   one-to-one Niri rule.
+//
+// hyprland-run:
+//   No longer relevant under Niri.
+//
+// Smart gaps / workspace layout rules:
+//   Niri's scrollable-column layout does not expose Hyprland's workspace
+//   layout selectors.
+// ============================================================================
+
+// Keep a simple per-window geometry rule equivalent to the old visual style.
+window-rule {
+    match app-id="^com\\.mitchellh\\.ghostty$"
+    geometry-corner-radius 6
+    clip-to-geometry true
+}

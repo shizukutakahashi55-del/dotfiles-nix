@@ -1,7 +1,6 @@
 -- ============================================================================
 --  MODULE: monitors.lua
 --  Contains: monitor outputs (mode, position, scale, mirroring).
---  Wiki: https://wiki.hypr.land/Configuring/Basics/Monitors/
 -- ============================================================================
 
 ------------------

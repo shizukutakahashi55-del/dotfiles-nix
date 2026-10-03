@@ -1,0 +1,2 @@
+singleton PrivacyBackend 1.0 PrivacyBackend.qml
+Privacy 1.0 Privacy.qml

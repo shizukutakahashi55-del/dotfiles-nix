@@ -1,0 +1,37 @@
+// ============================================================================
+// STARTUP
+// ============================================================================
+//
+// Niri provides native spawn-at-startup/spawn-sh-at-startup directives.
+// This replaces the Hyprland "hyprland.start" Lua callback.
+//
+// Terminal: same behavior as the Hyprland setup, with a 3 second delay.
+// "foot" is first because it was the terminal used in the recent Mango setup.
+// Change it if another terminal should be preferred.
+//
+// Daemons:
+//   nm-applet
+//   awww-daemon
+//   hyprpolkitagent
+//   Quickshell OozeShell
+//
+// hypridle is compositor-agnostic, so it is kept, but its config is adapted
+// separately under modules/hypridle.conf.
+
+spawn-sh-at-startup "sleep 3 && setsid -f foot"
+spawn-at-startup "nm-applet"
+spawn-at-startup "awww-daemon"
+spawn-sh-at-startup "systemctl --user start hyprpolkitagent 2>/dev/null"
+spawn-sh-at-startup "pkill quickshell; sleep 1; quickshell -p ~/.config/quickshell/OozeShell/shell.qml"
+spawn-sh-at-startup "hypridle -c ~/.config/niri/modules/hypridle.conf"
+
+//spawn-sh-at-startup "waybar -c ~/.config/waybar/config-niri.jsonc"
+
+// ---------------------------------------------------------------------------
+// Intentionally NOT started:
+// ---------------------------------------------------------------------------
+//
+// fcitx5 -d: the original Hyprland config explicitly said the NixOS dotfiles
+// handle this, so Niri should not duplicate it.
+//
+// waybar/swaync/swayosd: commented in the original config, so they stay off.

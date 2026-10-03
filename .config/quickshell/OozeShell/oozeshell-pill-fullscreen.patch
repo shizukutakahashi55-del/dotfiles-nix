@@ -1,0 +1,117 @@
+diff -ruN a/PILL/Pill.qml b/PILL/Pill.qml
+--- a/PILL/Pill.qml	2026-10-01 07:21:04.000000000 +0000
++++ b/PILL/Pill.qml	2026-10-02 06:44:39.016758358 +0000
+@@ -14,6 +14,20 @@
+     property var targetScreen
+     readonly property string screenName: targetScreen ? targetScreen.name : ""
+ 
++    // ── Fullscreen ──────────────────────────────────────────────────
++    // Igual que las demás barras (hideOnFullscreen): con una ventana en
++    // fullscreen real en esta pantalla las ventanas de la píldora se
++    // ocultan del todo. Las ventanas viven en la capa Overlay, así que si
++    // solo se escondiera la píldora, su máscara (franja de reveal, asomo)
++    // seguiría tapando los clics del juego/video.
++    readonly property bool suppressed: FullscreenState.isOn(targetScreen)
++    onSuppressedChanged: {
++        if (root.suppressed) {
++            if (root.dashboardOpenHere) AppState.closeDashboard()
++            root.closeTaskbarMenu()
++        }
++    }
++
+     // shell.qml los conecta a los mismos popups de siempre.
+     signal notificationButtonClicked(var screen)
+     signal requestNetwork(var screen)
+@@ -189,7 +203,7 @@
+         screen: root.targetScreen
+         anchors { top: true; left: true; right: true; bottom: true }
+         color: "transparent"
+-        visible: !Theme.barRebuilding
++        visible: !Theme.barRebuilding && !root.suppressed
+ 
+         WlrLayershell.layer: WlrLayer.Overlay
+         WlrLayershell.namespace: "oozeshell-pill"
+@@ -198,7 +212,7 @@
+         // La ventana cubre toda la pantalla; el mask limita los clics a la
+         // superficie, la franja de reveal del auto-hide y el drop del taskbar.
+         mask: Region {
+-            item: surface
++            item: surfaceMask
+             Region { item: outsideCatcher }
+             Region { item: trigger }
+             Region { item: taskbarMenu }
+@@ -249,12 +263,25 @@
+             }
+         }
+ 
++        // Zona de clics de `surface`. Con la píldora del todo escondida
++        // (auto-hide) mide 0x0: el pedacito que asoma ya lo cubre `trigger`
++        // y no hace falta una segunda zona que bloquee clics del borde.
++        Item {
++            id: surfaceMask
++            readonly property bool gone: AppState.pillAutoHide && root.hiddenHere
++                && !root.dashboardOpenHere && surface.hideT > 0.98
++            x: surface.x
++            y: surface.y
++            width: gone ? 0 : surface.width
++            height: gone ? 0 : surface.height
++        }
++
+         // Franja invisible en el borde: despierta la píldora oculta.
+         Item {
+             id: trigger
+             readonly property bool armed: AppState.pillAutoHide && root.hiddenHere
+             property alias containsMouse: triggerMouse.containsMouse
+-            width: 360
++            width: Math.max(360, root.pillW)
+             height: armed ? root.triggerH : 0
+             x: Math.round((parent.width - width) / 2)
+             y: Theme.barAtBottom ? parent.height - height : 0
+diff -ruN a/PILL/PillTray.qml b/PILL/PillTray.qml
+--- a/PILL/PillTray.qml	2026-10-01 07:21:04.000000000 +0000
++++ b/PILL/PillTray.qml	2026-10-02 06:44:39.017076483 +0000
+@@ -38,6 +38,11 @@
+     readonly property bool hidden: root.sync ? root.syncedHidden : root.hiddenOwn
+     property bool popupOpen: false
+ 
++    // Fullscreen real en esta pantalla: la ventana (capa Overlay) se oculta
++    // para no tapar ni robar clics al juego/video. Igual que las barras.
++    readonly property bool suppressed: FullscreenState.isOn(targetScreen)
++    onSuppressedChanged: { if (root.suppressed) { root.closeTrayMenu(); root.hideTip() } }
++
+     // shell.qml cierra los demás popups (igual que RightModules)
+     signal trayMenuOpened()
+ 
+@@ -146,7 +151,7 @@
+         screen: root.targetScreen
+         anchors { top: true; left: true; right: true; bottom: true }
+         color: "transparent"
+-        visible: root.hasContent && !Theme.barRebuilding
++        visible: root.hasContent && !Theme.barRebuilding && !root.suppressed
+ 
+         WlrLayershell.layer: WlrLayer.Overlay
+         WlrLayershell.namespace: "oozeshell-pill-tray"
+diff -ruN a/PILL/PillWorkspacesSide.qml b/PILL/PillWorkspacesSide.qml
+--- a/PILL/PillWorkspacesSide.qml	2026-09-30 13:16:06.000000000 +0000
++++ b/PILL/PillWorkspacesSide.qml	2026-10-02 06:44:39.017269898 +0000
+@@ -24,6 +24,11 @@
+     // Cuánto se queda visible tras un cambio de workspace (ms)
+     property int showTime: 1800
+ 
++    // Fullscreen real en esta pantalla: la ventana (capa Overlay) se oculta
++    // para no tapar ni robar clics al juego/video. Igual que las barras.
++    readonly property bool suppressed: FullscreenState.isOn(targetScreen)
++    onSuppressedChanged: { if (root.suppressed) { root.flash = false; root.hoverKeep = false } }
++
+     // ── Detección de cambio de workspace en ESTA pantalla ───────────
+     readonly property var monitor: root.targetScreen ? Hyprland.monitorFor(root.targetScreen) : null
+     readonly property int activeId: (root.monitor && root.monitor.activeWorkspace)
+@@ -74,7 +79,7 @@
+         screen: root.targetScreen
+         anchors { top: true; left: true; right: true; bottom: true }
+         color: "transparent"
+-        visible: !Theme.barRebuilding
++        visible: !Theme.barRebuilding && !root.suppressed
+ 
+         WlrLayershell.layer: WlrLayer.Overlay
+         WlrLayershell.namespace: "oozeshell-pill-workspaces"

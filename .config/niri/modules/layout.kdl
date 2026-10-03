@@ -1,0 +1,93 @@
+// ============================================================================
+// LAYOUT / APPEARANCE
+// ============================================================================
+//
+// Hyprland appearance:
+//   gaps_in  = 3
+//   gaps_out = 6
+//   border_size = 0
+//   rounding = 6
+//   active/inactive opacity = 1
+//   blur disabled
+//   shadow disabled
+//
+// Niri uses one scrollable tiling model. "gaps" applies around columns/windows
+// rather than separate gaps_in/gaps_out, so 6 is used as the closest visual
+// approximation to the old outer spacing.
+
+
+
+layout {
+    gaps 6
+
+    // Niri's scrolling-column model works best with the focused column
+    // centered. This replaces the old Hyprland scrolling layout behavior.
+    center-focused-column "on-overflow"
+    always-center-single-column
+
+    // Preserve the Hyprland default width used by the scrolling layout.
+    default-column-width {
+        proportion 0.5
+    }
+
+    // Useful equivalents for the old column resize binds.
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    // Hyprland had border_size=0, so keep the visible compositor border off.
+    // The active colors are preserved in comments for reference.
+    focus-ring {
+        off
+    }
+
+    border {
+        on
+        active-color "#81c8ff"
+        inactive-color "#16213800"
+        urgent-color "#9b0000"
+    }
+
+    // Shadow was disabled in the source configuration.
+    shadow {
+        off
+    }
+
+    // Niri's tabbed columns are a native feature and provide a useful
+    // replacement for some of the old layout-cycling behavior.
+    tab-indicator {
+        off
+        hide-when-single-tab
+        place-within-column
+        width 3
+        position "right"
+        corner-radius 6
+        active-color "#e2b6ff"
+        inactive-color "#47474700"
+        urgent-color "#ffb4ab"
+    }
+
+    background-color "#131313"
+}
+
+// ---------------------------------------------------------------------------
+// Window geometry / rounding
+// ---------------------------------------------------------------------------
+//
+// Niri does not have a Hyprland-style global "rounding_power". Its closest
+// equivalent is a window rule using geometry-corner-radius + clip-to-geometry.
+// Applying it globally preserves the intended rounded-window appearance.
+window-rule {
+    geometry-corner-radius 6
+    clip-to-geometry true
+    draw-border-with-background false
+
+}
+
+// The original opacity values were both 1, so no opacity rule is required.
+//
+// Blur was disabled in the original generated theme. Niri supports compositor
+// blur, but enabling it here would change the original appearance, so it is
+// intentionally not enabled.
