@@ -89,7 +89,7 @@ userimage {
      */
     background-color:   @base;
     background-image:   url("~/.config/rofi/images/user.png", height);
-    border:             3px solid;
+    border:             2px solid;
     border-color:       @outline;
     border-radius:      100%;
 }
@@ -112,9 +112,9 @@ inputbar {
 prompt {
     enabled:            true;
     background-color:   @base;
-    border:             3px solid;
+    border:             1px solid;
     padding:            7px 18px;
-    border-radius:      3px;
+    border-radius:      8px;
     border-color:       @outline;
     text-color:         @primary;
     font:               "JetBrainsMono Nerd Font Bold 24";
@@ -134,8 +134,8 @@ message {
      * inputbar / botones / elementos activos.
      */
     background-color:   @base;
-    border-radius:      0px;
-    border:             3px solid;
+    border-radius:      12px;
+    border:             1px solid;
     border-color:       @outline;
 }
 
@@ -180,9 +180,9 @@ element {
      */
     background-color:   @base;
     text-color:         @subtext;
-    border:             3px solid;
+    border:             2px solid;
     border-color:       @outline;
-    border-radius:      16px;
+    border-radius:      12px;
     orientation:        vertical;
     cursor:              pointer;
 }
@@ -218,9 +218,9 @@ element-text {
 element normal.normal {
     background-color:   @base;
     text-color:         @subtext;
-    border:             3px solid;
+    border:             2px solid;
     border-color:       @outline;
-    border-radius:      16px;
+    border-radius:      12px;
 }
 
 
@@ -231,7 +231,7 @@ element selected.normal {
     text-color:         @on-p-cont;
     border:             2px solid;
     border-color:       @primary;
-    border-radius:      16px;
+    border-radius:      12px;
 }
 
 

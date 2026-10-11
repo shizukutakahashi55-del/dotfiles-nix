@@ -120,6 +120,9 @@ if command -v bat &>/dev/null; then
     alias cat='bat --style=plain'
 fi
 
+alias opencode="$HOME/.opencode/bin/opencode"
+export PATH="$HOME/.opencode/bin:$PATH"
+
 # ── Variables de entorno ──────────────────────────────────────
 export EDITOR='nvim'
 export VISUAL='nvim'

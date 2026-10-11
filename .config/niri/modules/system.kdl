@@ -11,17 +11,27 @@ cursor {
 
 // Qt: same intention as the Hyprland env.lua module.
 environment {
+    // ── Qt ─────────────────────────────────────────────
+    // Prefer Wayland, fallback to X11/XWayland.
     QT_QPA_PLATFORM "wayland;xcb"
+
+    // Qt theme controlled by qt6ct.
     QT_QPA_PLATFORMTHEME "qt6ct"
 
-    // Electron native Wayland support was commented in the Hyprland config,
-    // so it stays commented here rather than changing application behavior.
+
+    // ── Electron / Chromium ────────────────────────────
+    // Let Electron choose Wayland automatically.
     ELECTRON_OZONE_PLATFORM_HINT "auto"
 
-    // NVIDIA variables were intentionally left out because they are already
-    // handled by the NixOS NVIDIA module in the original setup.
-    
 
+    // ── GTK ─────────────────────────────────────────────
+    // Prefer native Wayland for GTK applications.
+    GDK_BACKEND "wayland"
+
+
+    // ── Desktop session ────────────────────────────────
+    XDG_CURRENT_DESKTOP "niri"
+    XDG_SESSION_TYPE "wayland"
 }
 
 // Prefer applications without client-side decorations where possible.

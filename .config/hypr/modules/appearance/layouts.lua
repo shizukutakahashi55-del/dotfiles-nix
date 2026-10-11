@@ -15,6 +15,7 @@
 -- layouts.lua (ya no necesitas el package.loaded = nil)
 local loader  = require("modules.appearance.loader")
 local layouta = loader.load("layouta", loader.defaults.layouta)
+
 -- See https://wiki.hypr.land/Configuring/Layouts/Dwindle-Layout/ for more
 hl.config({
     dwindle = {

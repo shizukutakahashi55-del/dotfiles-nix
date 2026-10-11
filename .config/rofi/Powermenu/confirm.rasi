@@ -19,8 +19,8 @@ window {
     x-offset:         0px;
     y-offset:         0px;
     padding:          20px;
-    border:           2px solid;
-    border-radius:    20px;
+    border:           1px solid;
+    border-radius:    14px;
     border-color:     @outline;
     background-color: @base;
 }
@@ -51,7 +51,7 @@ listview {
 
 element {
     padding:          10px;
-    border-radius:    12px;
+    border-radius:    10px;
     background-color: @p-container;
     cursor:           pointer;
 }

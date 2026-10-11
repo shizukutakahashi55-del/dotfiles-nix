@@ -16,7 +16,6 @@ hl.config({
         kb_layout  = "us,es",
         kb_variant = "",
         kb_model   = "",
-        -- El cambio de layout se maneja desde Lua
         kb_options = "grp:alt_shift_toggle",
         kb_rules   = "",
         follow_mouse = 1,

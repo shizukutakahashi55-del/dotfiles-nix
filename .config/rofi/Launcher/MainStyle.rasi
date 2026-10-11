@@ -28,8 +28,8 @@ window {
     anchor:             center;
     width:              1000px;
     height:             460px;
-    border-radius:      20px;
-    border:             2px solid;
+    border-radius:      14px;
+    border:             1px solid;
     border-color:       @outline;
     background-color:   @base;
     cursor:             "default";
@@ -63,7 +63,7 @@ mainbox {
 inputbar {
     padding:            14px 18px;
     background-color:   @surface;
-    border-radius:      0px 20px 0px 0px;
+    border-radius:      0px 14px 0px 0px;
     children:           [ "prompt", "entry", "case-indicator" ];
     spacing:            10px;
     border:             0px 0px 1px 0px;
@@ -105,13 +105,13 @@ listview {
     scrollbar:          false;
     lines:              8;
     fixed-height:       false;
-    border-radius:      0px 0px 20px 0px;
+    border-radius:      0px 0px 14px 0px;
 }
 
 /*****----- Elements -----*****/
 element {
     padding:            10px 14px;
-    border-radius:      12px;
+    border-radius:      10px;
     background-color:   transparent;
     text-color:         @subtext;
     cursor:             pointer;
@@ -145,21 +145,21 @@ element selected.normal {
     text-color:         @on-p-cont;
     border:             1px solid;
     border-color:       @primary;
-    border-radius:      12px;
+    border-radius:      10px;
 }
 element selected.urgent {
     background-color:   @ml-error;
     text-color:         @base;
     border:             1px solid;
     border-color:       @ml-error;
-    border-radius:      12px;
+    border-radius:      10px;
 }
 element selected.active {
     background-color:   @s-container;
     text-color:         @on-s-cont;
     border:             1px solid;
     border-color:       @secondary;
-    border-radius:      12px;
+    border-radius:      10px;
 }
 
 element alternate.normal  { background-color: transparent; text-color: @subtext;   }
@@ -200,12 +200,12 @@ mode-switcher {
     spacing:            3px;
     padding:            10px 10px 10px 10px;
     background-color:   transparent;
-    border-radius:      0px 0px 20px 0px;
+    border-radius:      0px 0px 14px 0px;
 }
 
 button {
     padding:            12px;
-    border-radius:      10px;
+    border-radius:      8px;
     background-color:   @surface;
     text-color:         @subtext;
     cursor:             pointer;

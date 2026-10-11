@@ -1,38 +1,38 @@
 /* ============================================================
  * WAYBAR — Generado por matugen
- * Estilo: Minimal Unificado (Barra Completa con Hover Global)
+ * Estilo: Pildoras flotantes (como la barra de OozeShell)
  * ============================================================ */
 
 
 /* ============================================================
- * PALETA MATUGEN
+ * PALETA MATUGEN (no tocar: la genera matugen)
  * ============================================================ */
 
 /* Fondos dinámicos */
-@define-color base         #1c1015;
-@define-color mantle       #160b10;
-@define-color surface      #25181d;
-@define-color surface_alt  #291c21; 
+@define-color base         #1f0f0e;
+@define-color mantle       #190a09;
+@define-color surface      #281716;
+@define-color surface_alt  #2d1b19;
 
 /* Texto */
-@define-color text         #f4dce4;
-@define-color subtext      #d7c1c8;
+@define-color text         #fcdbd8;
+@define-color subtext      #e6bdb9;
 
 /* Acento principal */
-@define-color primary      #ffafd2;
-@define-color p_container  #8b005a;
-@define-color on_primary   #63003e;
-@define-color on_p_cont    #ffd8e6;
+@define-color primary      #ffb3ac;
+@define-color p_container  #ff544e;
+@define-color on_primary   #680008;
+@define-color on_p_cont    #000000;
 
 /* Estados */
 @define-color error        #ffb4ab;
 
 /* Bordes */
-@define-color outline      #534248;
+@define-color outline      #5c3f3d;
 
 
 /* ============================================================
- * RESET GLOBAL & LIMPIEZA DE BORDES
+ * RESET GLOBAL
  * ============================================================ */
 
 * {
@@ -56,32 +56,27 @@
 
 
 /* ============================================================
- * WAYBAR ROOT — BARRA ENTERA Y HOVER GLOBAL
+ * WAYBAR ROOT — transparente: flotan los tres grupos
  * ============================================================ */
 
-/* Estado normal de la barra completa */
 window#waybar {
-    background-color: @surface;
+    background-color: transparent;
     color: @text;
-}
-
-/* Cambia el color de la BARRA ENTERA cuando el mouse entra a cualquier parte */
-window#waybar:hover {
-    background-color: @surface_alt;
 }
 
 .modules-left,
 .modules-center,
 .modules-right {
-    background: transparent;
-    border: none;
-    padding: 0;
+    background-color: @surface;
+    border: 1px solid @outline;
+    border-radius: 12px;
+    padding: 2px 6px;
     margin: 0;
 }
 
 
 /* ============================================================
- * REGLA GENERAL PARA MÓDULOS (LÍNEA CONTINUA)
+ * REGLA GENERAL PARA MÓDULOS (sin padding externo)
  * ============================================================ */
 
 #custom-power,
@@ -105,15 +100,14 @@ window#waybar:hover {
     background: transparent;
     color: @text;
     border: none;
-    border-radius: 0;
+    border-radius: 8px;
     margin: 0;
-    padding: 0 10px;
+    padding: 0 8px;
 }
 
 
 /* ============================================================
- * EFECTOS HOVER INDIVIDUALES DE MÓDULOS
- * Se superponen sutilmente sobre el fondo de la barra
+ * HOVERS INDIVIDUALES
  * ============================================================ */
 
 #custom-power:hover,
@@ -139,7 +133,7 @@ window#waybar:hover {
  * DETALLES ESPECÍFICOS DE MÓDULOS
  * ============================================================ */
 
-/* Power button destacado */
+/* Power destacado */
 #custom-power {
     color: @primary;
 }
@@ -148,7 +142,7 @@ window#waybar:hover {
     background-color: alpha(@primary, 0.15);
 }
 
-/* Spotify / MPRIS */
+/* MPRIS */
 #custom-mpris {
     min-width: 180px;
     font-weight: 800;
@@ -158,7 +152,7 @@ window#waybar:hover {
 #cava {
     color: @primary;
     font-size: 10px;
-    padding: 0 8px;
+    padding: 0 6px;
 }
 
 /* Notificaciones en cero */
@@ -168,15 +162,16 @@ window#waybar:hover {
 
 /* Workspaces */
 #workspaces {
-    padding: 0 4px;
+    padding: 0 2px;
+    background: transparent;
 }
 
 #workspaces button {
     background: transparent;
     color: alpha(@text, 0.48);
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 13px;
-    padding: 0 6px;
+    padding: 0 8px;
     margin: 3px 2px;
 }
 
@@ -203,27 +198,11 @@ window#waybar:hover {
     color: @error;
 }
 
-/* Caps Lock Activado */
-#keyboard-state.capslock.locked {
-    background-color: @primary;
-    color: @on_primary;
-}
-
-/* Privacidad */
-#privacy-item.screenshare {
-    color: @error;
-}
-
-#privacy-item.audio-in,
-#privacy-item.video-in {
-    color: @primary;
-}
-
 /* Taskbar */
 #taskbar button {
     background: transparent;
     color: @text;
-    border-radius: 4px;
+    border-radius: 8px;
     padding: 2px 6px;
     margin: 2px 1px;
 }
@@ -244,4 +223,20 @@ window#waybar:hover {
 
 #tray > .needs-attention {
     -gtk-icon-effect: highlight;
+}
+
+/* Caps Lock activado */
+#keyboard-state.capslock.locked {
+    background-color: @primary;
+    color: @on_primary;
+}
+
+/* Privacidad */
+#privacy-item.screenshare {
+    color: @error;
+}
+
+#privacy-item.audio-in,
+#privacy-item.video-in {
+    color: @primary;
 }

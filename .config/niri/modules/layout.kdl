@@ -83,11 +83,8 @@ window-rule {
     geometry-corner-radius 6
     clip-to-geometry true
     draw-border-with-background false
+     background-effect {
+        xray false
+    }
 
 }
-
-// The original opacity values were both 1, so no opacity rule is required.
-//
-// Blur was disabled in the original generated theme. Niri supports compositor
-// blur, but enabling it here would change the original appearance, so it is
-// intentionally not enabled.

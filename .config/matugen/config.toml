@@ -172,6 +172,23 @@ output_path = '~/.config/btop/themes/matugen.theme'
 post_hook = 'pkill -USR2 btop || true'
 
 # ─────────────────────────────────────────────
+# SONORA
+# ─────────────────────────────────────────────
+
+[templates.sonora]
+input_path = '~/.config/matugen/templates/sonora.json'
+output_path = '~/.config/sonora/themes/matugen.json'
+
+# ─────────────────────────────────────────────
+# WAYBAR
+# ─────────────────────────────────────────────
+
+[templates.waybar]
+input_path = "~/.config/matugen/templates/waybar.css"
+output_path = "~/.config/waybar/style.css"
+post_hook = "~/.config/matugen/scripts/reload-waybar.sh"
+
+# ─────────────────────────────────────────────
 # Opcionales
 # ─────────────────────────────────────────────
 
@@ -179,13 +196,6 @@ post_hook = 'pkill -USR2 btop || true'
 # [templates.alacritty]
 # input_path = "~/.config/matugen/templates/alacritty.toml"
 # output_path = "~/.config/alacritty/colors.toml"
-
-
-# Waybar
-# [templates.waybar]
-# input_path = "~/.config/matugen/templates/waybar.css"
-# output_path = "~/.config/waybar/style.css"
-# post_hook = "pkill waybar; sleep 0.3; waybar &>/dev/null &"
 
 
 # SwayNC

@@ -1,0 +1,3 @@
+singleton QuickBarConfig 1.0 QuickBarConfig.qml
+QuickBar 1.0 QuickBar.qml
+QuickBarHost 1.0 QuickBarHost.qml

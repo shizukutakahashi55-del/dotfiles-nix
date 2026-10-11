@@ -1,0 +1,25 @@
+# COMMON — Singletons y widgets compartidos de todo el shell
+
+- Qué es: biblioteca base sin UI propia: singletons de estado global (tema, WM, utilidades) + componentes visuales reutilizados por todos los módulos (`FusedWindow`, `SkinRect`, `Pixel*`, etc.).
+- Archivos (rol en una línea):
+  - `Theme.qml` → singleton: colores/fuentes/radii, `barPosition`/`barFloating`/`islands`/`pill`, niveles UI, `performanceMode`, persistencia `ui.json` + `colors.json`.
+  - `WM.qml` → singleton: abstracción hyprland/niri/mango (`wm`, `has()`, overview nativo); prefs en `~/.config/oozeshell`.
+  - `WmAppearance.qml` → singleton: aplica `appearance` al WM (live + autogen por WM).
+  - `AppState.qml` → singleton: dashboards `pillMode` (sección visible por monitor).
+  - `HyprState.qml` / `HyprDispatch.qml` → estado hyprland / envío de dispatches.
+  - `NiriState.qml` / `MangoIpc.qml` → estado niri / IPC de mango (`mmsg`).
+  - `IslandState.qml` / `FullscreenState.qml` → qué isla está abierta / qué pantalla está en fullscreen.
+  - `ModeRuntime.qml` → modo runtime actual; `Motion.qml` → curvas/duraciones de animación.
+  - `KeyboardLayout.qml` → layout actual + `next()` (IPC `keyboardlayout`).
+  - `UserProfile.qml` → avatar/nombre; guarda `avatar-*` en `~/.config/oozeshell`.
+  - `AudioLevels.qml` / `Fuzzy.qml` / `OozeIcons.qml` → niveles de audio para viz / búsqueda difusa / set de iconos.
+  - `FusedWindow.qml` / `FusedPanel.qml` / `FusedTip.qml` → ventana fusionada al borde + panel animado + tooltip.
+  - `SkinRect.qml` / `NotchRect.qml` / `GlassRegion.qml` → rectángulo con borde interior / con muesca / región de blur.
+  - `CozyBox.qml` / `CozyButton.qml` / `PanelHeader.qml` / `SectionLabel.qml` → contenedores y cabeceras estilo cozy.
+  - `PixelBar.qml` / `PixelRing.qml` / `PixelSteps.qml` / `PixelLevels.qml` → widgets pixel-art; `ChartGrid.qml` / `SpectrumBars.qml` → gráficas.
+  - `BarFlow.qml` / `BarToggle.qml` / `WorkspaceDots.qml` / `WorkspaceChip.qml` → layout de barra, toggle, workspaces.
+  - `AppIcon.qml` / `Avatar.qml` / `ConfirmDialog.qml` / `LazyPopup.qml` → icono de app, avatar, diálogo, popup perezoso.
+- IPC: ninguna (módulo sin `IpcHandler`; `keyboardlayout next` y `theme`/`bar` llaman a estos singletons desde `shell.qml`).
+- Estado y datos: 18 singletons (`qmldir`: Theme, AppState, IslandState, FullscreenState, KeyboardLayout, UserProfile, HyprDispatch, Fuzzy, AudioLevels, WM, MangoIpc, HyprState, NiriState, WmAppearance, Motion, OozeIcons, ModeRuntime). Rutas exactas: `~/.config/oozeshell/ui.json` (+ `prefsDir` en Theme/WM), `~/.cache/oozeshell/colors.json` (Theme), `~/.config/oozeshell/avatar-*` (UserProfile).
+- Dependencias: solo QtQuick/Quickshell/Quickshell.Io; ningún `import ../X`. Es la base: todos los módulos importan `../COMMON`, nunca al revés.
+- Notas: no añadir lógica de módulo aquí; COMMON es genérico. `Theme.animDuration()` devuelve 0 en modo performance (corta todas las animaciones). `GlassRegion` + `BackgroundEffect.blurRegion` es el patrón de blur en barra/paneles.

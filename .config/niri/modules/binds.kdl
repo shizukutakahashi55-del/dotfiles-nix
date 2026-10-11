@@ -35,11 +35,11 @@ binds {
     // Coding workspace toggle from Hyprland:
     // Niri has no per-workspace "remove gaps + remove border" toggle matching
     // the old Lua function, so this bind is intentionally not recreated.
-    // Mod+Q
+    //  Mod+Q
 
     // Salir de Niri
     // No usa Mod+Shift+E para dejar ese atajo libre.
-    Mod+Q { quit; }
+    //Mod+Q { quit; }
 
     // Overview de Niri
     // Niri tiene esta acción integrada; muestra todos los workspaces
@@ -224,14 +224,20 @@ binds {
         spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- clipboard toggle";
     }
 
+    Mod+Shift+Y {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call performance toggle";
+    }
+    Mod+B {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- quickbar toggle";
+    }
+    
     // ------------------------------------------------------------------------
     // HYPRSUNSET -> GENERIC WAYLAND ADAPTATION
     // ------------------------------------------------------------------------
     //
-    // The compositor itself does not provide Hyprsunset. Keep the same toggle
-    // concept, but call the existing hyprsunset process directly.
-    Mod+Y {
-        spawn-sh "if pgrep -x hyprsunset >/dev/null; then pkill -x hyprsunset; else hyprsunset & disown; fi";
+    
+     Mod+Y {
+        spawn-sh "~/.config/niri/scripts/sunset-toggle.sh";
     }
 
     // ------------------------------------------------------------------------

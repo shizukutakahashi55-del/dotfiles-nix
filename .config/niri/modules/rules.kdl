@@ -49,49 +49,19 @@ window-rule {
     }
 }
 
-
-// ---------------------------------------------------------------------------
-// Ghostty
-// ---------------------------------------------------------------------------
-//
-// Hyprland removed the border for Ghostty. Niri's border is already globally
-// disabled, so this rule is unnecessary and is intentionally not duplicated.
-// ---------------------------------------------------------------------------
-
-// ---------------------------------------------------------------------------
-// Hyprland-specific rules not copied
-// ---------------------------------------------------------------------------
-//
-// qt-menu layer blur:
-//   Niri has layer-rule support, but the old rule targeted Hyprland-specific
-//   layer namespaces. It is omitted until the actual Niri namespace is known.
-//
-// Rofi blur:
-//   Same reason. If Rofi is still used, inspect its namespace and add a
-//   dedicated Niri layer-rule later.
-//
-// OozeShell no_anim:
-//   Niri's layer/window animation model differs and there is no direct
-//   per-layer "no_anim" translation here.
-//
-// suppress-maximize:
-//   Niri handles maximize/column behavior differently, so this is omitted.
-//
-// XWayland drag workaround:
-//   This was a Hyprland-specific matcher workaround and has no direct
-//   one-to-one Niri rule.
-//
-// hyprland-run:
-//   No longer relevant under Niri.
-//
-// Smart gaps / workspace layout rules:
-//   Niri's scrollable-column layout does not expose Hyprland's workspace
-//   layout selectors.
-// ============================================================================
-
 // Keep a simple per-window geometry rule equivalent to the old visual style.
 window-rule {
     match app-id="^com\\.mitchellh\\.ghostty$"
     geometry-corner-radius 6
     clip-to-geometry true
+}
+
+// OozeShell — blur
+layer-rule {
+    match namespace="^oozeshell-widget$"
+
+    background-effect {
+        blur true
+        xray false
+    }
 }

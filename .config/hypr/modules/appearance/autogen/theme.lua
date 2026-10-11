@@ -1,10 +1,10 @@
 -- Auto-generado por OozeShell (APPEARANCE). No editar a mano.
 -- Se regenera cada vez que cambiás algo desde el panel de apariencia.
 return {
-    gaps_in = 3,
-    gaps_out = 6,
-    border_size = 3,
-    rounding = 0,
+    gaps_in = 4,
+    gaps_out = 8,
+    border_size = 2,
+    rounding = 4,
     rounding_power = 5,
     active_opacity = 1,
     inactive_opacity = 1,

@@ -3,9 +3,11 @@
 -- ============================================================================
 
 -- appearance.lua y animations.lua
-local colors = require("modules.appearance.colors")   -- esta se queda son los colores automaticos.  No cambiar estas lineas.
-local loader = require("modules.appearance.loader")
-local theme  = loader.load("theme", loader.defaults.theme)
+require("modules.appearance.decor.decorations")
+
+local colors = require("modules.appearance.colors")             -- Matugen Colors.  Do NOT change this line.
+local loader = require("modules.appearance.loader")             -- Autogen.         Do NOT change this line. 
+local theme  = loader.load("theme", loader.defaults.theme)      -- Autogen .        Do NOT change this line.
 
 hl.config({
     general = {

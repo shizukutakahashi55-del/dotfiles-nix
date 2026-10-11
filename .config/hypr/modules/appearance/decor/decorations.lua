@@ -1,0 +1,214 @@
+----------------------
+-- DYNAMIC EFFECTS 
+----------------------
+
+-- EFFECT BLUR DROPS
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "drops",
+--             drops = {
+--                 speed = 3.0,
+--             },
+--             glass = {
+--                 refraction = 20.0,
+--                 roughness = 1.0,
+--                 size = 40.0,
+--             },
+--         },
+--     },
+-- })
+
+
+
+-- EFFECT WOBBLE
+-- hl.config({
+--     decoration = {
+--         wobble = {
+--             enabled = true,
+--             -- Los siguientes parámetros controlan la física del efecto
+--             mesh = 12,        -- Vértices de la malla por borde [2 - 32]
+--             stiffness = 200,  -- Rigidez del muelle [0.0001 - 1000]
+--             damping = 12,     -- Amortiguación del muelle [0 - 1000]
+--             mass = 1,         -- Masa del muelle [0.0001 - 1000]
+--             intensity = 0.2,  -- Multiplicador de impulso de la deformación [0 - 3]
+--         },
+--     },
+-- })
+
+-- EFFECT BLUR ACRYLIC
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "acrylic",
+--             -- Opciones específicas de acrylic
+--             acrylic = {
+--                 aberration = 0.025,  -- Separación cromática relativa en la lente acrílica [0.0 - 0.25]
+--                 bulb = 48.0,         -- Ancho del borde acrílico curvo en píxeles [4.0 - 256.0]
+--                 clarity = 0.82,      -- Cantidad de fondo nítido que pasa a través [0.0 - 1.0]
+--                 refraction = 24.0,   -- Desplazamiento máximo de la lente en píxeles [0.0 - 48.0]
+--                 tint = 0x14EEF5FF,   -- Color de tinte acrílico. El canal alfa controla la absorción óptica
+--             },
+--         },
+--     },
+-- })
+
+-- EFFECT BLUR AURORA
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "aurora",
+--             aurora = {
+--                 color1 = 0x29F0A0FF,  -- Color de la primera cortina de aurora. Alfa controla su contribución
+--                 color2 = 0x7A4DFFFF,  -- Color de la segunda cortina de aurora
+--                 intensity = 0.35,     -- Fuerza de la contribución de color de la aurora [0.0 - 1.0]
+--                 speed = 1.0,          -- Velocidad de animación. 0 congela la animación [0.0 - 10.0]
+--             },
+--         },
+--     },
+-- })
+
+-- EFFECT BLUR FLUID JAR
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "fluid_jar",
+--             fluid_jar = {
+--                 color = 0xCC3399FF,      -- Color del fluido
+--                 distortion = 8.0,        -- Multiplicador de distorsión de refracción [0.0 - 10.0]
+--                 fill_amount = 0.5,       -- Nivel de llenado del fluido [0.0 - 1.0]
+--                 mass = 1.4,              -- Masa inercial del fluido [0.1 - 10.0]
+--                 precision = 2.0,         -- Precisión de la simulación. 2x es un buen compromiso. 4x es caro, 8x extremo [0.5 - 8.0]
+--                 speed = 3.7,             -- Velocidad de animación [0.0 - 10.0]
+--                 turbulence = 1.2,        -- Multiplicador de turbulencia interior [0.0 - 5.0]
+--             },
+--         },
+--     },
+-- })
+
+-- EFFECT FROZEN BLUR
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "frost",
+
+--             glass = {
+--                 refraction = 20.0,  -- Desplazamiento máximo de refracción en píxeles [0.0 - 20.0]
+--                 roughness = 1.0,    -- Fuerza del sombreado de relieve del vidrio [0.0 - 1.0]
+--                 size = 40.0,        -- Tamaño del patrón para tipos de vidrio en píxeles [4.0 - 512.0]
+--             },
+--         },
+--     },
+-- })
+
+
+-- EFFECT BLUR HAZE
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "haze",
+--             haze = {
+--                 intensity = 0.35,    -- Fuerza del brillo nacarado de la neblina [0.0 - 1.0]
+--                 iridescence = 0.7,   -- Fuerza del cambio de color nacarado [0.0 - 1.0]
+--             },
+--         },
+--     },
+-- })
+
+-- EFFECT BLUR HEAT SHIMMER 2ND FAV
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "heat_shimmer",
+--             heat_shimmer = {
+--                 speed = 1.0,  -- Velocidad de animación. 0 desactiva la animación [0.0 - 10.0]
+--             },
+--             -- Heat Shimmer también hereda de "glass"
+--             glass = {
+--                 refraction = 20.0,
+--                 roughness = 1.0,
+--                 size = 40.0,
+--             },
+--         },
+--     },
+-- })
+
+-- EFFECT BLUR PRISM
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "prism",
+--             -- Prism hereda de "glass"
+--             glass = {
+--                 refraction = 20.0,
+--                 roughness = 1.0,
+--                 size = 40.0,
+--             },
+--         },
+--     },
+-- })
+
+-- EFFECT BLUR PRISM
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "ripple",
+--             ripple = {
+--                 duration = 0.45,   -- Duración en segundos [0.05 - 5.0]
+--                 radius = 400.0,    -- Radio máximo en píxeles [1.0 - 1000.0]
+--                 strength = 30.0,   -- Desplazamiento máximo de refracción en píxeles [0.0 - 32.0]
+--                 width = 32.0,      -- Ancho de las ondas en píxeles [1.0 - 200.0]
+--             },
+--         },
+--     },
+-- })
+
+-- EFFECT BLUR WOTA
+-- hl.config({
+--     decoration = {
+--         blur = {
+--             enabled = true,
+--             variant = "water",
+--             water = {
+--                 damping = 0.95,      -- Amortiguación de decaimiento [0.0 - 1.0]
+--                 duration = 12.0,     -- Duración máxima en segundos [0.5 - 60.0]
+--                 radius = 20.0,       -- Radio del puntero en píxeles [1.0 - 1000.0]
+--                 speed = 0.76,        -- Velocidad de propagación [0.0 - 10.0]
+--                 strength = 32.0,     -- Fuerza máxima de refracción e inyección en píxeles [0.0 - 32.0]
+--             },
+--         },
+--     },
+-- })
+
+
+-- GLOW EFFECT
+-- hl.config({
+--     decoration = {
+--         glow = {
+--             enabled = true,
+--             color = 0xee1a1a1a,
+--             range = 10,               -- Rango en Pixeles 
+--             render_power = 1,         -- Potencia de caida de renderizado
+--         }
+--     }
+-- })
+
+
+-- EFFECT MOTION BLUR I don't like this one 
+-- hl.config({
+--     decoration = {
+--         motion_blur = {
+--             enabled = true,
+--             samples = 10,
+--         }
+--     }
+-- })

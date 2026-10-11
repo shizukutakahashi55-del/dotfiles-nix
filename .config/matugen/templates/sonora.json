@@ -1,0 +1,50 @@
+{
+  "name": "Matugen",
+  "author": "Matugen",
+  "version": 1,
+  "theme": {
+    "background": "{{ colors.background.default.hex }}",
+    "foreground": "{{ colors.on_background.default.hex }}",
+
+    "sidebar": "{{ colors.surface_container_low.default.hex }}",
+
+    "popover": "{{ colors.surface_container.default.hex }}",
+    "popover_foreground": "{{ colors.on_surface.default.hex }}",
+
+    "secondary": "{{ colors.secondary_container.default.hex }}",
+    "secondary_hover": "{{ colors.secondary_container.default.hex }}",
+    "secondary_active": "{{ colors.secondary.default.hex }}",
+
+    "muted": "{{ colors.surface_container_high.default.hex }}",
+    "muted_foreground": "{{ colors.on_surface_variant.default.hex }}",
+
+    "border": "{{ colors.outline_variant.default.hex }}66",
+
+    "primary": "{{ colors.primary.default.hex }}",
+    "primary_foreground": "{{ colors.on_primary_container.default.hex }}",
+    "primary_hover": "{{ colors.primary_container.default.hex }}",
+
+    "danger": "{{ colors.error.default.hex }}",
+    "danger_foreground": "{{ colors.on_error.default.hex }}",
+    "danger_hover": "{{ colors.error_container.default.hex }}",
+
+    "progress_bar": "{{ colors.primary.default.hex }}",
+
+    "selection": "{{ colors.primary_container.default.hex }}",
+
+    "sidebar_accent": "{{ colors.primary_container.default.hex }}",
+    "sidebar_border": "{{ colors.outline_variant.default.hex }}",
+
+    "title_bar_border": "{{ colors.outline_variant.default.hex }}",
+
+    "table_head": "{{ colors.surface_container_low.default.hex }}",
+    "table_head_foreground": "{{ colors.on_surface_variant.default.hex }}",
+
+    "table_row_border": "{{ colors.outline_variant.default.hex }}44",
+
+    "table_hover": "{{ colors.surface_container_high.default.hex }}",
+
+    "table_active": "{{ colors.primary_container.default.hex }}99",
+    "table_active_border": "{{ colors.primary.default.hex }}"
+  }
+}

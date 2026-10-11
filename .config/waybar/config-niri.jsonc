@@ -7,10 +7,10 @@
     "gtk-layer-shell": true,
 
     "height": 30,
-    "margin-top": 1,
-    "margin-bottom": 1,
-    "margin-left": 5,
-    "margin-right": 5,
+    "margin-top": 6,
+    "margin-bottom": 0,
+    "margin-left": 8,
+    "margin-right": 8,
 
     "modules-left": [
         "custom/power",
@@ -44,7 +44,7 @@
 
     "custom/power": {
         "format": "⏻",
-        "on-click": "bash ~/.config/rofi/Powermenu/powermenu.sh",
+        "on-click": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call powermenu toggle",
         "tooltip": true,
         "tooltip-format": "Power Menu"
     },
@@ -150,10 +150,11 @@
         "dnd-inhibited-none": "󰪑"
         },
         "return-type": "json",
-        "exec-if": "which swaync-client",
-        "exec": "swaync-client -swb",
-        "on-click": "swaync-client -t -sw",
-        "on-click-right": "swaync-client -d -sw",
+        "exec-if": "which quickshell",
+        "exec": "~/.config/waybar/scripts/notify-state.sh",
+        "restart-interval": 3,
+        "on-click": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call notify toggle",
+        "on-click-right": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call notify toggleDnd",
         "escape": true
     },
 
@@ -195,6 +196,7 @@
 
     "clock": {
         "format": "󱑂 {:%H:%M}",
+        "on-click": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call agenda toggle",
 
         "tooltip-format": "<span size='15000'><tt>{calendar}</tt></span>",
 
@@ -274,7 +276,7 @@
             ]
         },
 
-        "on-click": "pavucontrol",
+        "on-click": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call audio toggle",
 
         "on-scroll-up": "swayosd-client --output-volume raise",
         "on-scroll-down": "swayosd-client --output-volume lower",
@@ -292,7 +294,7 @@
         "format-connected": "󰂱 {device_alias}",
         "format-connected-battery": "󰂱 {device_alias} {device_battery_percentage}%",
 
-        "on-click": "bash ~/.config/rofi/Bluetooth/bluetooth.sh",
+        "on-click": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call bluetooth toggle",
 
         "tooltip-format": "{controller_alias}\n\n{num_connections} connected",
 
@@ -311,9 +313,10 @@
         "format-disconnected": "󰤭 offline",
 
         "tooltip-format-wifi": "{essid} ({signalStrength}%)\n{ipaddr}",
-        "tooltip-format-ethernet": "{ifname}\n{ipaddr}",
+        "tooltip-format-ethernet": "{ifname}\\n{ipaddr}",
 
-        "max-length": 20
+        "max-length": 20,
+        "on-click": "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call network toggle"
     },
 
     // ========================================================================

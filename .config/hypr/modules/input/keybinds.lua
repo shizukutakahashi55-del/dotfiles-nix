@@ -4,14 +4,12 @@
 --  Contains: every hl.bind() -- keyboard binds, workspace switching,
 --  multimedia keys, and the mouse binds (move/resize windows with the mouse).
 -- Tried to do the comments here on English but sometimes I forgot that LOL.
---  Wiki: https://wiki.hypr.land/Configuring/Basics/Binds/
+--  Wiki: https://wiki.hypr.land/configuring/core/binds/
 -- ============================================================================
 
 local programs = require("modules.startup.programs")
+local functions = require("modules.input.snippets.keybind_functions")
 
-local loader = require("modules.appearance.loader")
-local theme  = loader.load("theme", loader.defaults.theme)
-local layouta = loader.load("layouta", loader.defaults.layouta)
 ---------------------
 ---- KEYBINDINGS ----
 ---------------------
@@ -21,77 +19,16 @@ local mainMod = "SUPER" -- Sets "Windows" key as main modifier
 -------------------------------------------------------------------------------
 -- LUA CODE SNIPPETS
 -------------------------------------------------------------------------------
-    -- PER LAYOUT BINDS
 
-        local function layout_bind(bind_table)
-            return function ()
-                local workspace = hl.get_active_special_workspace() or
-                                hl.get_active_workspace()
-
-                if not workspace then
-                    return
-                end
-
-                local layout = workspace.tiled_layout
-
-            if bind_table[layout] then
-                    hl.dispatch(bind_table[layout])
-                end
-            end
-        end
-
- -- CODING WORKSPACE TOGGLE
-
--- -- Coding Space
-
-local codingWorkspace = false
-
-local normalCoding = {
-    workspace = "1",
-    no_rounding = false,
-    no_border = false,
-    gaps_in = theme.gaps_in,
-    gaps_out = theme.gaps_out,
-    layout = layouta.layout,
-}
-
-local codingEnabled = {
-    workspace = "1",
-    no_rounding = true,
-    no_border = true,
-    gaps_in = 0,
-    gaps_out = 0,
-    layout = "dwindle",
-}
-
-local function toggleCodingWorkspace()
-
-    codingWorkspace = not codingWorkspace
-
-    if codingWorkspace then
-
-        hl.workspace_rule(codingEnabled)
-
-        hl.exec_cmd('notify-send -i vscode "Coding Workspace" "ON 💻"')
-
-    else
-
-        hl.workspace_rule(normalCoding)
-
-        hl.exec_cmd('notify-send -i vscode "Coding Workspace" "OFF 🏠"')
-
-    end
-
-end
-
-hl.bind(mainMod .. " + Q", function() toggleCodingWorkspace() end)
+-- Coding Space Toggle
+hl.bind(mainMod .. " + Q", functions.toggleCodingWorkspace)
 
 
 -------------------------------------------------------------------------------
 -- APPLICATIONS
 -------------------------------------------------------------------------------
 
--- Terminal
+-- Terminal 
 hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(programs.terminal))
 
 -- File Manager
@@ -126,7 +63,7 @@ hl.bind(
 )
 
 -- hl.bind(
---     "SUPER + T",
+--     "SUPER + return",
 --     hl.dsp.window.fullscreen("toggle, mode:maximized")
 -- )
 -------------------------------------------------------------------------------
@@ -173,11 +110,11 @@ hl.bind(mainMod .. " + down",  hl.dsp.focus({ direction = "down" }))
 -- Move focus between tiled and floating windows 
 -- This functions similarly to the i3 focus mode_toggle bind.
 
-hl.bind("SUPER + space", function()
-    hl.dispatch(hl.dsp.window.cycle_next({
-        floating = not hl.get_active_window().floating
-    }))
-end, { description = "Switch focus between tiled and floating windows" })
+
+
+hl.bind("SUPER + space", functions.toggleTiledFloatingFocus, {
+    description = "Switch focus between tiled and floating windows"
+})
 
 
 -------------------------------------------------------------------------------
@@ -192,32 +129,18 @@ hl.bind(mainMod .. " + SHIFT + down",  hl.dsp.window.move({ direction = "down" }
 
 -- Move All Windows In Current Workspace To Another
 
-local function moveWindowsCurrentWorkspace(ws, f)
-    local cws = hl.get_active_workspace()
-    local windows = hl.get_windows({ workspace = cws })
-
-    for _,w in pairs(windows) do
-        hl.dispatch(
-            hl.dsp.window.move({
-                window = w ,
-                workspace = ws ,
-                follow = f
-            })
-        )
-    end
-end
 
 for i = 1, 10 do
     local key = i % 10
     hl.bind("SUPER+SHIFT+ALT+" .. key, function()
-        moveWindowsCurrentWorkspace(i, true)
+        functions.moveWindowsCurrentWorkspace(i, true)
     end)
 end
 
 for i = 1, 10 do
     local key = i % 10
     hl.bind("SUPER+CTRL+ALT+" .. key, function()
-        moveWindowsCurrentWorkspace(i, false)
+        functions.moveWindowsCurrentWorkspace(i, false)
     end)
 end
 
@@ -228,7 +151,7 @@ end
 -- Cycle to next Monocle
 -- hl.bind(mainMod .. " + TAB", hl.dsp.layout("cyclenext"))
 
-hl.bind("SUPER + TAB", layout_bind({
+hl.bind("SUPER + TAB", functions.layout_bind({
     scrolling = hl.dsp.layout("swapcol l"),  -- Scrolling: swap column with left one
     dwindle   = hl.dsp.layout("swapsplit"),  -- Dwindle: swap window split
     monocle   = hl.dsp.layout("cycleprev"),  -- Monocle and master: cycle prev window
@@ -239,7 +162,7 @@ hl.bind("SUPER + TAB", layout_bind({
 -- Cycle to previous Monocle
 -- hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.layout("cycleprev"))
 
-hl.bind("SUPER + SHIFT + TAB", layout_bind({
+hl.bind("SUPER + SHIFT + TAB", functions.layout_bind({
     scrolling = hl.dsp.layout("swapcol r"),   -- Scrolling: swap column with right one
     dwindle   = hl.dsp.layout("togglesplit"), -- Dwindle: toggle window split
     monocle   = hl.dsp.layout("cyclenext"),   -- Monocle and master: cycle next window
@@ -286,17 +209,9 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:mag
 -- Minimize windows using special workspace.
 -- Note that one keybind can only handle one window.
 
-hl.bind("SUPER + X", function ()
-    if hl.get_workspace("special:minimized") then
-        -- Restore minimized window
-        hl.dispatch(hl.dsp.window.move({ workspace = hl.get_active_workspace(), window = "tag:minimized" }))
-        hl.dispatch(hl.dsp.window.clear_tags({ window = "tag:minimized" }))
-    else
-        -- Move active window to minimized workspace
-        hl.dispatch(hl.dsp.window.tag({ tag = "minimized", window = hl.get_active_window() }))
-        hl.dispatch(hl.dsp.window.move({ workspace = "special:minimized", follow = false }))
-    end
-end)
+
+
+hl.bind("SUPER + X", functions.toggleMinimizedWindow)
 
 
 -------------------------------------------------------------------------------
@@ -323,128 +238,63 @@ hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 -- OSD helper (toast de Quickshell/OozeShell, NO crea notificaciones)
 -------------------------------------------------------------------------------
 
-local QS_CONFIG = os.getenv("HOME") .. "/.config/quickshell/OozeShell"
-
--- Escapa para shell con comillas simples
-local function sh(s)
-    return "'" .. tostring(s):gsub("'", "'\\''") .. "'"
-end
-
--- osd("icono", "Título", "Subtítulo", activo?)
-local function osd(icon, title, subtitle, active)
-    hl.exec_cmd(
-        "quickshell ipc -p " .. sh(QS_CONFIG) .. " call -- osd show " ..
-        sh(icon) .. " " .. sh(title) .. " " .. sh(subtitle) .. " " ..
-        (active and "true" or "false")
-    )
-end
 
 -------------------------------------------------------------------------------
 -- Hyprsunset
 -------------------------------------------------------------------------------
 
-local function toggleHyprsunset()
-    return hl.dsp.exec_cmd([[
-        osd() { quickshell ipc -p "$HOME/.config/quickshell/OozeShell" call -- osd show "$1" "$2" "$3" "$4"; }
-        if pgrep -x hyprsunset >/dev/null; then
-            pkill -x hyprsunset
-            osd "󰖔" "Hyprsunset" "OFF" false
-        else
-            hyprsunset & disown
-            osd "󰖙" "Hyprsunset" "ON" true
-        fi
-    ]])
-end
 
-hl.bind(mainMod .. " + Y", toggleHyprsunset())
+hl.bind(mainMod .. " + Y", functions.toggleHyprsunset())
 
-hl.bind("SUPER + K", function ()
-    local ok, err = pcall(function ()
-        local layouts = {
-            scrolling = "󰕰",
-            dwindle   = "󰕳",
-            master    = "󰓦",
-            monocle   = "󰖲",
-        }
-        local order = { "scrolling", "dwindle", "master", "monocle" }
+-------------------------------------------------------------------------------
+-- LayoutCycle
+-------------------------------------------------------------------------------
 
-        local workspace = hl.get_active_workspace()
-        if hl.get_active_special_workspace() then
-            workspace = hl.get_active_special_workspace()
-        end
-        if not workspace then
-            return
-        end
-
-        local next_layout = "dwindle"
-        for i = 1, #order do
-            if order[i] == workspace.tiled_layout then
-                next_layout = order[(i % #order) + 1]
-                break
-            end
-        end
-
-        if workspace.special then
-            hl.workspace_rule({ workspace = tostring(workspace.name), layout = next_layout })
-        else
-            hl.workspace_rule({ workspace = tostring(workspace.id), layout = next_layout })
-        end
-
-        hl.exec_cmd(
-            'quickshell ipc -p "$HOME/.config/quickshell/OozeShell" call -- osd show "' ..
-            layouts[next_layout] .. '" "Layout" "' .. next_layout .. '" true'
-        )
-    end)
-
-    if not ok then
-        hl.exec_cmd("notify-send -u critical 'Error en SUPER+K' '" .. tostring(err):gsub("'", "") .. "'")
-    end
-end)
+hl.bind("SUPER + K", functions.cycleLayout)
 
 
 -------------------------------------------------------------------------------
 -- OOZESHELL
 -------------------------------------------------------------------------------
-
--- Wallpaper selector
 -- SUPER + W
+-- Wallpaper selector 
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call toggleWalls handle"
 ))
 
--- Monitor selector
 -- Chooses which monitor displays the shell (Walls/Notify/Mpris)
 -- SUPER + L
+-- Monitor selector
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- monitor togglePicker"
 ))
 
--- Restart Quickshell
 -- SUPER + SHIFT + P
+-- Restart Quickshell 
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(
   "pkill quickshell & sleep 1 && quickshell -p ~/.config/quickshell/OozeShell/shell.qml"
 ))
 
--- Keybind Cheatsheet
 -- SUPER + I
+-- Keybind Cheatsheet 
 hl.bind(mainMod .. " + I", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call keybinds toggle"
 ))
 
--- Keybind Translate Shell
 -- SUPER + G
+-- Keybind Translate Shell 
 hl.bind(mainMod .. " + G", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- lang togglePicker"
 ))
 
--- Keybind Appearance
 -- SUPER + H
+-- Keybind Appearance 
 hl.bind(mainMod .. " + H", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- appearance toggle"
 ))
 
--- Notification Center
 -- SUPER + N
+-- Notification Center 
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(
     "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- notify toggle" 
 ))
@@ -465,17 +315,28 @@ hl.bind(mainMod .. " + M", hl.dsp.exec_cmd(
 ))
 
 --Settings Call
-hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- settings toggle"))
+hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- settings toggle"
+))
 
  -- OozeLock
-hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock "))
+hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock "
+))
 
 --Nix-Search
--- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
-hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle"))
+hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle"
+))
 
 -- Clipboard Toggle
-hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- clipboard toggle"))
+hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- clipboard toggle"
+))
+
+-- Performance Mode
+hl.bind(mainMod .. "+ SHIFT + Y", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call performance toggle"
+))
+
+-- QuickSearch
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- quickbar toggle"
+))
 
 -- Pacman/Paru OozeShell
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- pacsearch toggle"))
@@ -501,26 +362,6 @@ hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshe
 
 -- Hyprlock
 -- hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("hyprlock"))
-
--------------------------------------------------------------------------------
--- Hyprsunset.
--------------------------------------------------------------------------------
-
--- local function toggleHyprsunset()
---     return hl.dsp.exec_cmd([[
---         if pgrep -x hyprsunset >/dev/null; then
---             pkill -x hyprsunset
---             notify-send -i weather-clear "Hyprsunset" "OFF 🌙"
---         else
---             hyprsunset & disown
---             notify-send -i weather-clear-night "Hyprsunset" "ON ☀️"
---         fi
---     ]])
--- end
-
--- -- Hyprsunset
--- hl.bind(mainMod .. " + Y", toggleHyprsunset())
-
 
 -------------------------------------------------------------------------------
 -- MULTIMEDIA / VOLUME
@@ -551,25 +392,6 @@ hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-")
 
 
 -------------------------------------------------------------------------------
--- MEDIA PLAYER
--------------------------------------------------------------------------------
-
--- Requires playerctl
-
--- Next track
-hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
-
--- Pause
-hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-
--- Play / pause
-hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
-
--- Previous track
-hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
-
-
--------------------------------------------------------------------------------
 -- SCREENSHOTS
 -- Grim + Slurp + Wl-Clipboard
 -------------------------------------------------------------------------------
@@ -591,12 +413,33 @@ hl.bind(mainMod .. " + SHIFT + PRINT", hl.dsp.exec_cmd(
 
 
 -------------------------------------------------------------------------------
+-- MEDIA PLAYER
+-------------------------------------------------------------------------------
+
+-- Requires playerctl
+
+-- Next track
+hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })
+
+-- Pause
+hl.bind("XF86AudioPause", hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+
+-- Play / pause
+hl.bind("XF86AudioPlay",  hl.dsp.exec_cmd("playerctl play-pause"), { locked = true })
+
+-- Previous track
+hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = true })
+
+
+
+
+-------------------------------------------------------------------------------
 -- CUSTOM / OPTIONAL BINDS
 -------------------------------------------------------------------------------
 
 -- local home = os.getenv("HOME")
 
--- Waybar theme switcher
+---- Waybar theme switcher
 -- hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(home .. "/.config/waybar/themes/waybar-theme-switcher.sh"))
 
 

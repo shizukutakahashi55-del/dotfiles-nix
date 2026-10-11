@@ -48,6 +48,3 @@ animations {
         curve "ease-out-quad"
     }
 }
-
-// Niri has no direct Hyprland equivalents for the old border/layer/fade
-// animation leaves. Those animations are therefore not copied one-to-one.

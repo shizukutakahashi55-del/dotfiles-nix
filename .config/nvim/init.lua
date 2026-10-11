@@ -95,8 +95,6 @@ map("n", "<Esc>", "<cmd>nohlsearch<CR>", {
 
 -- ── Tema (matugen) ───────────────────────────────────────────
 -- El tema se aplica y recarga solo (ver lua/plugins/matugen.lua).
--- Este atajo es solo para forzar una recarga manual si lo necesitas.
-
 map("n", "<leader>tr", "<cmd>MatugenReload<CR>", {
   desc = "Recargar tema de Matugen",
 })

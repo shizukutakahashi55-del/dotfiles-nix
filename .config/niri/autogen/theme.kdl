@@ -1,13 +1,9 @@
 // Auto-generado por OozeShell (APPEARANCE). No editar a mano.
 // Se regenera cada vez que cambias algo desde el panel de apariencia.
 layout {
-    gaps 6
-    focus-ring {
-        off
-    }
+    gaps 8
     border {
-        on
-        width 3
+        off
     }
     shadow {
         off
@@ -15,7 +11,7 @@ layout {
 }
 
 window-rule {
-    geometry-corner-radius 0
+    geometry-corner-radius 14
     clip-to-geometry true
     background-effect {
         blur true
@@ -24,5 +20,5 @@ window-rule {
 
 blur {
     passes 1
-    offset 1.0
+    offset 3.0
 }

@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# ============================================================
-# waybar-theme-switcher.sh
-# Cicla entre temas con cada llamada sin duplicar procesos.
-# ============================================================
 
 set -euo pipefail
 
@@ -12,7 +8,6 @@ WAYBAR_CSS="$WAYBAR_CSS_DIR/style.css"
 STATE_DIR="$HOME/.cache"
 STATE_FILE="$STATE_DIR/waybar-current-theme"
 
-# Lista de temas disponibles (deben coincidir con el nombre del archivo sin .css)
 THEMES=(
     "catppuccin-mocha"
     "tokyo-night"
@@ -26,10 +21,7 @@ THEMES=(
     "neon-punk"
 )
 
-# Asegurar que existan los directorios necesarios
 mkdir -p "$WAYBAR_CSS_DIR" "$STATE_DIR"
-
-# ---------- funciones ----------
 
 get_current_index() {
     if [[ -f "$STATE_FILE" ]]; then
@@ -54,21 +46,14 @@ apply_theme() {
         exit 1
     fi
 
-    # Copia el CSS al destino principal de waybar
     cp "$css_file" "$WAYBAR_CSS"
 
-    # Guarda el estado actual
     echo "$theme" > "$STATE_FILE"
 
-    # Si waybar está corriendo, recarga el estilo en vivo sin reiniciar.
-    # Si no está corriendo, lo inicia.
-    if pgrep -x waybar >/dev/null; then
-        pkill -SIGUSR2 waybar
-    else
-        waybar &>/dev/null &
+    if [[ -f "${XDG_RUNTIME_DIR:-/tmp}/waybar-ctl/waybar.pid" ]]; then
+        "$HOME/.config/matugen/scripts/reload-waybar.sh"
     fi
 
-    # Notificación opcional
     if command -v notify-send &>/dev/null; then
         notify-send -t 2000 -i preferences-desktop-theme \
             "Waybar Theme" "Nuevo tema: $theme"
@@ -77,13 +62,9 @@ apply_theme() {
     echo "Tema aplicado: $theme"
 }
 
-# ---------- lógica principal ----------
-
 if [[ -n "${1:-}" ]]; then
-    # Modo: tema específico por nombre
     apply_theme "$1"
 else
-    # Modo: ciclar al siguiente
     current_index=$(get_current_index)
     next_index=$(( (current_index + 1) % ${#THEMES[@]} ))
     apply_theme "${THEMES[$next_index]}"

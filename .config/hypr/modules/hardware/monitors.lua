@@ -14,7 +14,7 @@ hl.monitor({
     mode     = "preferred",
     position = "auto",
     scale    = "auto",
-    -- mirror   = "HDMI-A-1"
+
 })
 
 hl.monitor({
@@ -22,5 +22,4 @@ hl.monitor({
     mode      = "preferred",
     position  = "auto",
     scale     = "auto",
-    transform = 0, -- 1 = 90° (Vertical), 3 = 270° (Vertical invertido)
 })

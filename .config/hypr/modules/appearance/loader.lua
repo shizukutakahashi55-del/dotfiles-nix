@@ -21,8 +21,6 @@ local function merge(dst, src)
     return dst
 end
 
--- Lee el archivo desde disco cada vez (sin caché).
--- Si falta, está corrupto o da error, devuelve los valores por defecto.
 function M.load(name, defaults)
     local result = copy(defaults)
     local chunk = loadfile(base .. name .. ".lua")

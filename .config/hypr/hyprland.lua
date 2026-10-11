@@ -30,6 +30,8 @@ require("modules.appearance.layouts")
 -- ============================================================================
 require("modules.input.input")
 require("modules.input.keybinds")
+-- Overrides y binds nuevos de OozeShell (Ajustes → Keybinds).
+pcall(require, "modules.input.autogen.binds")
 
 -- ============================================================================
 -- RULES
