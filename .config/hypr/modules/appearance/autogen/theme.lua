@@ -3,8 +3,8 @@
 return {
     gaps_in = 4,
     gaps_out = 8,
-    border_size = 2,
-    rounding = 4,
+    border_size = 3,
+    rounding = 8,
     rounding_power = 5,
     active_opacity = 1,
     inactive_opacity = 1,
@@ -12,7 +12,7 @@ return {
     blur = {
         enabled = true,
         size = 2,
-        passes = 1,
+        passes = 2,
     },
     shadow = {
         enabled = false,

@@ -56,11 +56,11 @@ It is interactive and asks before anything invasive. Every system:
 1. Extracts `OozeShell.zip` into `.config/quickshell/OozeShell`. A previous copy is moved to `~/.local/share/oozeshell/backups/`, never deleted.
 2. Creates the symlinks and sets executable permissions.
 
-Arch adds: AUR helper check (offers `paru`), optional `pacman -Syu`, base dependencies (retrying one by one if a batch fails), `quickshell` and `awww`, a terminal of your choice, optional services, optional Waybar, legacy tools and extras, optional Suwayomi, and the NVIDIA / Electron variables in `env.lua`.
+Arch adds: AUR helper check (offers `paru`), optional `pacman -Syu`, base dependencies (retrying one by one if a batch fails), `quickshell` and `awww`, a terminal of your choice, optional services, optional Waybar, legacy tools and extras, optional Suwayomi, the optional OozeWalls engine, and the NVIDIA / Electron variables in `env.lua`.
 
 Other distros add: the `NixOSInstallation.md` file and the `nix-rofi` link. No packages are installed.
 
-Block-by-block details are in [docs/INSTALLER.md](docs/INSTALLER.md).
+Block-by-block details are the comments inside `install-oozenix.sh`.
 
 ---
 
@@ -70,7 +70,7 @@ Everything is a symlink into `~/dotfiles/.config`, so editing `~/.config/hypr/` 
 
 | Always | Only if you say yes to "legacy tools" | Only on non-Arch |
 | --- | --- | --- |
-| `alacritty` `cava` `fastfetch` `foot` `ghostty` `hypr` `kitty` `matugen` `nvim` `quickshell` `rofi` `wezterm` `yazi` `waybar` `starship.toml` `.zshrc` | `swaync` `swayosd` | `~/.local/bin/nix-rofi` |
+| `alacritty` `cava` `dolphin` `fastfetch` `foot` `ghostty` `hypr` `kitty` `matugen` `nvim` `quickshell` `rofi` `wezterm` `yazi` `waybar` `starship.toml` `.zshrc` | `swaync` `swayosd` | `~/.local/bin/nix-rofi` |
 
 Also linked: `niri` and `mango` (when present), and `VK-Th/themes` → `~/.config/vesktop/themes`.
 
@@ -96,7 +96,7 @@ Arch: handled by the installer. NixOS: use nix-home or `NixOSInstallation.md`.
 
 | Group | Packages |
 | --- | --- |
-| Compositor | `hyprland` (≥ 0.55), `hyprpaper`, `hypridle`, `hyprlock`, `hyprpolkitagent`, `hyprshot`, `hyprsunset`, `hyprshutdown`, `hyprsysteminfo` |
+| Compositor | `hyprland` (≥ 0.55), `hyprpaper`, `hypridle`, `hyprlock`, `hyprpolkitagent`, `hyprshot`, `hyprsunset`, `hyprshutdown`, `hyprsysteminfo`, `xdg-desktop-portal` (+ `xdg-desktop-portal-hyprland`, `xdg-desktop-portal-gtk`) |
 | Shell | `quickshell`, Qt6 (`qt6-base`, `qt6-declarative`, `qt6-svg`, `qt6-shadertools`, `qt6ct`) |
 | Audio | `pipewire`, `pipewire-pulse`, `wireplumber`, `pavucontrol`, `qpwgraph` |
 | Hardware | `brightnessctl`, `power-profiles-daemon`, `upower` |
@@ -107,13 +107,13 @@ Arch: handled by the installer. NixOS: use nix-home or `NixOSInstallation.md`.
 | Fonts | JetBrainsMono Nerd Font, Symbols Nerd Font Mono |
 | Terminal | one of foot, kitty, alacritty, wezterm, ghostty |
 
-Optional: `waybar`, `swaync`, `swayosd`, `wlogout`; `nix-search` (NixOS package search); pixel fonts for the CoOzey theme (Pixelify Sans, Jersey 10, Silkscreen, VT323, DotGothic16; NixOS snippet in `OozeShell/tools/fonts/fonts.nix.example`); an extras bundle on Arch (yazi, neovim, starship, gaming tools and more); Niri or MangoWM, which OozeShell detects on its own.
+Optional: `waybar`, `swaync`, `swayosd`, `wlogout`; `nix-search` (NixOS package search); pixel fonts for the CoOzey theme (Pixelify Sans, Jersey 10, Silkscreen, VT323, DotGothic16; NixOS snippet in `OozeShell/Tools/fonts/fonts.nix.example` — on Arch only Silkscreen, VT323 and DotGothic16 are installed, so Pixelify Sans and Jersey 10 fall back to the Nerd Font); an extras bundle on Arch (yazi, neovim, starship, gaming tools and more); Niri or MangoWM, which OozeShell detects on its own (Niri works fine, still working on MangoWM I'm a bit limited to work on mango with v0.17.4 on NixOS).
 
 ---
 
 ## OozeShell
 
-**Modes:** *Bar* (top, bottom, left or right, optionally floating), *Islands* (no bar background, popups grow from their island) and *Pill + Dashboard* (compact pill that opens a full dashboard). Two styles, **OozeSoft** and **CoOzey**, each in light and dark.
+**Modes:** *Bar* (top, bottom, left or right, optionally floating), *Islands* (no bar background, popups grow from their island) and *Pill + Dashboard* (compact pill that opens a full dashboard). Two styles, **OozeSoft** and **CoOzey**, each in light and dark, and some extra palettes.
 
 **Main features**
 
@@ -127,7 +127,7 @@ Optional: `waybar`, `swaync`, `swayosd`, `wlogout`; `nix-search` (NixOS package 
 * **OozeLock**: native lock screen (`ext-session-lock-v1` + PAM), replaces `hyprlock`.
 * OSDs, power menu, screenshots, monitor selector and editor, keybinds cheatsheet.
 * **Advanced Settings** with a searchable registry; appearance controls generate Hyprland theme files.
-* Languages: English, Español, Bahasa Indonesia, 日本語.
+* Languages: English, Español.
 
 **Default keybinds:** `SUPER+I` keybinds, `SUPER+L` monitor picker, `SUPER+G` language picker, `SUPER+U` package search. The source of truth is `hypr/modules/input/keybinds.lua`.
 
@@ -135,7 +135,7 @@ Optional: `waybar`, `swaync`, `swayosd`, `wlogout`; `nix-search` (NixOS package 
 
 ```bash
 cd ~/.config/quickshell/OozeShell
-bash tools/check.sh
+bash Tools/check.sh
 ```
 
 ---
@@ -203,12 +203,14 @@ How it is wired:
 **Native animation core (C++).** OozeShell works without it. With it, animation math runs natively.
 
 ```bash
-bash ~/.config/quickshell/OozeShell/tools/build-native.sh
+bash ~/.config/quickshell/OozeShell/Tools/build-native.sh
 ```
 
-The installer offers to build it. Quickshell finds it through `QML_IMPORT_PATH`, which the installer adds to `env.lua`; log out and back in once. When active, the OozeShell log says `[theme] núcleo nativo: activo`. Needs `cmake` and a C++17 compiler. On NixOS use `nix-shell native/shell.nix --run 'bash tools/build-native.sh'`, and make sure that shell's Qt is the same one `quickshell` uses.
+The installer offers to build it. Quickshell finds it through `QML_IMPORT_PATH`, which the installer adds to `env.lua`; log out and back in once. When active, the OozeShell log says `[theme] núcleo nativo: activo`. Needs `cmake` and a C++17 compiler. On NixOS use `nix-shell native/shell.nix --run 'bash Tools/build-native.sh'`, and make sure that shell's Qt is the same one `quickshell` uses.
 
 **Suwayomi (Arch).** The installer can install `suwayomi-server-bin`, create a `tachidesk.service` user unit and a `tachidesk` command (`start|stop|restart|status|enable|disable`) in `/usr/local/bin`. OozeShell controls it from **Settings → Services**. It does not start at boot. If you skip it, the steps are written to `SuwayomiSetup.md`.
+
+**OozeWalls (optional live-wallpaper engine).** The installer can build `OozeWalls/` (Rust) and install `oozewalls` and `oozewalls-gui` in `~/.local/bin`, plus a launcher entry. On Arch it also installs the runtime libraries and `cargo`/`rustc`; the folder picker of the GUI needs `xdg-desktop-portal` and a FileChooser backend. On NixOS the same engine ships as a Home Manager module (`OozeWalls/hm-module.nix`). Pick it in **Settings → Wallpapers** (static and live engine `oozewalls`). OozeShell restores the saved wallpaper on start, so no extra `exec-once` is needed.
 
 ---
 
@@ -232,7 +234,7 @@ Then re-run `bash install-oozenix.sh`. In update mode it replaces the OozeShell 
 Removing a symlink does not delete the repository. Check the target first (`readlink -f ~/.config/hypr`), then:
 
 ```bash
-rm ~/.config/{alacritty,cava,fastfetch,foot,ghostty,hypr,kitty,matugen,nvim,quickshell,wezterm,yazi,waybar,rofi,starship.toml} \
+rm ~/.config/{alacritty,cava,dolphin,fastfetch,foot,ghostty,hypr,kitty,matugen,nvim,quickshell,wezterm,yazi,waybar,rofi,starship.toml} \
    ~/.config/vesktop/themes ~/.zshrc
 rm -f ~/.config/{swaync,swayosd,niri,mango} ~/.local/bin/nix-rofi
 ```
@@ -259,8 +261,8 @@ Only remove paths that are symlinks into this repository. Backups (`*.bak-<times
 
 | Problem | Fix |
 | --- | --- |
-| Does not start | `which quickshell`, then `quickshell -c OozeShell` and read the errors. Run `bash tools/check.sh` from the OozeShell folder. |
-| Icons are empty squares | Install JetBrainsMono Nerd Font and Symbols Nerd Font Mono. Arch installs the fontconfig fallback for you; on NixOS see `tools/fonts/fonts.nix.example`. |
+| Does not start | `which quickshell`, then `quickshell -c OozeShell` and read the errors. Run `bash Tools/check.sh` from the OozeShell folder. |
+| Icons are empty squares | Install JetBrainsMono Nerd Font and Symbols Nerd Font Mono. Arch installs the fontconfig fallback for you; on NixOS see `Tools/fonts/fonts.nix.example`. |
 | Package search does nothing | NixOS: `which nix-search`. Arch: check `pacman` and `paru`/`yay`. The rest of the shell is unaffected. |
 | No wallpapers listed | `mkdir -p ~/Pictures/Wallpapers`, or change `wallpaperFolder` in `WALLS/Walls.qml`. |
 | Hyprland ignores appearance changes | `hyprctl reload`. It is a Hyprland reload timing issue. |
@@ -285,7 +287,7 @@ Only remove paths that are symlinks into this repository. Backups (`*.bak-<times
 ```text
 dotfiles/
 ├── .config/
-│   ├── alacritty/  cava/  fastfetch/  foot/  ghostty/  kitty/  nvim/  wezterm/  yazi/
+│   ├── alacritty/  cava/  dolphin/  fastfetch/  foot/  ghostty/  kitty/  nvim/  wezterm/  yazi/
 │   ├── hypr/             hyprland.lua + modules/ (appearance, hardware, input, rules, startup, system)
 │   ├── matugen/          config.toml, templates/, scripts/reload-waybar.sh
 │   ├── niri/  mango/     other compositors
@@ -294,10 +296,10 @@ dotfiles/
 │   ├── rofi/  swaync/  swayosd/
 │   ├── VK-Th/themes/     Vesktop theme
 │   └── starship.toml
-├── docs/INSTALLER.md
 ├── install-oozenix.sh
 ├── OozeShell.zip         single build for every system and compositor
-├── git-update  nix-rofi  .zshrc
+├── OozeWalls/            optional Rust live-wallpaper engine
+├── git-update  nix-rofi  random-fastfetch  .zshrc
 ├── NixOSInstallation.md  generated on non-Arch installs
 ├── SuwayomiSetup.md      generated when Suwayomi is skipped on Arch
 └── screenshots/  README.md
@@ -308,14 +310,19 @@ OozeShell internals:
 ```text
 OozeShell/
 ├── shell.qml                 entry point, popups, IPC handlers
-├── BAR/ PILL/ DOCK/ DASHBOARD/ MENU/
-├── AUDIO/ OozeAudio/ BLUETOOTH/ NETWORK/ POWER/ BATTERY/ BRIGHTNESS/ PRIVACY/
-├── Launcher/ PackageSearch/ OVERVIEW/ NOTIFY/ AGENDA/ MPRIS/ CLIPBOARD/
-├── WALLS/ LOCK/ CAPS/ SCREENSHOT/ MONITOR/ Keybinds/ WIDGETS/
-├── SETTINGS/ APPEARANCE/ LANG/ COMMON/
+├── Modules/                  Bar, Pill, Dock, Dashboard, Menu, Overview, Lock, Power,
+│                             Taskbar, Tray, Widgets, Keybinds, SystemMonitor, Privacy
+├── Services/                 Audio, OozeAudio, Bluetooth, Network, Battery, Brightness,
+│                             Clipboard, Notify, Agenda, Mpris, Launcher, PackageSearch,
+│                             Walls, Screenshot, Monitor, DefaultApps, Caps, Lang, Caffeine
+├── Settings/                 settings pages and registry
+├── Core/                     config, state and IPC targets
+├── Backends/                 native/ and python/ (ooze-daemon.py)
+├── COMMON/                   shared widgets and state
+├── Assets/                   fonts and logos
+├── Docs/                     architecture notes
 ├── native/                   optional C++ core
-├── assets/                   fonts and logos
-└── tools/                    check.sh, build-native.sh, fonts
+└── Tools/                    check.sh, build-native.sh, ooze-run.sh, fonts
 ```
 
 ---

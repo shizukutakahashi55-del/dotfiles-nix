@@ -20,18 +20,10 @@
 
 spawn-sh-at-startup "sleep 3 && setsid -f foot"
 spawn-at-startup "nm-applet"
-spawn-at-startup "awww-daemon"
+// spawn-at-startup "awww-daemon"
 spawn-sh-at-startup "systemctl --user start hyprpolkitagent 2>/dev/null"
-spawn-sh-at-startup "pkill quickshell; sleep 1; quickshell -p ~/.config/quickshell/OozeShell/shell.qml"
+spawn-sh-at-startup "setsid -f bash ~/.config/quickshell/OozeShell/Tools/ooze-launch.sh"
 spawn-sh-at-startup "hypridle -c ~/.config/niri/modules/hypridle.conf"
 
 //spawn-sh-at-startup "waybar -c ~/.config/waybar/config-niri.jsonc"
 
-// ---------------------------------------------------------------------------
-// Intentionally NOT started:
-// ---------------------------------------------------------------------------
-//
-// fcitx5 -d: the original Hyprland config explicitly said the NixOS dotfiles
-// handle this, so Niri should not duplicate it.
-//
-// waybar/swaync/swayosd: commented in the original config, so they stay off.

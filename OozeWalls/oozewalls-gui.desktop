@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=OozeWalls
+GenericName=Live Wallpaper Manager
+Comment=Motor minimo de wallpapers via mpvpaper
+Exec=oozewalls-gui
+Icon=oozewalls
+Terminal=false
+StartupNotify=false
+Categories=Utility;DesktopSettings;
+Keywords=wallpaper;live;fondo;mpvpaper;

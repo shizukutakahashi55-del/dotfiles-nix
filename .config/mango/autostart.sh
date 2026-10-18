@@ -42,10 +42,7 @@ systemctl --user start hyprpolkitagent 2>/dev/null || {
 # ─────────────────────────────────────────────
 
 # Evitar instancias duplicadas de Quickshell
-pkill -x quickshell 2>/dev/null
-sleep 1
-
-quickshell -p ~/.config/quickshell/OozeShell/shell.qml &
+setsid -f bash ~/.config/quickshell/OozeShell/Tools/ooze-launch.sh
 
 # ─────────────────────────────────────────────
 # Idle / bloqueo

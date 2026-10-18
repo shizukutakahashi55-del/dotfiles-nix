@@ -53,17 +53,21 @@ end
 
 local terminal = find_terminal()
 
+-- Base de todos los IPC de OozeShell (exec_cmd corre en un shell: ~ se expande)
+local QS = "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- "
+
 local programs = {
 
-    -- Detected terminal
+    -- Binario de la terminal detectada (lo usa functions/progs.lua en el arranque)
     terminal = terminal,
 
-    -- Launcher
-    menu = "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- launcher toggle",
+    -- Apps por rol: el shell resuelve la app elegida en Ajustes -> Apps predeterminadas
+    terminalIpc = QS .. "apps open terminal",
+    browser     = QS .. "apps open browser",
+    fileManager = QS .. "apps open files",
 
-    -- File manager
-    -- fileManager = (terminal) .. " -e yazi",
-     fileManager = "dolphin",
+    -- Launcher
+    menu = QS .. "launcher toggle",
 }
 
 

@@ -49,12 +49,37 @@ window-rule {
     }
 }
 
+// Blueman float
+
+window-rule {
+    match app-id=r#"(?i)^.blueman-manager-wrapped$"#
+    open-floating true
+    focus-ring {
+        off
+    }
+    border {
+        off
+    }
+
+}
+
+
 // Keep a simple per-window geometry rule equivalent to the old visual style.
 window-rule {
     match app-id="^com\\.mitchellh\\.ghostty$"
     geometry-corner-radius 6
     clip-to-geometry true
 }
+
+window-rule { 
+    match app-id="org.quickshell"; 
+    open-floating true;
+    border {
+        off
+    }
+    default-column-width { fixed 980; }
+    default-window-height { fixed 800; }
+ }
 
 // OozeShell — blur
 layer-rule {

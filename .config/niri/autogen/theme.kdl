@@ -2,8 +2,12 @@
 // Se regenera cada vez que cambias algo desde el panel de apariencia.
 layout {
     gaps 8
-    border {
+    focus-ring {
         off
+    }
+    border {
+        on
+        width 3
     }
     shadow {
         off
@@ -11,14 +15,6 @@ layout {
 }
 
 window-rule {
-    geometry-corner-radius 14
+    geometry-corner-radius 8
     clip-to-geometry true
-    background-effect {
-        blur true
-    }
-}
-
-blur {
-    passes 1
-    offset 3.0
 }

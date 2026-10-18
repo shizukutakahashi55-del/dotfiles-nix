@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>OozeWalls</title>
+  <desc>Retro-modern wallpaper icon with overlapping warm-colored cards and a clean cosmic landscape. Flat opaque teal app tile, no glow or transparency effects.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#172954"/>
+      <stop offset="1" stop-color="#263C76"/>
+    </linearGradient>
+    <linearGradient id="planet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A994FF"/>
+      <stop offset=".55" stop-color="#665FE0"/>
+      <stop offset="1" stop-color="#4E55B7"/>
+    </linearGradient>
+    <clipPath id="scene"><rect x="133" y="105" width="246" height="301" rx="20"/></clipPath>
+    <clipPath id="sphere"><circle cx="255" cy="183" r="47"/></clipPath>
+  </defs>
+
+  <!-- Flat, opaque tile: no glow, blur, or semi-transparent edges -->
+  <rect x="18" y="18" width="476" height="476" rx="76" fill="#5DA7AA"/>
+
+  <!-- Layered cards -->
+  <g transform="rotate(-24 247 250)">
+    <rect x="91" y="85" width="330" height="350" rx="25" fill="#FFD16D"/>
+  </g>
+  <g transform="rotate(16 277 255)">
+    <rect x="126" y="76" width="320" height="354" rx="25" fill="#F0522F"/>
+  </g>
+
+  <!-- Main cream wallpaper card -->
+  <rect x="105" y="63" width="302" height="386" rx="28" fill="#F7F5E8"/>
+  <g clip-path="url(#scene)">
+    <rect x="133" y="105" width="246" height="301" fill="url(#sky)"/>
+
+    <!-- Small, restrained stars -->
+    <g fill="#FFF2D6">
+      <circle cx="161" cy="130" r="2"/>
+      <circle cx="337" cy="145" r="1.8"/>
+      <circle cx="306" cy="119" r="1.4"/>
+      <circle cx="188" cy="217" r="1.5"/>
+    </g>
+
+    <!-- Ring stays inside the wallpaper frame -->
+    <ellipse cx="255" cy="183" rx="66" ry="19" transform="rotate(-17 255 183)"
+      fill="none" stroke="#FFCE69" stroke-width="12"/>
+    <ellipse cx="255" cy="183" rx="66" ry="19" transform="rotate(-17 255 183)"
+      fill="none" stroke="#E88E66" stroke-width="4"/>
+    <circle cx="255" cy="183" r="47" fill="url(#planet)"/>
+    <g clip-path="url(#sphere)">
+      <path d="M201 174 L276 137 Q298 139 313 160 L226 205Z" fill="#8C8AF1"/>
+      <path d="M208 211 L293 172 L309 195 L227 234Z" fill="#4D70C8"/>
+      <path d="M222 239 L303 202 L306 223 L244 246Z" fill="#7669DE"/>
+    </g>
+    <path d="M193 196 Q255 221 317 169" fill="none" stroke="#FFCE69" stroke-width="10" stroke-linecap="round"/>
+    <path d="M193 196 Q255 221 317 169" fill="none" stroke="#F7A66D" stroke-width="3.5" stroke-linecap="round"/>
+
+    <!-- Geometric sunset and mountains -->
+    <circle cx="255" cy="303" r="27" fill="#FFD16D"/>
+    <path d="M133 272 Q154 260 175 279 T218 293 Q238 286 257 301 T301 290 Q330 272 352 281 T379 270 V406 H133Z" fill="#F29AB4"/>
+    <path d="M133 296 L164 282 193 306 220 290 250 318 283 294 311 310 347 283 379 300 V406 H133Z" fill="#6867D7"/>
+    <path d="M133 314 L166 300 198 327 226 311 258 337 289 313 321 331 352 304 379 314 V406 H133Z" fill="#3D65B8"/>
+    <path d="M133 342 Q177 333 217 346 T293 343 T379 338 V406 H133Z" fill="#284B83"/>
+    <path d="M133 346 Q190 340 255 346 T379 344 V406 H133Z" fill="#2C648C"/>
+    <path d="M226 350 H284 L273 355 H238Z M237 361 H274 L286 366 H226Z M247 373 H263 L279 378 H233Z M251 386 H260 L270 390 H242Z" fill="#FFD16D"/>
+    <path d="M164 360 H210 M296 359 H338 M190 378 H224 M287 380 H317" stroke="#7EC4D0" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <rect x="105" y="63" width="302" height="386" rx="28" fill="none" stroke="#F7F5E8" stroke-width="3"/>
+</svg>

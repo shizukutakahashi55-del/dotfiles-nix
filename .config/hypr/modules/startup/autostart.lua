@@ -26,11 +26,11 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("nm-applet")
 
     -- Wallpaper daemon
-    hl.exec_cmd("awww-daemon")
+    -- hl.exec_cmd("awww-daemon")
 
     -- Quickshell
     hl.exec_cmd(
-        "pkill quickshell; sleep 1; quickshell -p ~/.config/quickshell/OozeShell/shell.qml"
+        "bash ~/.config/quickshell/OozeShell/Tools/ooze-launch.sh"
     )
 
     -- Idle daemon

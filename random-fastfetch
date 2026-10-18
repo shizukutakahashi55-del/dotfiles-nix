@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+IMG_DIR="$HOME/.config/fastfetch/images"
+CONFIG="$HOME/.config/fastfetch/config.jsonc"
+
+# Buscar una imagen aleatoria
+RANDOM_IMG=""
+
+if [[ -d "$IMG_DIR" ]]; then
+    RANDOM_IMG=$(
+        find "$IMG_DIR" -type f \
+            \( -iname '*.png' \
+            -o -iname '*.jpg' \
+            -o -iname '*.jpeg' \
+            -o -iname '*.gif' \
+            -o -iname '*.webp' \) |
+        shuf -n 1
+    )
+fi
+
+# Detectar el protocolo de imagen
+case "${TERM_PROGRAM:-}:${TERM:-}" in
+    *foot*:*|*:foot*)
+        LOGO_TYPE="sixel"
+        ;;
+    *kitty*:*|*:xterm-kitty*)
+        LOGO_TYPE="kitty"
+        ;;
+    *WezTerm*:*|*:wezterm*)
+        LOGO_TYPE="kitty"
+        ;;
+    *Ghostty*:*|*:xterm-ghostty*)
+        LOGO_TYPE="kitty"
+        ;;
+    *)
+        LOGO_TYPE="auto"
+        ;;
+esac
+
+# Mostrar Fastfetch con la imagen aleatoria
+if [[ -n "$RANDOM_IMG" ]]; then
+    exec fastfetch \
+        --config "$CONFIG" \
+        --logo "$RANDOM_IMG" \
+        --logo-type "$LOGO_TYPE" \
+        "$@"
+else
+    exec fastfetch --config "$CONFIG" "$@"
+fi
+

@@ -15,7 +15,6 @@ local functions = require("modules.input.snippets.keybind_functions")
 ---------------------
 
 local mainMod = "SUPER" -- Sets "Windows" key as main modifier
-
 -------------------------------------------------------------------------------
 -- LUA CODE SNIPPETS
 -------------------------------------------------------------------------------
@@ -37,8 +36,9 @@ hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
 -- Application Menu / Launcher
 hl.bind(mainMod .. " + R", hl.dsp.exec_cmd(programs.menu))
 
--- Aplicaction Dolphin Handler Easy Drag
--- hl.bind(mainMod .. "SHIFT + Y", hl.dsp.exec_cmd(Dolphin))
+-- Browser
+hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(programs.browser))
+
 
 -------------------------------------------------------------------------------
 -- WINDOW MANAGEMENT
@@ -62,10 +62,6 @@ hl.bind(
     hl.dsp.window.fullscreen("toggle")
 )
 
--- hl.bind(
---     "SUPER + return",
---     hl.dsp.window.fullscreen("toggle, mode:maximized")
--- )
 -------------------------------------------------------------------------------
 -- MASTER / COLUMN LAYOUT
 -------------------------------------------------------------------------------
@@ -259,7 +255,7 @@ hl.bind("SUPER + K", functions.cycleLayout)
 -- SUPER + W
 -- Wallpaper selector 
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(
-  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call toggleWalls handle"
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- toggleWalls handle"
 ))
 
 -- Chooses which monitor displays the shell (Walls/Notify/Mpris)
@@ -272,13 +268,13 @@ hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(
 -- SUPER + SHIFT + P
 -- Restart Quickshell 
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(
-  "pkill quickshell & sleep 1 && quickshell -p ~/.config/quickshell/OozeShell/shell.qml"
+  "setsid -f bash ~/.config/quickshell/OozeShell/Tools/ooze-launch.sh"
 ))
 
 -- SUPER + I
 -- Keybind Cheatsheet 
 hl.bind(mainMod .. " + I", hl.dsp.exec_cmd(
-  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call keybinds toggle"
+  "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- keybinds toggle"
 ))
 
 -- SUPER + G
@@ -296,7 +292,7 @@ hl.bind(mainMod .. " + H", hl.dsp.exec_cmd(
 -- SUPER + N
 -- Notification Center 
 hl.bind(mainMod .. " + N", hl.dsp.exec_cmd(
-    "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- notify toggle" 
+    "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- notify toggle"
 ))
 
 -- Custom power menu
@@ -319,10 +315,10 @@ hl.bind(mainMod .. " + SHIFT + L", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/
 ))
 
  -- OozeLock
-hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock "
+hl.bind(mainMod .. " + SHIFT + Q", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- lock lock"
 ))
 
---Nix-Search
+-- --Nix-Search
 hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- nixsearch toggle"
 ))
 
@@ -331,15 +327,38 @@ hl.bind(mainMod .. " + D", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshe
 ))
 
 -- Performance Mode
-hl.bind(mainMod .. "+ SHIFT + Y", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call performance toggle"
+hl.bind(mainMod .. " + SHIFT + Y", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- performance toggle"
 ))
 
 -- QuickSearch
-hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- quickbar toggle"
+hl.bind(mainMod .. " + SHIFT + B", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- quickbar toggle"
 ))
 
--- Pacman/Paru OozeShell
--- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- pacsearch toggle"))
+-- Caffeine (inhibe suspension/bloqueo)
+hl.bind(mainMod .. " + ALT + C", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- caffeine toggle"))
+
+-- Network menu
+hl.bind(mainMod .. " + ALT + N", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- network toggle"))
+
+-- Bluetooth menu
+hl.bind(mainMod .. " + ALT + B", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- bluetooth toggle"))
+
+-- Audio menu
+hl.bind(mainMod .. " + ALT + A", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio toggle"))
+
+-- Media player (MPRIS)
+hl.bind(mainMod .. " + ALT + M", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- mpris toggle"))
+
+-- Light/dark theme
+hl.bind(mainMod .. " + ALT + T", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- theme toggle"))
+
+-- NixInstall Avances, just with Nix-home dotfiles
+hl.bind(mainMod .. "+ SHIFT + U", hl.dsp.exec_cmd("~/nix-home/installer/toggle.sh"))
+
+-- System Monitor
+--local home = os.getenv("HOME")
+hl.bind(mainMod .. "+ CTRL + M", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- sysmon toggle"))
+
 
 -- NixSearch with Rofi
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
@@ -367,17 +386,24 @@ hl.bind(mainMod .. " + B", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshe
 -- MULTIMEDIA / VOLUME
 -------------------------------------------------------------------------------
 
--- Volume up`
-hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"), { locked = true, repeating = true })
+-- Volumen/mute por IPC: AudioBackend sube/baja 5% y muestra el OSD de OozeShell
+-- (antes: wpctl directo, sin OSD)
+
+-- Volume up
+hl.bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio raise"), { locked = true, repeating = true })
 
 -- Volume down
-hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"),      { locked = true, repeating = true })
+hl.bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio lower"), { locked = true, repeating = true })
 
 -- Mute / unmute speakers
-hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"),     { locked = true, repeating = true })
+hl.bind("XF86AudioMute",        hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio mute"),  { locked = true })
 
 -- Mute / unmute microphone
-hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"),   { locked = true, repeating = true })
+hl.bind("XF86AudioMicMute",     hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio micToggle"), { locked = true })
+
+-- Microphone volume (SHIFT + teclas de volumen)
+hl.bind("SHIFT + XF86AudioRaiseVolume", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio micRaise"), { locked = true, repeating = true })
+hl.bind("SHIFT + XF86AudioLowerVolume", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio micLower"), { locked = true, repeating = true })
 
 
 -------------------------------------------------------------------------------
@@ -475,9 +501,4 @@ hl.bind("XF86AudioPrev",  hl.dsp.exec_cmd("playerctl previous"),   { locked = tr
 --     "XF86AudioMute",
 --     hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle")
 -- )
-
--- Por ahora los WorkSpace no muestran el nombre, estoy revisando agregarlo sin que rompa
--- lo que tengo en quickshell, lo intente pero se movia todo debido que las pills
--- heredan los workspace de el modulo de barra, basicamente es un enlace.
-
 

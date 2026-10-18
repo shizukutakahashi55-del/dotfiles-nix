@@ -2,18 +2,10 @@
 // WORKSPACES
 // ============================================================================
 //
-// Hyprland had:
+// Hyprland has:
 //   HDMI-A-1 -> workspaces 1-5
 //   DP-3     -> workspaces 6-10
 //
-// Niri supports named workspaces and can pin them to outputs. This is the
-// closest direct equivalent.
-//
-// They are named instead of relying solely on numeric dynamic workspaces so
-// they stay associated with the intended monitor.
-//
-// NOTE: named workspaces are persistent and behave slightly differently from
-// Hyprland numbered workspaces. This is an intentional Niri adaptation.
 
 workspace "1" {
     open-on-output "HDMI-A-1"

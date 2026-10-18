@@ -14,6 +14,7 @@ IS_UPDATE=false
 HAS_NVIDIA=false
 SUWAYOMI_OK=false
 NATIVE_OK=false
+OOZEWALLS_OK=false
 NATIVE_PREFIX="$HOME/.local/share/oozeshell/qml"
 AUR_HELPER=""
 FAILED=()
@@ -65,6 +66,25 @@ create_symlink() {
   echo "  [✓] Linked: $target -> $source"
 }
 
+# OozeShell cambió de layout: tools/ pasó a Tools/ y OozeAudio/ + PackageSearch/
+# pasaron a Services/…  Se resuelven al usarlas (después de extraer el zip) para
+# seguir aceptando tanto zips nuevos como antiguos.
+oozeshell_tools() {
+  if [ -d "$QS_DIR/OozeShell/Tools" ]; then
+    printf '%s\n' "$QS_DIR/OozeShell/Tools"
+  else
+    printf '%s\n' "$QS_DIR/OozeShell/tools"
+  fi
+}
+
+oozeshell_services() {
+  if [ -d "$QS_DIR/OozeShell/Services" ]; then
+    printf '%s\n' "$QS_DIR/OozeShell/Services"
+  else
+    printf '%s\n' "$QS_DIR/OozeShell"
+  fi
+}
+
 extract_oozeshell() {
   local zip="$1" runner="${2:-}"
   mkdir -p "$QS_DIR"
@@ -83,7 +103,7 @@ extract_oozeshell() {
 
 build_native() {
   local runner="${1:-}"
-  local script="$QS_DIR/OozeShell/tools/build-native.sh"
+  local script="$(oozeshell_tools)/build-native.sh"
   local shellnix="$QS_DIR/OozeShell/native/shell.nix"
   local ok=false
 
@@ -126,7 +146,7 @@ build_native() {
 
 maybe_build_native_other() {
   local runner=""
-  if [ ! -f "$QS_DIR/OozeShell/tools/build-native.sh" ]; then return 0; fi
+  if [ ! -f "$(oozeshell_tools)/build-native.sh" ]; then return 0; fi
   if command -v nix-shell >/dev/null 2>&1; then
     runner="nix"
   elif ! command -v cmake >/dev/null 2>&1; then
@@ -137,6 +157,44 @@ maybe_build_native_other() {
   if ask_yes_no "Build the optional native animation core (C++, ~1 min)? OozeShell works without it"; then
     build_native "$runner"
   fi
+}
+
+install_oozewalls() {
+  local dir="$DOTFILES/OozeWalls" ok=false
+  if [ ! -f "$dir/Cargo.toml" ]; then
+    echo "  [i] OozeWalls source not found in $dir; skipping."
+    return 0
+  fi
+  echo
+  if ! ask_yes_no "Build and install the OozeWalls engine (Rust, a few minutes)? Optional: pick it in Settings -> Wallpapers"; then
+    return 0
+  fi
+  chmod +x "$dir/install.sh"
+
+  if $IS_ARCH; then
+    install_pkgs wayland libxkbcommon mesa libglvnd fontconfig freetype2 \
+      libx11 libxcursor libxrandr libxi xdg-desktop-portal xdg-desktop-portal-gtk
+    if ! command -v cargo >/dev/null 2>&1; then
+      install_pkgs rust
+    fi
+  fi
+
+  if command -v cargo >/dev/null 2>&1; then
+    bash "$dir/install.sh" && ok=true
+  elif command -v nix-shell >/dev/null 2>&1; then
+    nix-shell -p cargo rustc gcc pkg-config --run "bash '$dir/install.sh'" && ok=true
+  else
+    echo "  [!] cargo not found and no nix-shell available; cannot build OozeWalls."
+  fi
+
+  if $ok; then
+    OOZEWALLS_OK=true
+    echo "  [✓] OozeWalls installed: $HOME/.local/bin/oozewalls"
+  else
+    echo "  [!] OozeWalls did not build. Retry later with:  bash $dir/install.sh"
+    FAILED+=("oozewalls (build)")
+  fi
+  return 0
 }
 
 # ── Pre-checks ──
@@ -504,6 +562,7 @@ MDEOF
     base-devel git curl unzip zip zsh jq python
     hyprland hyprpaper hypridle hyprlock
     hyprpolkitagent hyprshot hyprsunset hyprshutdown hyprsysteminfo
+    xdg-desktop-portal xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
     qt6-base qt6-declarative qt6-svg qt6-shadertools qt6ct
     pipewire pipewire-pulse wireplumber
     brightnessctl power-profiles-daemon upower
@@ -616,7 +675,7 @@ MDEOF
   extract_oozeshell "$ZIP_FILE"
 
   # ── Fonts ──
-  FC_SRC="$QS_DIR/OozeShell/tools/fonts/99-oozeshell-pixel.conf"
+  FC_SRC="$(oozeshell_tools)/fonts/99-oozeshell-pixel.conf"
   if [ -f "$FC_SRC" ]; then
     mkdir -p "$HOME/.config/fontconfig/conf.d"
     cp -f "$FC_SRC" "$HOME/.config/fontconfig/conf.d/"
@@ -625,7 +684,7 @@ MDEOF
   fi
 
   # ── Native core ──
-  if [ -f "$QS_DIR/OozeShell/tools/build-native.sh" ]; then
+  if [ -f "$(oozeshell_tools)/build-native.sh" ]; then
     echo
     if ask_yes_no "Build the optional native animation core (C++, needs cmake, ~1 min)? OozeShell works without it"; then
       install_pkgs cmake
@@ -736,7 +795,7 @@ still works in pure QML; with it the animation maths run natively.
 
 ```bash
 nix-shell ~/.config/quickshell/OozeShell/native/shell.nix \
-  --run 'bash ~/.config/quickshell/OozeShell/tools/build-native.sh'
+  --run 'bash ~/.config/quickshell/OozeShell/Tools/build-native.sh'
 ```
 
 - The Qt used to build MUST be the same one your `quickshell` uses, or Qt
@@ -750,6 +809,16 @@ hl.env("QML_IMPORT_PATH", os.getenv("HOME") .. "/.local/share/oozeshell/qml")
 
 - On start OozeShell logs `[theme] núcleo nativo: activo` (or the reason it
   is not available).
+
+## Optional — OozeWalls engine
+
+- cargo + rustc + gcc (the installer builds `~/dotfiles/OozeWalls` and copies
+  `oozewalls` and `oozewalls-gui` to `~/.local/bin`)
+- Runtime: wayland, libxkbcommon, mesa/libglvnd (GL/EGL), fontconfig, freetype,
+  libX11, libXcursor, libXrandr, libXi
+- xdg-desktop-portal (+ a FileChooser backend such as xdg-desktop-portal-gtk)
+  for the folder picker in the app
+- mpvpaper + mpv + socat for live wallpapers
 
 ## Optional — NixSearch
 
@@ -807,6 +876,7 @@ echo "Creating .config symlinks..."
 config_items=(
   "alacritty"
   "cava"
+  "dolphin"
   "fastfetch"
   "foot"
   "ghostty"
@@ -840,6 +910,7 @@ echo
 echo "Creating home & binary symlinks..."
 
 create_symlink "$DOTFILES/.zshrc" "$HOME/.zshrc"
+create_symlink "$DOTFILES/random-fastfetch" "$HOME/.local/bin/random-fastfetch"
 if ! $IS_ARCH; then
   create_symlink "$DOTFILES/nix-rofi" "$HOME/.local/bin/nix-rofi"
 fi
@@ -848,15 +919,19 @@ echo
 echo "Granting execution permissions..."
 
 scripts=(
-  "$QS_DIR/OozeShell/OozeAudio/backend/audio.sh"
-  "$QS_DIR/OozeShell/PackageSearch/installed.sh"
-  "$QS_DIR/OozeShell/tools/build-native.sh"
-  "$QS_DIR/OozeShell/tools/live-optimize.sh"
-  "$QS_DIR/OozeShell/tools/check.sh"
-  "$QS_DIR/OozeShell/tools/palette-apply.py"
+  "$(oozeshell_services)/OozeAudio/backend/audio.sh"
+  "$(oozeshell_services)/PackageSearch/installed.sh"
+  "$(oozeshell_tools)/build-native.sh"
+  "$(oozeshell_tools)/live-optimize.sh"
+  "$(oozeshell_tools)/check.sh"
+  "$(oozeshell_tools)/palette-apply.py"
+  "$(oozeshell_tools)/oozeshell"
+  "$DOTFILES/random-fastfetch"
+  "$DOTFILES/OozeWalls/install.sh"
   "$DOTFILES/.config/rofi/Launcher/launcher.sh"
   "$DOTFILES/.config/rofi/Powermenu/powermenu.sh"
   "$DOTFILES/.config/rofi/Bluetooth/bluetooth.sh"
+  "$DOTFILES/.config/dolphin/apply.sh"
   "$DOTFILES/.config/waybar/waybar-launcher.sh"
   "$DOTFILES/.config/waybar/scripts/notify-state.sh"
   "$DOTFILES/.config/waybar/themes/waybar-theme-switcher.sh"
@@ -876,18 +951,53 @@ for script in "${scripts[@]}"; do
   fi
 done
 
-# ── Arch: keybinds ──
-if $IS_ARCH; then
-  KEYBINDS="$HOME/.config/hypr/modules/input/keybinds.lua"
-  if [ -f "$KEYBINDS" ] \
-     && grep -qE '^hl\.bind\(mainMod \.\. " \+ U".*pacsearch toggle' "$KEYBINDS"; then
-    cp -f "$KEYBINDS" "${KEYBINDS}.bak-${STAMP}"
-    sed -i -E '/^hl\.bind\(mainMod \.\. " \+ U".*pacsearch toggle/ s/^/-- /' "$KEYBINDS"
-    sed -i -E 's/^--[[:space:]]*(hl\.bind\(mainMod \.\. " \+ U".*nixsearch toggle.*)$/\1/' "$KEYBINDS"
-    echo "  [✓] keybinds.lua: SUPER+U back on the unified search (backup: ${KEYBINDS}.bak-${STAMP})"
-    echo
-  fi
+# ── Keybinds: migrate legacy IPC calls ──
+# Old dotfiles can still call IPC targets/paths that no longer exist:
+#   - "pacsearch"                      -> "nixsearch" (it detects Arch by itself)
+#   - .../OozeShell-mango/shell.qml    -> .../OozeShell/shell.qml
+#   - /home/<user>/...OozeShell call apps ...   (hardcoded home, no shell.qml, no "--")
+#       -> ~/.config/quickshell/OozeShell/shell.qml call -- apps ...
+#   - niri 'spawn "qs ipc ..."' / mango ',spawn,qs ipc ...' -> spawn-sh / spawn_shell
+#     (plain spawn runs no shell, so ~ is never expanded)
+migrate_ipc_binds() {
+  local f
+  for f in \
+    "$HOME/.config/hypr/modules/input/keybinds.lua" \
+    "$HOME/.config/hypr/modules/startup/programs.lua" \
+    "$HOME/.config/niri/modules/binds.kdl" \
+    "$HOME/.config/mango/conf/keybinds.conf"; do
+    [ -f "$f" ] || continue
+    if grep -qE 'pacsearch|OozeShell-mango|OozeShell call apps|spawn "(qs|quickshell) ipc|,spawn,(qs|quickshell) ipc' "$f"; then
+      cp -f "$f" "${f}.bak-${STAMP}"
+      sed -i -E \
+        -e 's/(call( --)? )pacsearch /\1nixsearch /' \
+        -e 's#spawn "(qs|quickshell) ipc#spawn-sh "\1 ipc#' \
+        -e 's#,spawn,(qs|quickshell) ipc#,spawn_shell,\1 ipc#' \
+        -e 's#OozeShell-mango/shell\.qml#OozeShell/shell.qml#g' \
+        -e 's#(qs|quickshell) ipc -p (/home/[^/ ]+|~|\$HOME)/\.config/quickshell/OozeShell call (--[[:space:]]+)?apps #quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- apps #g' \
+        "$f"
+      echo "  [✓] IPC calls updated in $f (backup: ${f}.bak-${STAMP})"
+    fi
+  done
+}
+migrate_ipc_binds
+echo
+
+# ── oozeshell: short launcher for the IPC (oozeshell apps open browser) ──
+OOZESHELL_TOOL="$(oozeshell_tools)/oozeshell"
+if [ -f "$OOZESHELL_TOOL" ]; then
+  chmod +x "$OOZESHELL_TOOL"
+  create_symlink "$OOZESHELL_TOOL" "$HOME/.local/bin/oozeshell"
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) echo "  [!] ~/.local/bin is not in PATH; add it to use 'oozeshell' from a terminal." ;;
+  esac
+  echo
 fi
+
+# ── OozeWalls engine ──
+install_oozewalls
+echo
 
 # ── Arch: env.lua ──
 if $IS_ARCH; then
@@ -957,12 +1067,20 @@ echo "=========================================="
 echo "       Oozenix installation complete!"
 echo "=========================================="
 echo "Start it with:  quickshell -c OozeShell"
+echo "IPC:            oozeshell list   (targets/functions)  ·  oozeshell apps open browser"
 if ! command -v waybar >/dev/null 2>&1; then
   echo "Waybar:         not installed; the Waybar option in Settings -> Bar stays disabled until you install it"
 fi
 if $NATIVE_OK; then
   echo "Native core:    log out and back in once (QML_IMPORT_PATH); the log should say"
   echo "                '[theme] núcleo nativo: activo'"
+fi
+if $OOZEWALLS_OK; then
+  echo "OozeWalls:      Settings -> Wallpapers -> engine OozeWalls  ·  oozewalls status --json  ·  launcher: OozeWalls"
+  case ":$PATH:" in
+    *":$HOME/.local/bin:"*) ;;
+    *) echo "                ~/.local/bin is not in your session PATH; the shell adds it itself, a terminal may need it" ;;
+  esac
 fi
 if $IS_ARCH && $SUWAYOMI_OK; then
   echo "Tachidesk:      OozeShell -> Settings -> Services, or:  tachidesk start|stop|restart|status|enable|disable"

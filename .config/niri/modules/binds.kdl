@@ -17,20 +17,32 @@ binds {
     // ------------------------------------------------------------------------
 
     // Terminal
-    Mod+T { spawn "foot"; }
+
+    //Mod+T { spawn "foot"; }
+    Mod+T { 
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- apps open terminal"; 
+    }
 
     // File manager
-    Mod+E { spawn "dolphin"; }
+    //Mod+E { spawn "dolphin"; }
+    Mod+E { 
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- apps open files"; 
+    }
+
+    // Browser
+    Mod+B { 
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- apps open browser"; 
+    }
 
     // OozeShell launcher
     Mod+R {
         spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- launcher toggle";
     }
 
-    // OozeShell launcher
-    //Mod+R {
-    //    spawn-sh "~/.config/rofi/Launcher/launcher.sh";
-    //}
+    // Rofi launcher
+    Mod+Alt+D {
+        spawn-sh "~/.config/rofi/Launcher/launcher.sh";
+    }
 
     // Coding workspace toggle from Hyprland:
     // Niri has no per-workspace "remove gaps + remove border" toggle matching
@@ -74,8 +86,8 @@ binds {
     Mod+Period { move-column-right; }
 
     // Resize current column using the same approximate step.
-    Mod+BracketLeft { set-column-width "-5%"; }
-    Mod+BracketRight { set-column-width "+5%"; }
+    Mod+BracketLeft { set-column-width "-10%"; }
+    Mod+BracketRight { set-column-width "+10%"; }
 
     // ------------------------------------------------------------------------
     // FOCUS
@@ -144,32 +156,11 @@ binds {
     Mod+WheelScrollUp cooldown-ms=150 { focus-workspace-up; }
 
     // ------------------------------------------------------------------------
-    // SPECIAL WORKSPACE / SCRATCHPAD
-    // ------------------------------------------------------------------------
-    //
-    // Niri has no hidden "special workspace" equivalent. A named workspace
-    // called "scratchpad" could be used, but it would be a normal persistent
-    // workspace. The Hyprland scratchpad behavior is therefore not faked.
-    //
-    // Mod+S
-    // Mod+Shift+S
-
-    // ------------------------------------------------------------------------
-    // MINIMIZE
-    // ------------------------------------------------------------------------
-    //
-    // Niri has no minimize action. The Hyprland implementation moved windows
-    // into a special hidden workspace, which does not have a direct Niri
-    // counterpart. Intentionally omitted.
-    //
-    // Mod+X
-
-    // ------------------------------------------------------------------------
     // QUICKSHELL / OOZESHELL
     // ------------------------------------------------------------------------
 
     Mod+W {
-        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call toggleWalls handle";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- toggleWalls handle";
     }
 
     Mod+L {
@@ -177,11 +168,11 @@ binds {
     }
 
     Mod+Shift+P {
-        spawn-sh "pkill quickshell; sleep 1; quickshell -p ~/.config/quickshell/OozeShell/shell.qml";
+        spawn-sh "setsid -f bash ~/.config/quickshell/OozeShell/Tools/ooze-launch.sh";
     }
 
     Mod+I {
-        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call keybinds toggle";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- keybinds toggle";
     }
 
     Mod+G {
@@ -213,7 +204,7 @@ binds {
     }
 
     Mod+Shift+Q {
-        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call lock lock";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- lock lock";
     }
 
     Mod+U {
@@ -225,12 +216,50 @@ binds {
     }
 
     Mod+Shift+Y {
-        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call performance toggle";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- performance toggle";
     }
-    Mod+B {
+    Mod+Shift+B {
         spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- quickbar toggle";
     }
-    
+    Mod+Shift+U {
+        spawn-sh "~/nix-home/installer/toggle.sh";
+    }
+    Mod+Ctrl+N {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- sysmon toggle";
+    }
+
+
+    // Targets IPC nuevos de OozeShell (mismos atajos que en Hyprland/Mango)
+    // Caffeine (inhibe suspension/bloqueo)
+    Mod+Alt+C {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- caffeine toggle";
+    }
+
+    // Network menu
+    Mod+Alt+N {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- network toggle";
+    }
+
+    // Bluetooth menu
+    Mod+Alt+B {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- bluetooth toggle";
+    }
+
+    // Audio menu
+    Mod+Alt+A {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio toggle";
+    }
+
+    // Media player (MPRIS)
+    Mod+Alt+M {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- mpris toggle";
+    }
+
+    // Tema claro/oscuro
+    Mod+Alt+T {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- theme toggle";
+    }
+
     // ------------------------------------------------------------------------
     // HYPRSUNSET -> GENERIC WAYLAND ADAPTATION
     // ------------------------------------------------------------------------
@@ -244,20 +273,29 @@ binds {
     // AUDIO
     // ------------------------------------------------------------------------
 
+    // Por IPC: OozeShell aplica el cambio y muestra su OSD
     XF86AudioRaiseVolume allow-when-locked=true {
-        spawn "wpctl" "set-volume" "-l" "1" "@DEFAULT_AUDIO_SINK@" "5%+";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio raise";
     }
 
     XF86AudioLowerVolume allow-when-locked=true {
-        spawn "wpctl" "set-volume" "@DEFAULT_AUDIO_SINK@" "5%-";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio lower";
     }
 
     XF86AudioMute allow-when-locked=true {
-        spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SINK@" "toggle";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio mute";
     }
 
     XF86AudioMicMute allow-when-locked=true {
-        spawn "wpctl" "set-mute" "@DEFAULT_AUDIO_SOURCE@" "toggle";
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio micToggle";
+    }
+
+    Shift+XF86AudioRaiseVolume allow-when-locked=true {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio micRaise";
+    }
+
+    Shift+XF86AudioLowerVolume allow-when-locked=true {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio micLower";
     }
 
     // ------------------------------------------------------------------------
@@ -288,14 +326,6 @@ binds {
     // Niri has a native screenshot UI, so the old Quickshell screenshot binds
     // are kept exactly where practical, while Print gets Niri's native UI.
     Print { screenshot; }
-
-    Mod+Print {
-        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaCopy";
-    }
-
-    Mod+Shift+Print {
-        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaSave";
-    }
 
     // ------------------------------------------------------------------------
     // SAFETY / SESSION

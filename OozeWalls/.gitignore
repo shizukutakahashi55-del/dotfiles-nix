@@ -1,0 +1,10 @@
+# SECCION: GIT IGNORE OOZEWALLS
+# IPC: build clean
+/target/
+*.log
+*.tmp
+.DS_Store
+*~
+.idea/
+.vscode/
+*.swp

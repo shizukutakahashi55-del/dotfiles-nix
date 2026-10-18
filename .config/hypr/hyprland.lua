@@ -33,6 +33,9 @@ require("modules.input.keybinds")
 -- Overrides y binds nuevos de OozeShell (Ajustes → Keybinds).
 pcall(require, "modules.input.autogen.binds")
 
+-- Infinite Canvas (whiteboard); binds propios en modules/canvas/.
+pcall(require, "modules.canvas.canvas")
+
 -- ============================================================================
 -- RULES
 -- ============================================================================

@@ -1,106 +1,106 @@
 # Auto-generado por Matugen — Plantilla para Yazi
 
 [manager]
-cwd = { fg = "#ffb3ac" }
+cwd = { fg = "#bcc8cf" }
 
 # Selección y elementos sobrevolados
-hovered         = { fg = "#000000", bg = "#ff544e" }
-preview_hovered = { bg = "#2d1b19" }
+hovered         = { fg = "#98a4ab", bg = "#0c181d" }
+preview_hovered = { bg = "#1f2020" }
 
 # Búsqueda / Find
-find_keyword  = { fg = "#000000", bg = "#369bbf", bold = true }
-find_position = { fg = "#75d2f8", bg = "reset", bold = true }
+find_keyword  = { fg = "#b89d92", bg = "#22130c", bold = true }
+find_position = { fg = "#ddc1b5", bg = "reset", bold = true }
 
 # Marcadores de archivos
-marker_copied   = { fg = "#ffb3ac", bg = "#87201e" }
+marker_copied   = { fg = "#c3c7ca", bg = "#454a4c" }
 marker_cut      = { fg = "#ffb4ab", bg = "#ffb4ab" }
-marker_marked   = { fg = "#ffb3ac", bg = "#ff544e" }
-marker_selected = { fg = "#75d2f8", bg = "#369bbf" }
+marker_marked   = { fg = "#bcc8cf", bg = "#0c181d" }
+marker_selected = { fg = "#ddc1b5", bg = "#22130c" }
 
 # Pestañas
-tab_active   = { fg = "#000000", bg = "#ff544e", bold = true }
-tab_inactive = { fg = "#e6bdb9", bg = "#2d1b19" }
+tab_active   = { fg = "#98a4ab", bg = "#0c181d", bold = true }
+tab_inactive = { fg = "#c3c7ca", bg = "#1f2020" }
 
 # Bordes (Corregido)
 border_symbol = "│"
-border_style  = { fg = "#5c3f3d" }
+border_style  = { fg = "#43474a" }
 
 [mode]
-normal_main = { fg = "#1f0f0e", bg = "#ffb3ac", bold = true }
-normal_alt  = { fg = "#ffb3ac", bg = "#2d1b19" }
+normal_main = { fg = "#131314", bg = "#bcc8cf", bold = true }
+normal_alt  = { fg = "#bcc8cf", bg = "#1f2020" }
 
-select_main = { fg = "#1f0f0e", bg = "#ffb3ac", bold = true }
-select_alt  = { fg = "#ffb3ac", bg = "#2d1b19" }
+select_main = { fg = "#131314", bg = "#c3c7ca", bold = true }
+select_alt  = { fg = "#c3c7ca", bg = "#1f2020" }
 
-unset_main  = { fg = "#1f0f0e", bg = "#ffb4ab", bold = true }
-unset_alt   = { fg = "#ffb4ab", bg = "#2d1b19" }
+unset_main  = { fg = "#131314", bg = "#ffb4ab", bold = true }
+unset_alt   = { fg = "#ffb4ab", bg = "#1f2020" }
 
 [status]
 separator_open  = ""
 separator_close = ""
-separator_style = { fg = "#2d1b19", bg = "#2d1b19" }
+separator_style = { fg = "#1f2020", bg = "#1f2020" }
 
 # Barra de progreso
-progress_label  = { fg = "#fcdbd8", bold = true }
-progress_normal = { fg = "#ffb3ac", bg = "#190a09" }
-progress_error  = { fg = "#ffb4ab", bg = "#190a09" }
+progress_label  = { fg = "#e4e2e2", bold = true }
+progress_normal = { fg = "#bcc8cf", bg = "#0e0e0f" }
+progress_error  = { fg = "#ffb4ab", bg = "#0e0e0f" }
 
 # Permisos
-perm_sep  = { fg = "#5c3f3d" }
-perm_type = { fg = "#ffb3ac" }
-perm_read = { fg = "#ffb3ac" }
+perm_sep  = { fg = "#43474a" }
+perm_type = { fg = "#bcc8cf" }
+perm_read = { fg = "#c3c7ca" }
 perm_write= { fg = "#ffb4ab" }
-perm_exec = { fg = "#75d2f8" }
+perm_exec = { fg = "#ddc1b5" }
 
 [select]
-border   = { fg = "#ffb3ac" }
-active   = { fg = "#000000", bg = "#ff544e" }
-inactive = { fg = "#fcdbd8" }
+border   = { fg = "#bcc8cf" }
+active   = { fg = "#98a4ab", bg = "#0c181d" }
+inactive = { fg = "#e4e2e2" }
 
 [input]
-border   = { fg = "#ffb3ac" }
-title    = { fg = "#ffb3ac" }
-value    = { fg = "#fcdbd8" }
-selected = { bg = "#ff544e" }
+border   = { fg = "#bcc8cf" }
+title    = { fg = "#bcc8cf" }
+value    = { fg = "#e4e2e2" }
+selected = { bg = "#0c181d" }
 
 [completion]
-border   = { fg = "#ffb3ac" }
-active   = { fg = "#000000", bg = "#ff544e" }
-inactive = { fg = "#fcdbd8" }
+border   = { fg = "#bcc8cf" }
+active   = { fg = "#98a4ab", bg = "#0c181d" }
+inactive = { fg = "#e4e2e2" }
 
 [tasks]
-border  = { fg = "#ffb3ac" }
-title   = { fg = "#ffb3ac" }
-hover   = { fg = "#000000", bg = "#ff544e" }
+border  = { fg = "#bcc8cf" }
+title   = { fg = "#bcc8cf" }
+hover   = { fg = "#98a4ab", bg = "#0c181d" }
 
 [which]
-mask            = { bg = "#190a09" }
-cand            = { fg = "#ffb3ac" }
-rest            = { fg = "#e6bdb9" }
-desc            = { fg = "#ffb3ac" }
+mask            = { bg = "#0e0e0f" }
+cand            = { fg = "#bcc8cf" }
+rest            = { fg = "#c3c7ca" }
+desc            = { fg = "#c3c7ca" }
 separator       = "  "
-separator_style = { fg = "#5c3f3d" }
+separator_style = { fg = "#43474a" }
 
 [help]
-on      = { fg = "#ffb3ac" }
-exec    = { fg = "#ffb3ac" }
-desc    = { fg = "#fcdbd8" }
-hover   = { fg = "#000000", bg = "#ff544e" }
-footer  = { fg = "#e6bdb9", bg = "#2d1b19" }
+on      = { fg = "#bcc8cf" }
+exec    = { fg = "#c3c7ca" }
+desc    = { fg = "#e4e2e2" }
+hover   = { fg = "#98a4ab", bg = "#0c181d" }
+footer  = { fg = "#c3c7ca", bg = "#1f2020" }
 
 [filetype]
 rules = [
-	{ url = "*/", fg = "#ffb3ac", bold = true },
-	{ mime = "image/*", fg = "#75d2f8" },
-	{ mime = "video/*", fg = "#ffb3ac" },
-	{ mime = "audio/*", fg = "#ffb3ac" },
+	{ url = "*/", fg = "#bcc8cf", bold = true },
+	{ mime = "image/*", fg = "#ddc1b5" },
+	{ mime = "video/*", fg = "#c3c7ca" },
+	{ mime = "audio/*", fg = "#c3c7ca" },
 	{ mime = "application/x-tar", fg = "#ffb4ab" },
 	{ mime = "application/x-bzip*", fg = "#ffb4ab" },
 	{ mime = "application/x-7z-compressed", fg = "#ffb4ab" },
 	{ mime = "application/zip", fg = "#ffb4ab" },
 	{ mime = "application/x-rar", fg = "#ffb4ab" },
-	{ url = "*", is = "exec", fg = "#ffb3ac" },
-	{ url = "*", is = "link", fg = "#75d2f8" },
+	{ url = "*", is = "exec", fg = "#c3c7ca" },
+	{ url = "*", is = "link", fg = "#ddc1b5" },
 	{ url = "*", is = "orphan", fg = "#ffb4ab" },
-	{ mime = "*", fg = "#fcdbd8" }
+	{ mime = "*", fg = "#e4e2e2" }
 ]

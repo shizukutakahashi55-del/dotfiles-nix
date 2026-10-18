@@ -39,9 +39,6 @@ environment {
 // decoration. Individual apps can still request CSD.
 prefer-no-csd
 
-// Niri has no Hyprland "force_default_wallpaper" or logo setting.
-// Wallpapers are handled by awww/Quickshell instead.
-
 // Screenshot path: Niri has a built-in screenshot UI, so the old Quickshell
 // screenshot binds can remain available, but these paths also make Niri's
 // native screenshot actions useful.
@@ -50,5 +47,14 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 // Keep Niri's overview relatively close to the compositor-oriented setup.
 overview {
     zoom 0.5
-    backdrop-color "#131313"
+    //backdrop-color "#131313"
+    workspace-shadow {
+        off
+    }
+}
+
+layer-rule {
+    match namespace="^oozewalls$"
+    place-within-backdrop false
+
 }

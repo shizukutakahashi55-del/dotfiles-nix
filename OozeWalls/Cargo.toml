@@ -1,0 +1,25 @@
+[package]
+name = "oozewalls"
+version = "0.1.0"
+edition = "2021"
+description = "Motor minimo de wallpapers live/static via mpvpaper, controlable desde Quickshell"
+license = "GPL-3.0-or-later"
+
+[[bin]]
+name = "oozewalls"
+path = "src/main.rs"
+
+[[bin]]
+name = "oozewalls-gui"
+path = "src/bin/oozewalls-gui.rs"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+libc = "0.2"
+eframe = { version = "0.28", default-features = false, features = ["default_fonts", "glow", "wayland", "x11"] }
+egui = "0.28"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp", "gif"] }
+rfd = "0.15"
+wayland-client = "0.31"
+wayland-protocols-wlr = { version = "0.3", default-features = false, features = ["client"] }

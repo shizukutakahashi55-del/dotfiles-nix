@@ -36,6 +36,20 @@ hl.layer_rule({
 })
 
 -- 0ozeShell Experimental
+hl.layer_rule({
+  match        = { namespace = "oozewalls" },
+  no_anim      = true,
+  blur         = true,
+  ignore_alpha = 0.5,
+})
+
+hl.layer_rule({
+  match        = { namespace = "mpvpaper" },
+  no_anim      = true,
+  blur         = true,
+  ignore_alpha = 0.5,
+})
+
 local OozeCrystal = hl.layer_rule({
   name  = "OozeCrystal",
   match = { namespace = "oozeshell-.*" },
@@ -43,7 +57,17 @@ local OozeCrystal = hl.layer_rule({
 })
 OozeCrystal:set_enabled(false)
 
-
+--------------------------------------------------
+-- OOZESHELL RULES -------------------------------
+--------------------------------------------------
+-- System Monitor (ventana xdg de Quickshell, app-id org.quickshell)
+hl.window_rule({
+    name  = "oozeshell-sysmon",
+    match = { class = "^(org.quickshell)$" },
+    float = true,
+    border_size = 0,
+    size  = {980, 640},
+})
 
 -- ============================================================================
 --WINDOW RULES -------------------------------------------------
@@ -137,6 +161,23 @@ hl.window_rule({
 })
 
 
+-- Telegram NO float.
+hl.window_rule({
+    name = "telegram-tile",
+    match = { class = "^(org.telegram.desktop)$", title = "^(TelegramDesktop)$" },
+    float = false,
+})
+-- Flota cualquier ventana de Telegram cuyo título NO contenga "Telegram"
+hl.window_rule({
+    name = "telegram-float",
+    match = { 
+        class = "^(org.telegram.desktop)$", 
+        initial_title = "negative:^(Telegram.*)$" 
+    },
+    float = true,
+    border_size = 0,
+})
+
 
 
 -- ============================================================================
@@ -164,10 +205,10 @@ hl.window_rule({
 -- =================================
 -- Workspace Coding Rename
 -- =================================
-hl.dispatch(hl.dsp.workspace.rename({
-    workspace = "1",  
-    name = "Coding", 
-}))
+-- hl.dispatch(hl.dsp.workspace.rename({
+--     workspace = "1",  
+--     name = "Coding", 
+-- }))
 
 
 ------------------------------------------------------------
@@ -231,4 +272,6 @@ hl.window_rule({
     move  = "20 monitor_h-120",
     float = true,
 })
+
+
 

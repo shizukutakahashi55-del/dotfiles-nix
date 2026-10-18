@@ -52,14 +52,6 @@ return {
           if ft == "dashboard" then return false end
           return true
         end,
-        offsets = {
-          {
-            filetype  = "neo-tree",
-            text      = "  Explorador",
-            highlight = "Directory",
-            separator = true,
-          },
-        },
       },
     },
   },
@@ -72,7 +64,7 @@ return {
       indent  = { char = "│" },
       scope   = { enabled = true, show_start = false },
       exclude = {
-        filetypes = { "help", "dashboard", "neo-tree", "lazy", "mason", "notify" },
+        filetypes = { "help", "dashboard", "lazy", "mason", "notify" },
       },
     },
   },
@@ -94,25 +86,23 @@ return {
   {
     "rcarriga/nvim-notify",
     config = function()
-      vim.notify = require("notify")
-      require("notify").setup({
-        background_colour = "#1a1b26",
-        timeout           = 3000,
-        max_width         = 60,
-        render            = "compact",
-        stages            = "fade",
+      local notify = require("notify")
+      notify.setup({
+        timeout   = 3000,
+        max_width = 60,
+        render    = "compact",
+        stages    = "fade_in_slide_out",
+        fps       = 60,
       })
+      vim.notify = notify
     end,
   },
 
-  -- ── Dashboard (alpha-nvim) + Neo-tree ────────────────────
+  -- ── Dashboard (alpha-nvim) ────────────────────────────────
   {
     "goolord/alpha-nvim",
     event        = "VimEnter",
-    dependencies = {
-      "nvim-tree/nvim-web-devicons",
-      "nvim-neo-tree/neo-tree.nvim",
-    },
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
       local alpha  = require("alpha")
       local dash   = require("alpha.themes.dashboard")
@@ -142,7 +132,6 @@ return {
 
       dash.section.footer.val = "  <Space>fk  ver todos los keymaps"
 
-      -- Padding vertical para centrar verticalmente
       dash.config.layout = {
         { type = "padding", val = 6 },
         dash.section.header,
@@ -153,23 +142,6 @@ return {
       }
 
       alpha.setup(dash.config)
-
-      -- ── Abrir Neo-tree cuando alpha esté listo ─────────────
-      -- alpha-nvim centra su contenido dentro de su propia ventana,
-      -- que ocupa todo el espacio libre (a la derecha de Neo-tree).
-      vim.api.nvim_create_autocmd("User", {
-        pattern  = "AlphaReady",
-        once     = true,
-        callback = function()
-          vim.cmd("Neotree show left dir=" .. vim.fn.getcwd())
-          for _, win in ipairs(vim.api.nvim_list_wins()) do
-            if vim.bo[vim.api.nvim_win_get_buf(win)].filetype == "alpha" then
-              vim.api.nvim_set_current_win(win)
-              break
-            end
-          end
-        end,
-      })
     end,
   },
 
@@ -194,7 +166,6 @@ return {
       wk.add({
         -- Grupos principales
         { "<leader>f",  group = "󰭎  Buscar (Telescope)" },
-        { "<leader>e",  group = "  Explorador (Neo-tree)" },
         { "<leader>g",  group = "  Git" },
         -- Acciones sueltas
         { "<leader>w",  desc  = "  Guardar archivo" },

@@ -2,10 +2,19 @@
 #  .zshrc — Soft & Cozy (Starship Edition) 🌸✨
 # ============================================================
 
+# ── PATH ─────────────────────────────────────────────────────
+export PATH="$HOME/.local/bin:$PATH"
+
 # ── Fastfetch ────────────────────────────────────────────────
-# if command -v fastfetch &>/dev/null; then
-#     fastfetch
-# fi
+if [[ -o interactive ]]; then
+    if [[ -x "$HOME/.local/bin/random-fastfetch" ]]; then
+        "$HOME/.local/bin/random-fastfetch"
+    elif command -v fastfetch &>/dev/null; then
+        fastfetch
+    fi
+fi
+
+
 
 # ── Historial ─────────────────────────────────────────────────
 HISTFILE="$HOME/.zsh_history"
@@ -126,7 +135,6 @@ export PATH="$HOME/.opencode/bin:$PATH"
 # ── Variables de entorno ──────────────────────────────────────
 export EDITOR='nvim'
 export VISUAL='nvim'
-export PATH="$HOME/.local/bin:$PATH"
 export LS_COLORS="di=38;5;218:ln=38;5;183:so=38;5;183:pi=38;5;223:ex=38;5;157"
 
 # ── NixOS Helpers ─────────────────────────────────────────────
