@@ -1,6 +1,0 @@
-<RCC>
-  <qresource prefix="/qt/qml/OozeShell/Native">
-    <file alias="qmldir">/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/qml/OozeShell/Native/qmldir</file>
-  </qresource>
-</RCC>
-
