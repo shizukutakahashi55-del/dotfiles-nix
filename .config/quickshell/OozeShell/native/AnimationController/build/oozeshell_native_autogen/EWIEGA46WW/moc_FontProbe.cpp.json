@@ -1,0 +1,133 @@
+{
+    "classes": [
+        {
+            "classInfos": [
+                {
+                    "name": "QML.Element",
+                    "value": "auto"
+                },
+                {
+                    "name": "QML.Singleton",
+                    "value": "true"
+                }
+            ],
+            "className": "FontProbe",
+            "final": true,
+            "lineNumber": 28,
+            "methods": [
+                {
+                    "access": "public",
+                    "index": 1,
+                    "isConst": true,
+                    "lineNumber": 41,
+                    "name": "families",
+                    "returnType": "QStringList"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "family",
+                            "type": "QString"
+                        }
+                    ],
+                    "index": 2,
+                    "isConst": true,
+                    "lineNumber": 42,
+                    "name": "has",
+                    "returnType": "bool"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "family",
+                            "type": "QString"
+                        }
+                    ],
+                    "index": 3,
+                    "isConst": true,
+                    "lineNumber": 43,
+                    "name": "resolve",
+                    "returnType": "QString"
+                },
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "wanted",
+                            "type": "QStringList"
+                        }
+                    ],
+                    "index": 4,
+                    "lineNumber": 44,
+                    "name": "rescan",
+                    "returnType": "int"
+                },
+                {
+                    "access": "public",
+                    "index": 5,
+                    "isConst": true,
+                    "lineNumber": 45,
+                    "name": "searchDirs",
+                    "returnType": "QStringList"
+                }
+            ],
+            "object": true,
+            "properties": [
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 0,
+                    "lineNumber": 32,
+                    "name": "lastReport",
+                    "notify": "changed",
+                    "override": false,
+                    "read": "lastReport",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "QString",
+                    "user": false,
+                    "virtual": false
+                },
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 1,
+                    "lineNumber": 33,
+                    "name": "registered",
+                    "notify": "changed",
+                    "override": false,
+                    "read": "registered",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "int",
+                    "user": false,
+                    "virtual": false
+                }
+            ],
+            "qualifiedClassName": "FontProbe",
+            "signals": [
+                {
+                    "access": "public",
+                    "index": 0,
+                    "lineNumber": 50,
+                    "name": "changed",
+                    "returnType": "void"
+                }
+            ],
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QObject"
+                }
+            ]
+        }
+    ],
+    "inputFile": "FontProbe.h",
+    "outputRevision": 69
+}

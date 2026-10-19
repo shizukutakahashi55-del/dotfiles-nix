@@ -1,0 +1,40 @@
+file(REMOVE_RECURSE
+  ".qt/rcc/qrc_qmake_OozeShell_Native.cpp"
+  "CMakeFiles/oozeshell_native.dir/link.d"
+  "CMakeFiles/oozeshell_native_autogen.dir/AutogenUsed.txt"
+  "CMakeFiles/oozeshell_native_autogen.dir/ParseCache.txt"
+  "oozeshell_native_autogen"
+  "CMakeFiles/oozeshell_native.dir/AnimationController.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/AnimationController.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/FontProbe.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/FontProbe.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/ProcessList.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/ProcessList.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/SystemMonitor.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/SystemMonitor.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/SystemStats.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/SystemStats.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/WmStream.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/WmStream.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/build/.qt/rcc/qrc_qmake_OozeShell_Native.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/build/.qt/rcc/qrc_qmake_OozeShell_Native.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/oozeshell_native_OozeShell_NativePlugin.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/oozeshell_native_OozeShell_NativePlugin.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/oozeshell_native_autogen/mocs_compilation.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/oozeshell_native_autogen/mocs_compilation.cpp.o.d"
+  "CMakeFiles/oozeshell_native.dir/oozeshell_native_qmltyperegistrations.cpp.o"
+  "CMakeFiles/oozeshell_native.dir/oozeshell_native_qmltyperegistrations.cpp.o.d"
+  "meta_types/oozeshell_native_json_file_list.txt"
+  "meta_types/oozeshell_native_json_file_list.txt.timestamp"
+  "meta_types/qt6oozeshell_native_metatypes.json"
+  "meta_types/qt6oozeshell_native_metatypes.json.gen"
+  "oozeshell_native_qmltyperegistrations.cpp"
+  "qml/OozeShell/Native/liboozeshell_native.pdb"
+  "qml/OozeShell/Native/liboozeshell_native.so"
+  "qml/OozeShell/Native/oozeshell_native.qmltypes"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/oozeshell_native.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

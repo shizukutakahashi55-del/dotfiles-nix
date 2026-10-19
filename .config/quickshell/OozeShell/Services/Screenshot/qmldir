@@ -1,0 +1,2 @@
+singleton ScreenshotBackend 1.0 ScreenshotBackend.qml
+ScreenshotFreeze 1.0 ScreenshotFreeze.qml

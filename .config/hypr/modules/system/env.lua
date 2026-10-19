@@ -37,3 +37,5 @@ hl.env("QT_QPA_PLATFORMTHEME", "qt6ct")
 ---- Native Wayland Support for Electron Apps -------------------
 -----------------------------------------------------------------
 -- hl.env("ELECTRON_OZONE_PLATFORM_HINT", "auto")
+-- OozeShell native core (added by install-oozenix.sh)
+hl.env("QML_IMPORT_PATH", os.getenv("HOME") .. "/.local/share/oozeshell/qml")

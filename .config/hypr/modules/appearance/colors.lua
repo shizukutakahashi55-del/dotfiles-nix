@@ -1,7 +1,7 @@
 return {
-    primary   = "rgba(bcc8cfff)",
-    tertiary  = "rgba(ddc1b5ff)",
-    outline   = "rgba(43474aff)",
+    primary   = "rgba(00ddd4ff)",
+    tertiary  = "rgba(94cfe9ff)",
+    outline   = "rgba(3c4948ff)",
     error     = "rgba(ffb4abff)",
     error_cnt = "rgba(93000aff)",
 }

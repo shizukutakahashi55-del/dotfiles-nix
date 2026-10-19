@@ -1,0 +1,8 @@
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/../EWIEGA46WW/moc_ActiveSource.cpp.json
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/../EWIEGA46WW/moc_AnimationController.cpp.json
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/../EWIEGA46WW/moc_FontProbe.cpp.json
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/../EWIEGA46WW/moc_ProcessList.cpp.json
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/../EWIEGA46WW/moc_SystemMonitor.cpp.json
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/../EWIEGA46WW/moc_SystemStats.cpp.json
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/../EWIEGA46WW/moc_WmStream.cpp.json
+/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/oozeshell_native_autogen/include/oozeshell_native_OozeShell_NativePlugin.moc.json

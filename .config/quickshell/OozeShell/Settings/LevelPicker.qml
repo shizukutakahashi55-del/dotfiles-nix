@@ -1,0 +1,100 @@
+// LevelPicker — selector de niveles fijos (sin valores intermedios). `count` define cuántos segmentos tiene: 5 por defecto, 4 para el tamaño de la ventana de ajustes.
+
+import QtQuick
+import QtQuick.Layouts
+import "../COMMON"
+
+SkinRect {
+  id: root
+
+  property int level: -1
+  property int count: 5
+  property var names: []
+  property bool showNames: true
+  signal picked(int index)
+
+  Layout.fillWidth: true
+  Layout.preferredHeight: root.showNames ? 54 : 36
+  radius: 13
+  color: Theme.surface
+
+  readonly property real segW: (width - 6) / Math.max(1, root.count)
+
+
+  SkinRect {
+    visible: root.level >= 0
+    x: 3 + Math.max(0, root.level) * root.segW
+    y: 3
+    width: root.segW
+    height: root.height - 6
+    radius: 10
+    color: Theme.primary
+    Behavior on x { NumberAnimation { duration: Theme.animDuration(180); easing.type: Easing.OutCubic } }
+  }
+
+  Row {
+    x: 3
+    y: 3
+
+    Repeater {
+      model: root.count
+
+      delegate: Item {
+        id: seg
+        required property int index
+
+        readonly property bool current: root.level === seg.index
+
+        width: root.segW
+        height: root.height - 6
+
+        SkinRect {
+          anchors.fill: parent
+          radius: 10
+          color: Theme.surfaceHigh
+          opacity: (segArea.containsMouse && !seg.current) ? 1 : 0
+          Behavior on opacity { NumberAnimation { duration: Theme.animDuration(120) } }
+        }
+
+        ColumnLayout {
+          anchors.centerIn: parent
+          spacing: 1
+
+
+          Text {
+            Layout.alignment: Qt.AlignHCenter
+            text: "Aa"
+            color: seg.current ? Theme.textOnPrimary : Theme.text
+            font.pixelSize: Math.round(9 + seg.index * 8 / Math.max(1, root.count - 1))
+            font.bold: true
+            font.family: Theme.fontFamily
+            Behavior on color { ColorAnimation { duration: Theme.animDuration(150) } }
+          }
+
+          Text {
+            visible: root.showNames
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: seg.width - 6
+            horizontalAlignment: Text.AlignHCenter
+            text: root.names[seg.index] ?? ""
+            color: seg.current ? Theme.textOnPrimary : Theme.subtext
+            font.pixelSize: Theme.sfs(9)
+            font.family: Theme.fontFamily
+
+            fontSizeMode: Text.HorizontalFit
+            minimumPixelSize: 6
+            Behavior on color { ColorAnimation { duration: Theme.animDuration(150) } }
+          }
+        }
+
+        MouseArea {
+          id: segArea
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.picked(seg.index)
+        }
+      }
+    }
+  }
+}

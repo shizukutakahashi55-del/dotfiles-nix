@@ -923,9 +923,14 @@ scripts=(
   "$(oozeshell_services)/PackageSearch/installed.sh"
   "$(oozeshell_tools)/build-native.sh"
   "$(oozeshell_tools)/live-optimize.sh"
+  "$(oozeshell_tools)/online-wallpapers.sh"
+  "$(oozeshell_tools)/ooze-launch.sh"
+  "$(oozeshell_tools)/ooze-run.sh"
   "$(oozeshell_tools)/check.sh"
   "$(oozeshell_tools)/palette-apply.py"
   "$(oozeshell_tools)/oozeshell"
+  "$QS_DIR/OozeShell/Modules/Keybinds/keybinds_tool.py"
+  "$QS_DIR/OozeShell/Backends/python/ooze-daemon.py"
   "$DOTFILES/random-fastfetch"
   "$DOTFILES/OozeWalls/install.sh"
   "$DOTFILES/.config/rofi/Launcher/launcher.sh"
@@ -950,6 +955,14 @@ for script in "${scripts[@]}"; do
     echo "  [✗] Script file not found: $script"
   fi
 done
+
+# Safety net: any other script shipped inside OozeShell (future additions, or a
+# zip rebuilt on a filesystem that dropped the permission bits).
+if [ -d "$QS_DIR/OozeShell" ]; then
+  find "$QS_DIR/OozeShell" -type f \( -name '*.sh' -o -name '*.py' \) \
+    -not -path '*/native/*/build/*' ! -perm -u+x -exec chmod +x {} + 2>/dev/null || true
+  echo "  [✓] Swept remaining *.sh / *.py inside OozeShell"
+fi
 
 # ── Keybinds: migrate legacy IPC calls ──
 # Old dotfiles can still call IPC targets/paths that no longer exist:

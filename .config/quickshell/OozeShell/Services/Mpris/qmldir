@@ -1,0 +1,4 @@
+singleton MprisBackend 1.0 MprisBackend.qml
+Mpris 1.0 Mpris.qml
+MprisWaves 1.0 MprisWaves.qml
+MprisVolume 1.0 MprisVolume.qml

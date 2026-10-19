@@ -1,0 +1,5 @@
+singleton PowerActions 1.0 PowerActions.qml
+singleton PowerProfile 1.0 PowerProfile.qml
+PowerMenu 1.0 PowerMenu.qml
+PowerCard 1.0 PowerCard.qml
+PowerChip 1.0 PowerChip.qml
