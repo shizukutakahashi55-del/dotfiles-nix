@@ -1,7 +1,0 @@
-module OozeShell.Native
-linktarget oozeshell_native
-optional plugin oozeshell_native
-classname OozeShell_NativePlugin
-typeinfo oozeshell_native.qmltypes
-prefer :/qt/qml/OozeShell/Native/
-
