@@ -1,0 +1,65 @@
+{
+    "classes": [
+        {
+            "className": "ActiveSource",
+            "lineNumber": 17,
+            "methods": [
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "who",
+                            "type": "QString"
+                        },
+                        {
+                            "name": "on",
+                            "type": "bool"
+                        }
+                    ],
+                    "index": 1,
+                    "lineNumber": 27,
+                    "name": "setWanted",
+                    "returnType": "void"
+                }
+            ],
+            "object": true,
+            "properties": [
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 0,
+                    "lineNumber": 19,
+                    "name": "wanted",
+                    "notify": "wantedChanged",
+                    "override": false,
+                    "read": "wanted",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "bool",
+                    "user": false,
+                    "virtual": false
+                }
+            ],
+            "qualifiedClassName": "ActiveSource",
+            "signals": [
+                {
+                    "access": "public",
+                    "index": 0,
+                    "lineNumber": 38,
+                    "name": "wantedChanged",
+                    "returnType": "void"
+                }
+            ],
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QObject"
+                }
+            ]
+        }
+    ],
+    "inputFile": "ActiveSource.h",
+    "outputRevision": 69
+}

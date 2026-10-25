@@ -1,0 +1,196 @@
+{
+    "classes": [
+        {
+            "classInfos": [
+                {
+                    "name": "QML.Element",
+                    "value": "auto"
+                }
+            ],
+            "className": "WmStream",
+            "lineNumber": 27,
+            "object": true,
+            "properties": [
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 0,
+                    "lineNumber": 30,
+                    "name": "command",
+                    "notify": "commandChanged",
+                    "override": false,
+                    "read": "command",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "QStringList",
+                    "user": false,
+                    "virtual": false,
+                    "write": "setCommand"
+                },
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 1,
+                    "lineNumber": 31,
+                    "name": "active",
+                    "notify": "activeChanged",
+                    "override": false,
+                    "read": "active",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "bool",
+                    "user": false,
+                    "virtual": false,
+                    "write": "setActive"
+                },
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 2,
+                    "lineNumber": 32,
+                    "name": "running",
+                    "notify": "runningChanged",
+                    "override": false,
+                    "read": "running",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "bool",
+                    "user": false,
+                    "virtual": false
+                },
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 3,
+                    "lineNumber": 33,
+                    "name": "restarts",
+                    "notify": "restartsChanged",
+                    "override": false,
+                    "read": "restarts",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "int",
+                    "user": false,
+                    "virtual": false
+                },
+                {
+                    "constant": false,
+                    "designable": true,
+                    "final": false,
+                    "index": 4,
+                    "lineNumber": 34,
+                    "name": "droppedLines",
+                    "notify": "droppedLinesChanged",
+                    "override": false,
+                    "read": "droppedLines",
+                    "required": false,
+                    "scriptable": true,
+                    "stored": true,
+                    "type": "int",
+                    "user": false,
+                    "virtual": false
+                }
+            ],
+            "qualifiedClassName": "WmStream",
+            "signals": [
+                {
+                    "access": "public",
+                    "arguments": [
+                        {
+                            "name": "obj",
+                            "type": "QVariantMap"
+                        }
+                    ],
+                    "index": 0,
+                    "lineNumber": 50,
+                    "name": "parsed",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 1,
+                    "lineNumber": 51,
+                    "name": "commandChanged",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 2,
+                    "lineNumber": 52,
+                    "name": "activeChanged",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 3,
+                    "lineNumber": 53,
+                    "name": "runningChanged",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 4,
+                    "lineNumber": 54,
+                    "name": "restartsChanged",
+                    "returnType": "void"
+                },
+                {
+                    "access": "public",
+                    "index": 5,
+                    "lineNumber": 55,
+                    "name": "droppedLinesChanged",
+                    "returnType": "void"
+                }
+            ],
+            "slots": [
+                {
+                    "access": "private",
+                    "index": 6,
+                    "lineNumber": 58,
+                    "name": "onReadyRead",
+                    "returnType": "void"
+                },
+                {
+                    "access": "private",
+                    "arguments": [
+                        {
+                            "name": "code",
+                            "type": "int"
+                        },
+                        {
+                            "name": "status",
+                            "type": "QProcess::ExitStatus"
+                        }
+                    ],
+                    "index": 7,
+                    "lineNumber": 59,
+                    "name": "onFinished",
+                    "returnType": "void"
+                },
+                {
+                    "access": "private",
+                    "index": 8,
+                    "lineNumber": 60,
+                    "name": "onRestartTimeout",
+                    "returnType": "void"
+                }
+            ],
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QObject"
+                }
+            ]
+        }
+    ],
+    "inputFile": "WmStream.h",
+    "outputRevision": 69
+}

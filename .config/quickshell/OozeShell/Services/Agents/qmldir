@@ -1,0 +1,2 @@
+singleton AgentsService 1.0 AgentsService.qml
+AgentBubble 1.0 AgentBubble.qml

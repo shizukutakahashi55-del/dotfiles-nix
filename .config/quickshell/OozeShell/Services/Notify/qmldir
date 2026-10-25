@@ -1,0 +1,8 @@
+singleton NotificationsBackend 1.0 NotificationsBackend.qml
+NotifItem 1.0 NotifItem.qml
+NotifCard 1.0 NotifCard.qml
+NotifToasts 1.0 NotifToasts.qml
+Notify 1.0 Notify.qml
+NotifList 1.0 NotifList.qml
+singleton AlertSound 1.0 AlertSound.qml
+AlarmToast 1.0 AlarmToast.qml

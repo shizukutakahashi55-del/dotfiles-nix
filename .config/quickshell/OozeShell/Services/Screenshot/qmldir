@@ -1,0 +1,4 @@
+singleton ScreenshotBackend 1.0 ScreenshotBackend.qml
+singleton CaptureConfig 1.0 CaptureConfig.qml
+singleton RecorderBackend 1.0 RecorderBackend.qml
+ScreenshotFreeze 1.0 ScreenshotFreeze.qml

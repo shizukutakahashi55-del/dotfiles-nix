@@ -15,7 +15,7 @@ layout {
 }
 
 window-rule {
-    geometry-corner-radius 10
+    geometry-corner-radius 14
     clip-to-geometry true
     background-effect {
         blur true
@@ -31,5 +31,5 @@ layer-rule {
 
 blur {
     passes 2
-    offset 1.0
+    offset 3.0
 }

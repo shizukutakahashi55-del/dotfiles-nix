@@ -1,0 +1,4 @@
+singleton AudioBackend 1.0 AudioBackend.qml
+AudioOSD 1.0 AudioOSD.qml
+StreamOutputPicker 1.0 StreamOutputPicker.qml
+AppsRouting 1.0 AppsRouting.qml

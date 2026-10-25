@@ -259,7 +259,21 @@ binds {
     Mod+Alt+T {
         spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- theme toggle";
     }
+    
+    // System Monitor
+    Mod+Ctrl+M {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- sysmon toggle";
+    }
 
+    // System Monitor
+    Mod+F1 {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call agent toggle";
+    }
+
+    // System Monitor
+    Mod+F2 {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- equalizer toggle";
+    }
     // ------------------------------------------------------------------------
     // HYPRSUNSET -> GENERIC WAYLAND ADAPTATION
     // ------------------------------------------------------------------------

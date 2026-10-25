@@ -1,0 +1,18 @@
+LockScreen 1.0 LockScreen.qml
+LockField 1.0 LockField.qml
+LockChip 1.0 LockChip.qml
+LockWeather 1.0 LockWeather.qml
+LockMedia 1.0 LockMedia.qml
+LockControls 1.0 LockControls.qml
+LockClock 1.0 LockClock.qml
+LockNotifs 1.0 LockNotifs.qml
+LockContent 1.0 LockContent.qml
+LockPower 1.0 LockPower.qml
+singleton LockLayouts 1.0 LockLayouts.qml
+LockDashboard 1.0 LockDashboard.qml
+LockDashSection 1.0 LockDashSection.qml
+LockDashWeather 1.0 LockDashWeather.qml
+LockDashMedia 1.0 LockDashMedia.qml
+LockDashNotifs 1.0 LockDashNotifs.qml
+LockSpectrum 1.0 LockSpectrum.qml
+singleton LockConfig 1.0 LockConfig.qml

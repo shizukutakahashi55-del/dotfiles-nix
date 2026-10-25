@@ -1,0 +1,3 @@
+[<SLASH>home<SLASH>oozenix<SLASH>dotfiles<SLASH>.config<SLASH>quickshell<SLASH>OozeShell<SLASH>native<SLASH>AnimationController]
+importPaths="/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/qml:/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/qml/OozeShell/Native:/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build:/nix/store/dbnyhkzcp2bnmm7gqlwrslbawqlkam96-qtdeclarative-6.11.2/lib/qt-6/qml"
+resourceFiles="/home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/.qt/rcc/qmake_OozeShell_Native.qrc"

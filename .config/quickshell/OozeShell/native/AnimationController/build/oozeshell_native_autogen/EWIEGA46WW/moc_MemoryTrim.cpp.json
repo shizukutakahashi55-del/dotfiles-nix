@@ -1,0 +1,39 @@
+{
+    "classes": [
+        {
+            "classInfos": [
+                {
+                    "name": "QML.Element",
+                    "value": "auto"
+                },
+                {
+                    "name": "QML.Singleton",
+                    "value": "true"
+                }
+            ],
+            "className": "MemoryTrim",
+            "final": true,
+            "lineNumber": 6,
+            "methods": [
+                {
+                    "access": "public",
+                    "index": 0,
+                    "isConst": true,
+                    "lineNumber": 13,
+                    "name": "trim",
+                    "returnType": "bool"
+                }
+            ],
+            "object": true,
+            "qualifiedClassName": "MemoryTrim",
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QObject"
+                }
+            ]
+        }
+    ],
+    "inputFile": "MemoryTrim.h",
+    "outputRevision": 69
+}

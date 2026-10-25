@@ -1,0 +1,2 @@
+singleton CaffeineBackend 1.0 CaffeineBackend.qml
+CaffeineInhibitor 1.0 CaffeineInhibitor.qml
