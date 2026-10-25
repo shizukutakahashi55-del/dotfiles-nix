@@ -9,8 +9,11 @@ standalone y CLI controlable todo desde Quickshell sin abrir ajustes.
 ./install.sh
 ```
 
-Busca `OozeWalls` en el launcher. Biblioteca por carpetas, Ajustes, Estado.
-Click selecciona, doble click aplica. Funciona sin Quickshell.
+Busca `OozeWalls` en el launcher. Biblioteca por carpetas, Favoritos, Ajustes
+y Estado. Los videos llevan la etiqueta `Live`; el corazon guarda favoritos
+(persisten en `config.json`) y el filtro `Favoritos` los muestra. Click
+selecciona, doble click aplica. En Ajustes puedes elegir interfaz en espanol o
+ingles. Funciona sin Quickshell.
 
 ## CLI
 

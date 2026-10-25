@@ -3,71 +3,80 @@
 canvas_zoom.py - Infinite Canvas Zoom In / Out Engine
 Scales floating windows relative to mouse cursor position (or monitor center)
 for a true Figma/Miro-style infinite whiteboard zoom experience.
+
+Usage: canvas_zoom.py <in|out|reset>
 """
 
 import sys
 import os
-import json
-import subprocess
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from hypr_ipc import (hyprctl_json, move_window_exact_lua, resize_window_exact_lua,
-                      batch_async, get_state_file_path, get_cursor_pos)
+from hypr_ipc import (get_active_workspace_id, get_cursor_pos, get_floating_windows,
+                      get_focused_monitor, get_monitor_bounds,
+                      move_window_exact_lua, resize_window_exact_lua,
+                      batch_async, save_canvas_positions)
 
-STATE_FILE = get_state_file_path()
 ZOOM_FACTOR_IN = 1.15
 ZOOM_FACTOR_OUT = 0.85
 
 MIN_WIDTH = 280
 MIN_HEIGHT = 200
-MAX_WIDTH = 1240
-MAX_HEIGHT = 680
+
+# Tope duro histórico del módulo; se recorta además al monitor actual.
+HARD_MAX_WIDTH = 1240
+HARD_MAX_HEIGHT = 680
+
+DEFAULT_CARD_WIDTH = 585
+DEFAULT_CARD_HEIGHT = 520
 
 
-def get_focal_point():
-    # Try mouse cursor position first
+def get_limits(mon):
+    max_w = min(HARD_MAX_WIDTH, max(MIN_WIDTH, mon["width"] - 80))
+    max_h = min(HARD_MAX_HEIGHT, max(MIN_HEIGHT, mon["height"] - 120))
+    return max_w, max_h
+
+
+def get_focal_point(mon):
     cur = get_cursor_pos()
-    if cur and (cur[0] > 0 or cur[1] > 0):
-        return cur[0], cur[1]
+    if cur:
+        cx, cy = cur
+        # El cursor puede quedar fuera de los monitores tras un paneo.
+        if mon["left"] <= cx <= mon["right"] and mon["top"] <= cy <= mon["bottom"]:
+            return float(cx), float(cy)
 
-    # Fallback to monitor center
-    monitors = hyprctl_json(["monitors"]) or []
-    for m in monitors:
-        if m.get("focused"):
-            scale = m.get("scale", 1.0)
-            lw = int(m["width"] / scale)
-            lh = int(m["height"] / scale)
-            return m.get("x", 0) + lw // 2, m.get("y", 0) + lh // 2
-    return 640, 360
+    return float(mon["left"] + mon["width"] // 2), float(mon["top"] + mon["height"] // 2)
 
 
 def zoom_canvas(direction):
-    ws = hyprctl_json(["activeworkspace"])
-    if not ws:
+    workspace_id = get_active_workspace_id()
+    if workspace_id is None:
         return
-    workspace_id = ws["id"]
 
-    clients = hyprctl_json(["clients"]) or []
-    floating = [
-        w for w in clients
-        if w.get("floating") and w.get("workspace", {}).get("id") == workspace_id
-    ]
-
+    floating = get_floating_windows(workspace_id)
     if not floating:
         return
 
+    mon = get_monitor_bounds(get_focused_monitor())
+    max_w, max_h = get_limits(mon)
+
     if direction == "reset":
-        scale = 1.0
-        # Reset cards to standard 585x520
+        card_w = min(DEFAULT_CARD_WIDTH, max_w)
+        card_h = min(DEFAULT_CARD_HEIGHT, max_h)
+
         exprs = []
+        updates = {}
         for w in floating:
-            exprs.append(resize_window_exact_lua(585, 520, w["address"]))
-        if exprs:
-            batch_async(exprs)
+            exprs.append(resize_window_exact_lua(card_w, card_h, w["address"]))
+            updates[w["address"]] = {
+                "x": int(w["at"][0]), "y": int(w["at"][1]),
+                "w": card_w, "h": card_h,
+            }
+        batch_async(exprs)
+        save_canvas_positions(workspace_id, updates)
         return
 
     scale = ZOOM_FACTOR_IN if direction == "in" else ZOOM_FACTOR_OUT
-    fx, fy = get_focal_point()
+    fx, fy = get_focal_point(mon)
 
     exprs = []
     updated_positions = {}
@@ -76,20 +85,10 @@ def zoom_canvas(direction):
         curr_x, curr_y = w["at"][0], w["at"][1]
         curr_w, curr_h = w["size"][0], w["size"][1]
 
-        # Calculate new dimensions clamped to limits
-        new_w = int(curr_w * scale)
-        new_h = int(curr_h * scale)
+        new_w = max(MIN_WIDTH, min(max_w, int(curr_w * scale)))
+        new_h = max(MIN_HEIGHT, min(max_h, int(curr_h * scale)))
 
-        if direction == "out":
-            if new_w < MIN_WIDTH or new_h < MIN_HEIGHT:
-                new_w = max(new_w, MIN_WIDTH)
-                new_h = max(new_h, MIN_HEIGHT)
-        else:
-            if new_w > MAX_WIDTH or new_h > MAX_HEIGHT:
-                new_w = min(new_w, MAX_WIDTH)
-                new_h = min(new_h, MAX_HEIGHT)
-
-        # Scale center position relative to focal point
+        # Scale center position relative to the focal point.
         center_x = curr_x + curr_w / 2
         center_y = curr_y + curr_h / 2
 
@@ -106,26 +105,11 @@ def zoom_canvas(direction):
             "x": new_x,
             "y": new_y,
             "w": new_w,
-            "h": new_h
+            "h": new_h,
         }
 
-    if exprs:
-        batch_async(exprs)
-
-    # Save to state if canvas state exists
-    try:
-        if os.path.exists(STATE_FILE):
-            with open(STATE_FILE, "r") as f:
-                state = json.load(f)
-            ws_key = str(workspace_id)
-            if ws_key in state and state[ws_key].get("mode") == "canvas":
-                if "positions" not in state[ws_key]:
-                    state[ws_key]["positions"] = {}
-                state[ws_key]["positions"].update(updated_positions)
-                with open(STATE_FILE, "w") as f:
-                    json.dump(state, f, indent=2)
-    except Exception:
-        pass
+    batch_async(exprs)
+    save_canvas_positions(workspace_id, updated_positions)
 
 
 def main():

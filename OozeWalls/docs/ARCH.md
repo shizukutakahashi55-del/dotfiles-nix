@@ -158,15 +158,18 @@ oozewalls-gui
 
 ## App standalone + launcher
 
-`oozewalls-gui` es la ventana propia: Biblioteca, Ajustes y Estado. La
-biblioteca se abre por carpetas con migas de pan, búsqueda, filtro y orden.
-Click selecciona y abre el panel de detalle; doble click (o Enter) aplica;
-click derecho aplica en otra salida. Flechas mueven la selección, Backspace
-sube de nivel, arrastrar una carpeta la agrega. Miniaturas 16:9 cacheadas en
-`~/.cache/oozewalls/thumbs` (imágenes y videos vía `ffmpeg`), generadas en
-hilos. Aplicar, pausa, estado y diálogos corren fuera del hilo de UI. Barra
-inferior con prev/pausa/next/stop, volumen y RAM. Cada cambio de ajustes se
-guarda al instante.
+`oozewalls-gui` es la ventana propia: Biblioteca, Favoritos, Ajustes y Estado.
+La biblioteca se abre por carpetas con migas de pan, búsqueda, filtro y orden.
+Los videos muestran la etiqueta `Live`; el corazon de cada tarjeta alterna el
+favorito y el filtro `Favoritos` muestra solo esos fondos. `favorites` se
+guarda en `config.json`. Click selecciona y abre el panel de detalle; doble
+click (o Enter) aplica; click derecho aplica en otra salida. Flechas mueven la
+selección, Backspace sube de nivel, arrastrar una carpeta la agrega. Miniaturas
+16:9 cacheadas en `~/.cache/oozewalls/thumbs` (imágenes y videos vía `ffmpeg`),
+generadas en hilos. Aplicar, pausa, estado y diálogos corren fuera del hilo de
+UI. La barra inferior tiene prev/pausa/next/stop, volumen y RAM y se adapta al
+ancho. El idioma de la interfaz (`language`: `es` o `en`) se elige en Ajustes.
+Cada cambio de ajustes se guarda al instante.
 `./install.sh` compila release, instala en `~/.local/bin`, genera el wrapper
 con `LD_LIBRARY_PATH` de NixOS y registra `oozewalls-gui.desktop` para
 buscarla en el launcher sin depender de Quickshell.
@@ -201,4 +204,44 @@ OozeWalls elegido restaura solo al iniciar.
 
 `static_backend` (auto|awww|builtin|mpvpaper), `scheme`, `source_index`,
 `palette_mode`, `palette_auto`, `colors_file`, `hwdec`, `layer`, `output`,
-`mute`, `volume`. `oozewalls config` imprime todo el JSON.
+`mute`, `volume`, `transition`, `transition_ms`, `favorites`, `language`.
+`oozewalls config` imprime todo el JSON.
+
+## Apariencia de la GUI
+
+Ajustes → Apariencia permite elegir paleta y tamaño de fuente. Se guardan en
+`config.json` como `ui_palette` (`violet`, `ocean`, `emerald`, `rose`, `amber`,
+`graphite`) y `ui_font` (`small` 90%, `normal` 100%, `large` 115%, `xlarge`
+130%). Los colores ya no son constantes: `pal()` devuelve la paleta activa y
+`fs()`/`pf()` escalan cualquier tamaño de texto. Al cambiar una opción se
+reaplica `theme()` al instante. Las paletas son oscuras; los colores de estado
+(`OK`, `WARN`, `BAD`) no cambian.
+
+## Filtros de la biblioteca
+
+Los chips (Todos, Live, Imágenes, Favoritos) y los controles Ordenar, Tamaño y
+Aplicar en se acomodan en filas según el ancho disponible, igual que la
+rejilla de fondos. Cada elemento tiene un ancho estimado y se llena la fila
+hasta que no cabe el siguiente. Ya no dependen de que el panel de detalle esté
+abierto.
+
+## Cierres inesperados de la GUI
+
+El watchdog `OOZEWALLS_GUI_WATCHDOG` ya no aborta el proceso. Con la ventana en
+otro workspace o tapada, el compositor deja de enviar frame callbacks y
+`eglSwapBuffers` puede bloquear el hilo de UI sin que la app esté colgada; el
+watchdog anterior lo interpretaba como un cuelgue y hacía `abort()` a los 4 s.
+Ahora solo registra un reporte tras 30 s sin latido.
+
+`~/.cache/oozewalls/gui-crash.log` registra cómo termina cada sesión:
+
+| Línea | Significado |
+|---|---|
+| `panic: ...` | Pánico en el hilo principal |
+| `signal: SIGTERM` / `SIGHUP` / `SIGINT` | Otro proceso o la sesión cerró la GUI |
+| `exit: error ...` | eframe terminó con error |
+| `exit: ok` | Cierre normal |
+| `ANR heartbeat=...` | Más de 30 s sin latido (solo con el watchdog activo) |
+
+Si tras cerrarse no aparece ninguna línea, el proceso murió por `SIGKILL`
+(por ejemplo, OOM killer): revisar `journalctl -k | grep -i oom`.

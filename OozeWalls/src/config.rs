@@ -11,6 +11,8 @@ pub struct Config {
     #[serde(default)]
     pub wallpapers: HashMap<String, String>,
     #[serde(default)]
+    pub favorites: Vec<String>,
+    #[serde(default)]
     pub scaling: HashMap<String, String>,
     #[serde(default)]
     pub dirs: Vec<String>,
@@ -40,6 +42,12 @@ pub struct Config {
     pub transition: String,
     #[serde(default = "def_transition_ms")]
     pub transition_ms: u32,
+    #[serde(default = "def_language")]
+    pub language: String,
+    #[serde(default = "def_ui_palette")]
+    pub ui_palette: String,
+    #[serde(default = "def_ui_font")]
+    pub ui_font: String,
 }
 
 pub const STATIC_BACKENDS: &[&str] = &["auto", "awww", "builtin", "mpvpaper"];
@@ -84,11 +92,24 @@ fn def_layer() -> String {
     String::from("background")
 }
 
+fn def_language() -> String {
+    String::from("es")
+}
+
+fn def_ui_palette() -> String {
+    String::from("violet")
+}
+
+fn def_ui_font() -> String {
+    String::from("normal")
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
             current: None,
             wallpapers: HashMap::new(),
+            favorites: Vec::new(),
             scaling: HashMap::new(),
             dirs: default_dirs(),
             output: def_output(),
@@ -104,6 +125,9 @@ impl Default for Config {
             colors_file: String::new(),
             transition: def_transition(),
             transition_ms: def_transition_ms(),
+            language: def_language(),
+            ui_palette: def_ui_palette(),
+            ui_font: def_ui_font(),
         }
     }
 }
@@ -145,6 +169,11 @@ impl Config {
                     c.dirs = default_dirs();
                 }
                 c.volume = c.volume.min(100);
+                c.favorites.sort();
+                c.favorites.dedup();
+                if c.language != "en" && c.language != "es" {
+                    c.language = def_language();
+                }
                 if c.hwdec.is_empty() {
                     c.hwdec = def_hwdec();
                 }

@@ -5,6 +5,6 @@ case "$1" in
   on)  act=wakeup_monitor ;;
   *)   echo "uso: $0 on|off"; exit 1 ;;
 esac
-for m in $(mmsg get all-monitors | grep -o '"name":"[^"]*"' | cut -d'"' -f4); do
+for m in $(mmsg get all-monitors | grep -oE '"name" *: *"[^"]*"' | cut -d'"' -f4); do
   mmsg dispatch "$act,$m"
 done

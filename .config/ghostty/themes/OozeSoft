@@ -2,35 +2,35 @@
 # Ghostty — OozeSoft / Matugen
 # ============================================================
 
-background = #091615
-foreground = #d7e5e3
+background = #0c141b
+foreground = #dbe3ed
 
-cursor-color = #00ddd4
-cursor-text = #003734
+cursor-color = #8bceff
+cursor-text = #00344e
 
-selection-background = #00ddd4
-selection-foreground = #003734
+selection-background = #8bceff
+selection-foreground = #00344e
 
 
 # ── ANSI normal ──────────────────────────────────────────────
 
-palette = 0=#04100f
+palette = 0=#070f15
 palette = 1=#ffb4ab
-palette = 2=#00ddd4
-palette = 3=#94cfe9
-palette = 4=#00504c
-palette = 5=#004d63
-palette = 6=#a1ced6
-palette = 7=#d7e5e3
+palette = 2=#8bceff
+palette = 3=#bac4fa
+palette = 4=#004b6f
+palette = 5=#3a4472
+palette = 6=#b4c7e9
+palette = 7=#dbe3ed
 
 
 # ── ANSI bright ─────────────────────────────────────────────
 
-palette = 8=#859492
+palette = 8=#89929a
 palette = 9=#ffb4ab
-palette = 10=#00ddd4
-palette = 11=#94cfe9
-palette = 12=#00ddd4
-palette = 13=#94cfe9
-palette = 14=#a1ced6
-palette = 15=#d7e5e3
+palette = 10=#8bceff
+palette = 11=#bac4fa
+palette = 12=#8bceff
+palette = 13=#bac4fa
+palette = 14=#b4c7e9
+palette = 15=#dbe3ed

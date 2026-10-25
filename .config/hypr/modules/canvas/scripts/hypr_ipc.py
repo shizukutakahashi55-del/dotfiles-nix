@@ -125,3 +125,87 @@ def get_cursor_pos(timeout=0.2):
         pass
     return None
 
+
+# ─── Layout helpers (canvas scripts) ───────────────────────────────────────
+
+DEFAULT_MARGIN_X = 40
+DEFAULT_MARGIN_TOP = 80
+DEFAULT_MARGIN_BOTTOM = 40
+
+
+def get_focused_monitor(timeout=0.3):
+    monitors = hyprctl_json(["monitors"], timeout=timeout) or []
+    for m in monitors:
+        if m.get("focused"):
+            return m
+    return monitors[0] if monitors else None
+
+
+def get_monitor_bounds(monitor=None, timeout=0.3):
+    """Logical bounds of a monitor ({left,top,right,bottom,width,height,scale})."""
+    m = monitor or get_focused_monitor(timeout=timeout)
+    if not m:
+        return {"left": 0, "top": 0, "right": 1280, "bottom": 720,
+                "width": 1280, "height": 720, "scale": 1.0, "name": ""}
+
+    scale = m.get("scale", 1.0) or 1.0
+    w = int(m.get("width", 1920) / scale)
+    h = int(m.get("height", 1080) / scale)
+    x = int(m.get("x", 0))
+    y = int(m.get("y", 0))
+    return {
+        "left": x, "top": y, "right": x + w, "bottom": y + h,
+        "width": w, "height": h, "scale": scale,
+        "name": m.get("name", ""),
+    }
+
+
+def get_active_workspace_id(timeout=0.3):
+    ws = hyprctl_json(["activeworkspace"], timeout=timeout)
+    return ws.get("id") if ws else None
+
+
+def get_floating_windows(workspace_id=None, mapped_only=True, timeout=0.5):
+    """Floating windows of a workspace (all workspaces if workspace_id is None)."""
+    clients = hyprctl_json(["clients"], timeout=timeout) or []
+    out = []
+    for w in clients:
+        if not w.get("floating"):
+            continue
+        if workspace_id is not None and w.get("workspace", {}).get("id") != workspace_id:
+            continue
+        if mapped_only and not w.get("mapped", True):
+            continue
+        out.append(w)
+    return out
+
+
+def window_bounds(w):
+    x, y = int(w["at"][0]), int(w["at"][1])
+    ww, wh = int(w["size"][0]), int(w["size"][1])
+    return {"x": x, "y": y, "w": ww, "h": wh,
+            "cx": x + ww // 2, "cy": y + wh // 2}
+
+
+def save_canvas_positions(workspace_id, updates):
+    """Persist positions in the canvas state file, only if the ws is in canvas mode.
+
+    updates: {address: {"x": x, "y": y, "w": w, "h": h}}
+    """
+    if not updates:
+        return
+    try:
+        path = get_state_file_path()
+        if not os.path.exists(path):
+            return
+        with open(path, "r") as f:
+            state = json.load(f)
+        key = str(workspace_id)
+        if key in state and state[key].get("mode") == "canvas":
+            state[key].setdefault("positions", {}).update(updates)
+            with open(path, "w") as f:
+                json.dump(state, f, indent=2)
+    except Exception:
+        pass
+
+

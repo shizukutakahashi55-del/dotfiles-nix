@@ -98,11 +98,9 @@ pub fn mpvpaper_pids() -> Vec<u32> {
     v
 }
 
-pub fn rss_mb() -> u64 {
+pub fn rss_of(pids: &[u32]) -> u64 {
     let mut total_kb: u64 = 0;
-    let mut all = mpvpaper_pids();
-    all.extend(crate::layerbg::pids());
-    for pid in all {
+    for pid in pids {
         if let Ok(text) = std::fs::read_to_string(format!("/proc/{}/status", pid)) {
             for line in text.lines() {
                 if line.starts_with("VmRSS:") {
@@ -115,6 +113,12 @@ pub fn rss_mb() -> u64 {
         }
     }
     total_kb / 1024
+}
+
+pub fn rss_mb() -> u64 {
+    let mut all = mpvpaper_pids();
+    all.extend(crate::layerbg::pids());
+    rss_of(&all)
 }
 
 pub fn is_pid_stopped(pid: u32) -> bool {

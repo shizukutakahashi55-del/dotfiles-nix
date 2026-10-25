@@ -60,6 +60,8 @@ local programs = {
 
     -- Binario de la terminal detectada (lo usa functions/progs.lua en el arranque)
     terminal = terminal,
+    -- fileManager = "dolphin",
+    -- browser     = "brave",
 
     -- Apps por rol: el shell resuelve la app elegida en Ajustes -> Apps predeterminadas
     terminalIpc = QS .. "apps open terminal",

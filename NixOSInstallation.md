@@ -15,10 +15,13 @@ You can also skip all of this by using directly:
   hyprshutdown, hyprsysteminfo, hypridle, hyprlock
 - Quickshell (quickshell-git) — includes the Qt Quick wrapper/dependencies
 - tmux (Launcher tmux sessions)
+- zsh (the dotfiles link a `.zshrc`)
+- rofi (alternative Launcher / PowerMenu backend)
 - Qt6: QtQuick, QtQuick.Controls, QtQuick.Layouts, QtQuick.Shapes,
   QtQuick.Effects, QtQml, qt6ct
 - Nerd Fonts: "JetBrainsMono Nerd Font" and "Symbols Nerd Font Mono"
-- wpctl, pw-dump, pw-link (pipewire + wireplumber)
+- wpctl, pw-dump, pw-link, pw-cli, pw-loopback (pipewire + wireplumber)
+- pactl (libpulse; used by screen recording to pick the audio device)
 - brightnessctl
 - powerprofilesctl (power-profiles-daemon)
 - upower
@@ -32,6 +35,7 @@ You can also skip all of this by using directly:
 - wl-copy / wl-paste (wl-clipboard)
 - cliphist (clipboard history panel; needs wl-clipboard too)
 - xdg-utils (xdg-open)
+- xdg-user-dirs (xdg-user-dir; finds your Pictures and Videos folders)
 - jq
 - python3 >= 3.11 (palette-apply.py: applies the fixed Palettes to the matugen
   templates, i.e. terminals, Hyprland, Qt/KDE, etc.)
@@ -44,11 +48,17 @@ You can also skip all of this by using directly:
 - wev
 - grim
 - slurp
+- wf-recorder (screen recording)
 - cava
 - pavucontrol
+- qpwgraph (audio routing graph)
+- A color emoji font (Noto Color Emoji)
 - awww (current successor to swww)
 - Optional, GPU stats: nvidia-smi (NVIDIA) or the amdgpu sysfs counters
 - Optional, to-do alarm sound: pw-play or paplay (pipewire / libpulse)
+- Optional, faster online wallpaper downloads: aria2 (falls back to curl)
+- Optional, safer storage of AI agent API keys: libsecret (secret-tool) and a
+  keyring such as gnome-keyring (falls back to an encrypted file using openssl)
 
 ## Optional — native animation core (C++)
 

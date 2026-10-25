@@ -1,0 +1,2 @@
+singleton TodoBackend 1.0 TodoBackend.qml
+AgendaView 1.0 AgendaView.qml

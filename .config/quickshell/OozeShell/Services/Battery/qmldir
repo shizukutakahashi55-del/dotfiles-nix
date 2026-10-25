@@ -1,0 +1,2 @@
+singleton BatteryBackend 1.0 BatteryBackend.qml
+BatteryIcon 1.0 BatteryIcon.qml

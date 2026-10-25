@@ -1,0 +1,18 @@
+{
+    "classes": [
+        {
+            "className": "OozeShell_NativePlugin",
+            "lineNumber": 11,
+            "object": true,
+            "qualifiedClassName": "OozeShell_NativePlugin",
+            "superClasses": [
+                {
+                    "access": "public",
+                    "name": "QQmlEngineExtensionPlugin"
+                }
+            ]
+        }
+    ],
+    "inputFile": "oozeshell_native_OozeShell_NativePlugin.cpp",
+    "outputRevision": 69
+}

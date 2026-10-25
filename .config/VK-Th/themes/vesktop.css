@@ -26,20 +26,20 @@
     --button-radius: 12px;
     
     /* Colores directos mapeados desde Matugen */
-    --accent-hue: 177;
+    --accent-hue: 205;
     --accent-saturation: 100%;
-    --accent-lightness: 43%;
+    --accent-lightness: 77%;
     
     /* Mapeo de superficies para replicar los contenedores del widget */
-    --bg-base: #091615;                      /* Fondo general más oscuro */
-    --bg-surface: #111e1d;      /* Fondo de paneles laterales */
-    --bg-card: #152221;             /* Tarjetas/Contenedores (ej. tarjetas CPU) */
-    --bg-card-hover: #1f2c2b;    /* Estado hover de tarjetas */
-    --accent-color: #00504c;        /* Azul pastel del botón activo (ej. Balanced) */
-    --accent-text: #00fcf2;      /* Texto sobre el botón activo */
+    --bg-base: #0c141b;                      /* Fondo general más oscuro */
+    --bg-surface: #141d23;      /* Fondo de paneles laterales */
+    --bg-card: #182127;             /* Tarjetas/Contenedores (ej. tarjetas CPU) */
+    --bg-card-hover: #232b32;    /* Estado hover de tarjetas */
+    --accent-color: #004b6f;        /* Azul pastel del botón activo (ej. Balanced) */
+    --accent-text: #c9e6ff;      /* Texto sobre el botón activo */
     
-    --text-normal: #d7e5e3;                /* Texto principal */
-    --text-muted: #bbc9c7;         /* Texto secundario/etiquetas */
+    --text-normal: #dbe3ed;                /* Texto principal */
+    --text-muted: #bfc7d1;         /* Texto secundario/etiquetas */
 }
 
 /* ============================================================
@@ -59,8 +59,8 @@
     --channeltextarea-background: var(--bg-card) !important;
     
     /* Colores de texto */
-    --text-normal: #d7e5e3 !important;
-    --text-muted: #bbc9c7 !important;
+    --text-normal: #dbe3ed !important;
+    --text-muted: #bfc7d1 !important;
 }
 
 /* Contenedores redondos e independientes estilo Widget */
@@ -75,14 +75,14 @@
 .option-1234, 
 .selected__0b431,
 .categoryItemDefaultCategorySelected__75837 {
-    background-color: #00504c !important;
-    color: #00fcf2 !important;
+    background-color: #004b6f !important;
+    color: #c9e6ff !important;
     border-radius: 12px !important;
 }
 
 /* Barras de desplazamiento estilizadas y delgadas */
 ::-webkit-scrollbar-thumb {
-    background-color: #3c4948 !important;
+    background-color: #3f484f !important;
     border-radius: 8px !important;
 }
 
@@ -107,6 +107,6 @@
 .modeUnread_c91f08 .name__2ea32,
 .modeUnread_c91f08 .icon__2ea32 {
     opacity: 1 !important;
-    color: #00ddd4 !important;
+    color: #8bceff !important;
     font-weight: 600 !important;
 }

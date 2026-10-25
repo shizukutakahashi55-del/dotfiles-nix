@@ -43,6 +43,29 @@ pub fn label_of(kind: &str) -> &'static str {
         .unwrap_or("Desvanecer")
 }
 
+pub fn label_of_lang(kind: &str, en: bool) -> &'static str {
+    if !en {
+        return label_of(kind);
+    }
+    match kind {
+        "none" => "No animation",
+        "fade" => "Fade",
+        "slide-left" => "Slide from left",
+        "slide-right" => "Slide from right",
+        "slide-up" => "Slide from top",
+        "slide-down" => "Slide from bottom",
+        "wipe-left" => "Wipe from left",
+        "wipe-right" => "Wipe from right",
+        "wipe-up" => "Wipe from top",
+        "wipe-down" => "Wipe from bottom",
+        "circle" => "Circle from center",
+        "zoom" => "Zoom with fade",
+        "blinds" => "Blinds",
+        "random" => "Random",
+        _ => "Fade",
+    }
+}
+
 fn concrete_kinds() -> Vec<&'static str> {
     KINDS
         .iter()

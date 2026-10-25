@@ -46,3 +46,7 @@ es el de OozeShell: esquema `OozeSoft` (lo genera matugen en cada máquina)
     Dolphin y abre carpetas con `xdg-open`, así respeta esta asociación
     en Hyprland, Niri y MangoWM sin cambios por compositor.
 -   Ver plan completo: `../quickshell/plan-integracion-dolphin-oozeshell.md`.
+
+En caso de no funcionar o usar hyprland limpio, simplemente reemplaza ambos archivos en ~/.config
+si usas la configuracion de nixos enlazada en los
+dotfiles no deberias tener problemas con el MIME.

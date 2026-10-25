@@ -58,8 +58,7 @@ fn base_name(p: &Path, fallback: &str) -> String {
         .unwrap_or_else(|| fallback.to_string())
 }
 
-fn entry_of(p: &Path) -> Option<Entry> {
-    let ext = p.extension().and_then(|x| x.to_str())?;
+fn entry_of(p: &Path) -> Option<Entry> {    let ext = p.extension().and_then(|x| x.to_str())?;
     if !is_supported(ext) {
         return None;
     }
@@ -84,6 +83,10 @@ fn entry_of(p: &Path) -> Option<Entry> {
             .map(|x| x.to_string_lossy().to_string())
             .unwrap_or_default(),
     })
+}
+
+pub fn entry_for(path: &str) -> Option<Entry> {
+    entry_of(Path::new(path))
 }
 
 fn walk(dir: &Path, depth: usize, out: &mut Vec<Entry>, seen: &mut HashSet<String>) {

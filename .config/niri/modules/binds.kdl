@@ -19,7 +19,7 @@ binds {
     // Terminal
 
     //Mod+T { spawn "foot"; }
-    Mod+T { 
+    Mod+Return { 
         spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- apps open terminal"; 
     }
 

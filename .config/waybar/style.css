@@ -9,26 +9,26 @@
  * ============================================================ */
 
 /* Fondos dinámicos */
-@define-color base         #091615;
-@define-color mantle       #04100f;
-@define-color surface      #111e1d;
-@define-color surface_alt  #152221;
+@define-color base         #0c141b;
+@define-color mantle       #070f15;
+@define-color surface      #141d23;
+@define-color surface_alt  #182127;
 
 /* Texto */
-@define-color text         #d7e5e3;
-@define-color subtext      #bbc9c7;
+@define-color text         #dbe3ed;
+@define-color subtext      #bfc7d1;
 
 /* Acento principal */
-@define-color primary      #00ddd4;
-@define-color p_container  #00504c;
-@define-color on_primary   #003734;
-@define-color on_p_cont    #00fcf2;
+@define-color primary      #8bceff;
+@define-color p_container  #004b6f;
+@define-color on_primary   #00344e;
+@define-color on_p_cont    #c9e6ff;
 
 /* Estados */
 @define-color error        #ffb4ab;
 
 /* Bordes */
-@define-color outline      #3c4948;
+@define-color outline      #3f484f;
 
 
 /* ============================================================

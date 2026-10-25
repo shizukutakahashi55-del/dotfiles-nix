@@ -28,7 +28,7 @@ hl.bind(mainMod .. " + Q", functions.toggleCodingWorkspace)
 -------------------------------------------------------------------------------
 
 -- Terminal 
-hl.bind(mainMod .. " + T", hl.dsp.exec_cmd(programs.terminal))
+hl.bind(mainMod .. " + Return", hl.dsp.exec_cmd(programs.terminal))
 
 -- File Manager
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(programs.fileManager))
@@ -69,17 +69,17 @@ hl.bind(
 -- Resize current column using configured sizes
 -------------------------------------------------------------------------------
 
--- Move active to next column
-hl.bind(
-    "SUPER + period",
-    hl.dsp.layout("move +col")
-)
+-- -- Move active to next column
+-- hl.bind(
+--     "SUPER + period",
+--     hl.dsp.layout("move +col")
+-- )
 
--- Move active to previous column
-hl.bind(
-    "SUPER + comma",
-    hl.dsp.layout("move -col")
-)
+-- -- Move active to previous column
+-- hl.bind(
+--     "SUPER + comma",
+--     hl.dsp.layout("move -col")
+-- )
 
 -- Increase column width
 hl.bind(
@@ -147,7 +147,7 @@ end
 -- Cycle to next Monocle
 -- hl.bind(mainMod .. " + TAB", hl.dsp.layout("cyclenext"))
 
-hl.bind("SUPER + TAB", functions.layout_bind({
+hl.bind("SUPER + comma", functions.layout_bind({
     scrolling = hl.dsp.layout("swapcol l"),  -- Scrolling: swap column with left one
     dwindle   = hl.dsp.layout("swapsplit"),  -- Dwindle: swap window split
     monocle   = hl.dsp.layout("cycleprev"),  -- Monocle and master: cycle prev window
@@ -158,7 +158,7 @@ hl.bind("SUPER + TAB", functions.layout_bind({
 -- Cycle to previous Monocle
 -- hl.bind(mainMod .. " + SHIFT + TAB", hl.dsp.layout("cycleprev"))
 
-hl.bind("SUPER + SHIFT + TAB", functions.layout_bind({
+hl.bind("SUPER + period", functions.layout_bind({
     scrolling = hl.dsp.layout("swapcol r"),   -- Scrolling: swap column with right one
     dwindle   = hl.dsp.layout("togglesplit"), -- Dwindle: toggle window split
     monocle   = hl.dsp.layout("cyclenext"),   -- Monocle and master: cycle next window
@@ -301,7 +301,7 @@ hl.bind(mainMod .. " + SHIFT + M", hl.dsp.exec_cmd(
 ))
 
 -- Overview Toggle
-hl.bind(mainMod .. " + O", hl.dsp.exec_cmd(
+hl.bind(mainMod .. " + TAB", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- overview toggle"
 ))
 
@@ -355,10 +355,15 @@ hl.bind(mainMod .. " + ALT + T", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/qu
 -- NixInstall Avances, just with Nix-home dotfiles
 hl.bind(mainMod .. "+ SHIFT + U", hl.dsp.exec_cmd("~/nix-home/installer/toggle.sh"))
 
+-- Agents Toggle
+hl.bind(mainMod .. "+ F1", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call agent toggle"))
+
+-- Ecualize Toggle
+hl.bind(mainMod .. "+ F2", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- equalizer toggle"))
+
 -- System Monitor
 --local home = os.getenv("HOME")
 hl.bind(mainMod .. "+ CTRL + M", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- sysmon toggle"))
-
 
 -- NixSearch with Rofi
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))

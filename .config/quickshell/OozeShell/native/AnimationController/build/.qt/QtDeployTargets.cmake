@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_oozeshell_native_FILE /home/oozenix/dotfiles/.config/quickshell/OozeShell/native/AnimationController/build/qml/OozeShell/Native/liboozeshell_native.so)
+set(__QT_DEPLOY_TARGET_oozeshell_native_TYPE MODULE_LIBRARY)

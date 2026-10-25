@@ -1,5 +1,6 @@
 // SECCION: LAYERBG CAPA WAYLAND PROPIA PARA IMAGENES ESTATICAS
 // IPC: __bg (proceso hijo) pidfile bg_<salida>.bgpid socket bg_<salida>.bgsock comando SET handshake "ready" por stdout
+use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::os::fd::{AsFd, FromRawFd, OwnedFd};
@@ -46,7 +47,7 @@ fn switch_running(
     }
     let pid = read_pid(&pidfile_for(output)).filter(|p| is_bg_process(*p))?;
     let mut stream = UnixStream::connect(bgsock_for(output)).ok()?;
-    stream.set_read_timeout(Some(Duration::from_secs(20))).ok()?;
+    stream.set_read_timeout(Some(Duration::from_secs(5))).ok()?;
     stream.set_write_timeout(Some(Duration::from_secs(2))).ok()?;
     let r = tr.resolved();
     let kind = if r.enabled() { r.kind.clone() } else { String::from("none") };
@@ -216,11 +217,18 @@ pub fn spawn(
     }
     let mut child = cmd.spawn().map_err(|e| format!("spawn capa {}", e))?;
     let pid = child.id();
-    let mut line = String::new();
-    if let Some(out) = child.stdout.take() {
-        let _ = BufReader::new(out).read_line(&mut line);
+    let out = child.stdout.take();
+    let (ltx, lrx) = std::sync::mpsc::channel();
+    if let Some(out) = out {
+        std::thread::spawn(move || {
+            let mut line = String::new();
+            let _ = BufReader::new(out).read_line(&mut line);
+            let _ = ltx.send(line);
+        });
     }
+    let line = lrx.recv_timeout(Duration::from_secs(12)).unwrap_or_default();
     if !line.trim().starts_with("ready") {
+        let _ = child.kill();
         let _ = child.wait();
         let msg = line.trim().trim_start_matches("err").trim().to_string();
         return Err(if msg.is_empty() {
@@ -261,6 +269,14 @@ struct OutInfo {
     wl: wl_output::WlOutput,
     name: String,
     scale: i32,
+    global: u32,
+    removed: bool,
+}
+
+#[derive(Clone, Copy)]
+struct BufData {
+    surf: usize,
+    id: u64,
 }
 
 struct SurfInfo {
@@ -271,7 +287,8 @@ struct SurfInfo {
     dirty: bool,
     drawn: bool,
     closed: bool,
-    buffer: Option<wl_buffer::WlBuffer>,
+    live: HashMap<u64, wl_buffer::WlBuffer>,
+    next_id: u64,
 }
 
 struct State {
@@ -321,7 +338,8 @@ impl State {
             dirty: false,
             drawn: false,
             closed: false,
-            buffer: None,
+            live: HashMap::new(),
+            next_id: 0,
         });
     }
 
@@ -338,6 +356,8 @@ impl State {
             wl,
             name: String::new(),
             scale: 1,
+            global: name,
+            removed: false,
         });
         idx
     }
@@ -387,6 +407,7 @@ fn shm_buffer<F: FnOnce(&mut [u8])>(
     pw: u32,
     ph: u32,
     format: wl_shm::Format,
+    data: BufData,
     fill: F,
 ) -> Result<wl_buffer::WlBuffer, String> {
     let stride = pw as usize * 4;
@@ -422,7 +443,7 @@ fn shm_buffer<F: FnOnce(&mut [u8])>(
         libc::munmap(map, size);
     }
     let pool = shm.create_pool(fd.as_fd(), size as i32, qh, ());
-    let buf = pool.create_buffer(0, pw as i32, ph as i32, stride as i32, format, qh, ());
+    let buf = pool.create_buffer(0, pw as i32, ph as i32, stride as i32, format, qh, data);
     pool.destroy();
     Ok(buf)
 }
@@ -434,9 +455,10 @@ fn render_buffer(
     scaling: &str,
     pw: u32,
     ph: u32,
+    data: BufData,
 ) -> Result<wl_buffer::WlBuffer, String> {
     let rgb = decode_scaled(file, scaling, pw, ph)?;
-    shm_buffer(shm, qh, pw, ph, wl_shm::Format::Xrgb8888, |dst| {
+    shm_buffer(shm, qh, pw, ph, wl_shm::Format::Xrgb8888, data, |dst| {
         blit_bgrx(dst, &rgb, pw as usize, ph as usize)
     })
 }
@@ -526,6 +548,30 @@ fn build_jobs(
     Ok(jobs)
 }
 
+fn next_buf_data(state: &mut State, idx: usize) -> BufData {
+    let s = &mut state.surfs[idx];
+    let id = s.next_id;
+    s.next_id = s.next_id.wrapping_add(1);
+    BufData { surf: idx, id }
+}
+
+fn finish_frame(
+    state: &mut State,
+    idx: usize,
+    pw: u32,
+    ph: u32,
+    scale: i32,
+    data: BufData,
+    buf: wl_buffer::WlBuffer,
+) {
+    let s = &mut state.surfs[idx];
+    s.surface.set_buffer_scale(scale);
+    s.surface.attach(Some(&buf), 0, 0);
+    s.surface.damage_buffer(0, 0, pw as i32, ph as i32);
+    s.surface.commit();
+    s.live.insert(data.id, buf);
+}
+
 fn commit_frame(
     state: &mut State,
     qh: &QueueHandle<State>,
@@ -533,12 +579,14 @@ fn commit_frame(
     kind: &str,
     t: f32,
 ) -> Result<(), String> {
+    let data = next_buf_data(state, job.idx);
     let buf = shm_buffer(
         &state.shm,
         qh,
         job.pw,
         job.ph,
         wl_shm::Format::Xrgb8888,
+        data,
         |dst| {
             crate::transition::frame_into(
                 dst,
@@ -551,14 +599,15 @@ fn commit_frame(
             )
         },
     )?;
-    let s = &mut state.surfs[job.idx];
-    s.surface.set_buffer_scale(job.scale as i32);
-    s.surface.attach(Some(&buf), 0, 0);
-    s.surface.damage_buffer(0, 0, job.pw as i32, job.ph as i32);
-    s.surface.commit();
-    if let Some(prev) = s.buffer.replace(buf) {
-        prev.destroy();
-    }
+    finish_frame(
+        state,
+        job.idx,
+        job.pw,
+        job.ph,
+        job.scale as i32,
+        data,
+        buf,
+    );
     Ok(())
 }
 
@@ -573,6 +622,7 @@ fn animate_jobs(
     state: &mut State,
     qh: &QueueHandle<State>,
     conn: &Connection,
+    queue: &mut wayland_client::EventQueue<State>,
     jobs: &[Job],
     kind: &str,
     ms: u32,
@@ -590,6 +640,9 @@ fn animate_jobs(
             commit_frame(state, qh, job, kind, t)?;
         }
         conn.flush().map_err(|e| format!("flush {}", e))?;
+        queue
+            .dispatch_pending(state)
+            .map_err(|e| format!("dispatch {}", e))?;
         let spent = start.elapsed() - el;
         if spent < step {
             std::thread::sleep(step - spent);
@@ -599,6 +652,9 @@ fn animate_jobs(
         commit_frame(state, qh, job, kind, 1.0)?;
     }
     conn.flush().map_err(|e| format!("flush {}", e))?;
+    queue
+        .dispatch_pending(state)
+        .map_err(|e| format!("dispatch {}", e))?;
     Ok(())
 }
 
@@ -619,11 +675,8 @@ fn play_transition(
         commit_frame(state, qh, job, kind, 0.0)?;
     }
     conn.flush().map_err(|e| format!("flush {}", e))?;
-    queue
-        .roundtrip(state)
-        .map_err(|e| format!("roundtrip {}", e))?;
     announce_ready(ready);
-    animate_jobs(state, qh, conn, &jobs, kind, ms)?;
+    animate_jobs(state, qh, conn, queue, &jobs, kind, ms)?;
     for job in &jobs {
         let s = &mut state.surfs[job.idx];
         s.dirty = false;
@@ -655,7 +708,7 @@ fn switch_to(
             Ok(jobs) => {
                 let _ = reply.write_all(b"ok\n");
                 let ms = crate::transition::clamp_ms(cmd.ms);
-                animate_jobs(state, qh, conn, &jobs, &kind, ms)?;
+                animate_jobs(state, qh, conn, queue, &jobs, &kind, ms)?;
             }
             Err(e) => {
                 state.file = prev_file;
@@ -733,9 +786,6 @@ fn draw_pending(
     ready: &Arc<AtomicBool>,
 ) -> Result<(), String> {
     if state.anim.is_some() && !first_draw_targets(state).is_empty() {
-        queue
-            .roundtrip(state)
-            .map_err(|e| format!("roundtrip {}", e))?;
         let targets = first_draw_targets(state);
         if let Some((kind, ms)) = state.anim.take() {
             if !targets.is_empty() {
@@ -750,17 +800,19 @@ fn draw_pending(
         }
         let scale = state.outs[state.surfs[i].out].scale.max(1) as u32;
         let (pw, ph) = (w * scale, h * scale);
-        let buf = render_buffer(&state.shm, qh, &state.file, &state.scaling, pw, ph)?;
-        let s = &mut state.surfs[i];
-        s.surface.set_buffer_scale(scale as i32);
-        s.surface.attach(Some(&buf), 0, 0);
-        s.surface.damage_buffer(0, 0, pw as i32, ph as i32);
-        s.surface.commit();
-        if let Some(old) = s.buffer.replace(buf) {
-            old.destroy();
-        }
-        s.dirty = false;
-        s.drawn = true;
+        let data = next_buf_data(state, i);
+        let buf = render_buffer(
+            &state.shm,
+            qh,
+            &state.file,
+            &state.scaling,
+            pw,
+            ph,
+            data,
+        )?;
+        finish_frame(state, i, pw, ph, scale as i32, data, buf);
+        state.surfs[i].dirty = false;
+        state.surfs[i].drawn = true;
     }
     Ok(())
 }
@@ -811,6 +863,8 @@ pub fn run(args: &[String]) -> i32 {
             if !ready.load(Ordering::SeqCst) {
                 println!("err {}", e);
                 let _ = std::io::stdout().flush();
+            } else {
+                eprintln!("capa: {}", e);
             }
             1
         }
@@ -877,7 +931,9 @@ fn run_inner(
         .map_err(|e| format!("roundtrip {}", e))?;
 
     let targets: Vec<usize> = (0..state.outs.len())
-        .filter(|&i| state.wild || state.outs[i].name == output)
+        .filter(|&i| {
+            !state.outs[i].removed && (state.wild || state.outs[i].name == output)
+        })
         .collect();
     if targets.is_empty() {
         return Err(format!("salida {} no encontrada", output));
@@ -928,16 +984,43 @@ impl Dispatch<wl_registry::WlRegistry, GlobalListContents> for State {
         qh: &QueueHandle<Self>,
     ) {
         // monitor nuevo: solo en modo "*"
-        if let wl_registry::Event::Global {
-            name,
-            interface,
-            version,
-        } = event
-        {
-            if state.wild && interface == "wl_output" {
-                let idx = state.bind_output(registry, name, version, qh);
-                state.add_surface(qh, idx);
+        match event {
+            wl_registry::Event::Global {
+                name,
+                interface,
+                version,
+            } => {
+                if state.wild
+                    && interface == "wl_output"
+                    && !state.outs.iter().any(|o| o.global == name)
+                {
+                    let idx = state.bind_output(registry, name, version, qh);
+                    state.add_surface(qh, idx);
+                }
             }
+            wl_registry::Event::GlobalRemove { name } => {
+                if let Some(idx) = state
+                    .outs
+                    .iter()
+                    .position(|o| o.global == name && !o.removed)
+                {
+                    state.outs[idx].removed = true;
+                    for s in state.surfs.iter_mut().filter(|s| s.out == idx) {
+                        if s.closed {
+                            continue;
+                        }
+                        s.closed = true;
+                        s.layer.destroy();
+                        s.surface.destroy();
+                        for (_, b) in s.live.drain() {
+                            b.destroy();
+                        }
+                    }
+                    let out = &state.outs[idx];
+                    out.wl.release();
+                }
+            }
+            _ => {}
         }
     }
 }
@@ -994,6 +1077,9 @@ impl Dispatch<zwlr_layer_surface_v1::ZwlrLayerSurfaceV1, usize> for State {
                 s.closed = true;
                 s.layer.destroy();
                 s.surface.destroy();
+                for (_, b) in s.live.drain() {
+                    b.destroy();
+                }
             }
             _ => {}
         }
@@ -1072,15 +1158,21 @@ impl Dispatch<wl_shm_pool::WlShmPool, ()> for State {
     }
 }
 
-impl Dispatch<wl_buffer::WlBuffer, ()> for State {
+impl Dispatch<wl_buffer::WlBuffer, BufData> for State {
     fn event(
-        _: &mut Self,
-        _: &wl_buffer::WlBuffer,
-        _: wl_buffer::Event,
-        _: &(),
+        state: &mut Self,
+        proxy: &wl_buffer::WlBuffer,
+        event: wl_buffer::Event,
+        data: &BufData,
         _: &Connection,
         _: &QueueHandle<Self>,
     ) {
+        if let wl_buffer::Event::Release = event {
+            if let Some(s) = state.surfs.get_mut(data.surf) {
+                s.live.remove(&data.id);
+            }
+            proxy.destroy();
+        }
     }
 }
 

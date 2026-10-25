@@ -27,15 +27,12 @@ hl.layer_rule({
   ignore_alpha = 0.3,
   xray         = false,
 })
-
 hl.layer_rule({
-  match        = { namespace = "oozeshell-widget-.*" },
+  match        = { namespace = "oozeshell.*" },
   no_anim      = true,
   blur         = true,
   ignore_alpha = 0.5,
 })
-
--- 0ozeShell Experimental
 hl.layer_rule({
   match        = { namespace = "oozewalls" },
   no_anim      = true,
@@ -49,13 +46,6 @@ hl.layer_rule({
   blur         = true,
   ignore_alpha = 0.5,
 })
-
-local OozeCrystal = hl.layer_rule({
-  name  = "OozeCrystal",
-  match = { namespace = "oozeshell-.*" },
-  no_anim  = true,
-})
-OozeCrystal:set_enabled(false)
 
 --------------------------------------------------
 -- OOZESHELL RULES -------------------------------
@@ -141,7 +131,6 @@ hl.window_rule({
   fullscreen = false,
 })
 
-
 --------------------------------------------------
 -- GENERAL-RULES ---------------------------------
 --------------------------------------------------
@@ -160,14 +149,13 @@ hl.window_rule({
     no_screen_share = true
 })
 
-
 -- Telegram NO float.
 hl.window_rule({
     name = "telegram-tile",
     match = { class = "^(org.telegram.desktop)$", title = "^(TelegramDesktop)$" },
     float = false,
 })
--- Flota cualquier ventana de Telegram cuyo título NO contenga "Telegram"
+-- Float every window of Telegram except "Telegram" alone.
 hl.window_rule({
     name = "telegram-float",
     match = { 
@@ -177,12 +165,23 @@ hl.window_rule({
     float = true,
     border_size = 0,
 })
-
-
+--Sonora Music Player
+hl.window_rule({
+    name = "sonora",
+    match = { class = "^(sonora)$" },
+        opacity = 0.9,
+})
 
 -- ============================================================================
 --  WORKSPACE RULES ----------------------------------------------
 -- ============================================================================
+-- =================================
+-- Workspace Coding Rename
+-- =================================
+-- hl.dispatch(hl.dsp.workspace.rename({
+--     workspace = "1",  
+--     name = "Coding", 
+-- }))
 
 -- WORKSPACE BY MONITOR----------------------------------------
 -- ── Monitor HDMI-A-1 (Workspaces 1 to 5) ────────────────────
@@ -201,15 +200,6 @@ hl.window_rule({
 --     default = (i == 6) -- Sets Workspace 6 as default
 --   })
 -- end
-
--- =================================
--- Workspace Coding Rename
--- =================================
--- hl.dispatch(hl.dsp.workspace.rename({
---     workspace = "1",  
---     name = "Coding", 
--- }))
-
 
 ------------------------------------------------------------
 -- ── LAYOUTS ON WORKSPACES   ────────────────────────────────────────

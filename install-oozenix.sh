@@ -19,18 +19,193 @@ NATIVE_PREFIX="$HOME/.local/share/oozeshell/qml"
 AUR_HELPER=""
 FAILED=()
 
+ASSUME_YES=false
+ARCH_DETECTED=false
+ZIP_FILE="$DOTFILES/OozeShell.zip"
+TERM_SKIP="I already have one"
+TERM_CHOICE="$TERM_SKIP"
+CONFLICT_POLICY="ask"
+OPT_PARU=false
+OPT_UPDATE=false
+OPT_SERVICES=false
+OPT_WAYBAR=false
+OPT_EXTRAS=false
+OPT_SUWAYOMI=false
+OPT_SUWAYOMI_START=false
+OPT_NATIVE=false
+OPT_OOZEWALLS=false
+SUDO_PID=""
+
+# ── UI ──
+UI_COLOR=false
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]; then
+  UI_COLOR=true
+fi
+
+if $UI_COLOR; then
+  C_RESET=$'\033[0m'
+  C_BOLD=$'\033[1m'
+  C_DIM=$'\033[2m'
+  C_RED=$'\033[31m'
+  C_GREEN=$'\033[32m'
+  C_YELLOW=$'\033[33m'
+  C_BLUE=$'\033[34m'
+  C_CYAN=$'\033[36m'
+else
+  C_RESET="" C_BOLD="" C_DIM="" C_RED="" C_GREEN="" C_YELLOW="" C_BLUE="" C_CYAN=""
+fi
+
+UI_WIDTH="$(tput cols 2>/dev/null || echo 70)"
+if [ "$UI_WIDTH" -gt 76 ]; then UI_WIDTH=76; fi
+if [ "$UI_WIDTH" -lt 50 ]; then UI_WIDTH=50; fi
+
+UI_STEP=0
+WIZ_INDEX=0
+WIZ_TOTAL=0
+
+ui_repeat() {
+  local i out=""
+  for ((i = 0; i < $2; i++)); do out+="$1"; done
+  printf '%s' "$out"
+}
+
+ui_banner_row() {
+  local text="$1" style="$2" inner=$((UI_WIDTH - 2)) left right
+  left=$(((inner - ${#text}) / 2))
+  if [ "$left" -lt 0 ]; then left=0; fi
+  right=$((inner - ${#text} - left))
+  if [ "$right" -lt 0 ]; then right=0; fi
+  printf '%s│%s%*s%s%s%s%*s%s│%s\n' \
+    "$C_CYAN" "$C_RESET" "$left" "" "$style" "$text" "$C_RESET" "$right" "" "$C_CYAN" "$C_RESET"
+}
+
+ui_banner() {
+  local inner=$((UI_WIDTH - 2))
+  printf '\n%s╭%s╮%s\n' "$C_CYAN" "$(ui_repeat '─' "$inner")" "$C_RESET"
+  ui_banner_row "$1" "$C_BOLD"
+  if [ -n "${2:-}" ]; then ui_banner_row "$2" "$C_DIM"; fi
+  printf '%s╰%s╯%s\n' "$C_CYAN" "$(ui_repeat '─' "$inner")" "$C_RESET"
+}
+
+ui_phase() {
+  printf '\n%s%s══ %s %s%s\n' "$C_BOLD" "$C_BLUE" "$1" "$(ui_repeat '═' $((UI_WIDTH - ${#1} - 4)))" "$C_RESET"
+}
+
+ui_wizard_section() {
+  WIZ_INDEX=$((WIZ_INDEX + 1))
+  printf '\n%s%s━━ %s/%s · %s %s%s\n' \
+    "$C_BOLD" "$C_CYAN" "$WIZ_INDEX" "$WIZ_TOTAL" "$1" "$(ui_repeat '━' $((UI_WIDTH - ${#1} - 12)))" "$C_RESET"
+}
+
+ui_step() {
+  UI_STEP=$((UI_STEP + 1))
+  printf '\n%s%s▶ Step %s · %s%s\n' "$C_BOLD" "$C_CYAN" "$UI_STEP" "$1" "$C_RESET"
+}
+
+ui_intro() {
+  local line
+  for line in "$@"; do
+    printf '  %s%s%s\n' "$C_DIM" "$line" "$C_RESET"
+  done
+}
+
+ui_task() { printf '  %s•%s %s\n' "$C_BLUE" "$C_RESET" "$1"; }
+ui_ok() { printf '  %s✓%s %s\n' "$C_GREEN" "$C_RESET" "$1"; }
+ui_warn() { printf '  %s!%s %s\n' "$C_YELLOW" "$C_RESET" "$1"; }
+ui_err() { printf '  %s✗%s %s\n' "$C_RED" "$C_RESET" "$1"; }
+ui_info() { printf '  %si%s %s%s%s\n' "$C_BLUE" "$C_RESET" "$C_DIM" "$1" "$C_RESET"; }
+
+ui_yn() {
+  if "$1"; then printf 'yes'; else printf 'no'; fi
+}
+
+ui_row() {
+  local style="$C_RESET"
+  case "$2" in
+    yes) style="$C_GREEN" ;;
+    no) style="$C_DIM" ;;
+  esac
+  printf '    %-32s %s%s%s\n' "$1" "$style" "$2" "$C_RESET"
+}
+
 # ── Helpers ──
 ask_yes_no() {
-  local reply
+  local title="$1" def="$2" hint reply line
+  shift 2
+  printf '\n  %s?%s %s%s%s\n' "$C_CYAN" "$C_RESET" "$C_BOLD" "$title" "$C_RESET"
+  for line in "$@"; do
+    printf '    %s%s%s\n' "$C_DIM" "$line" "$C_RESET"
+  done
+  if [ "$def" = "y" ]; then hint="Y/n"; else hint="y/N"; fi
+  if $ASSUME_YES; then
+    printf '    %s› auto-answer: %s%s\n' "$C_YELLOW" "$def" "$C_RESET"
+    if [ "$def" = "y" ]; then return 0; else return 1; fi
+  fi
   while true; do
-
-    read -r -p "$1 [y/n]: " reply || { echo; return 1; }
-    case "$reply" in
-      [yY]*) return 0 ;;
-      [nN]*) return 1 ;;
-      *) echo "    Please answer y/n." ;;
+    read -r -p "    ${C_YELLOW}›${C_RESET} [$hint] " reply || { echo; return 1; }
+    case "${reply,,}" in
+      "") if [ "$def" = "y" ]; then return 0; else return 1; fi ;;
+      y|yes) return 0 ;;
+      n|no) return 1 ;;
+      *) ui_warn "Please answer y or n." ;;
     esac
   done
+}
+
+ask_choice() {
+  local var="$1" title="$2" def="$3" reply i marker line
+  local help=() options=()
+  shift 3
+  while [ "$#" -gt 0 ] && [ "$1" != "--" ]; do
+    help+=("$1")
+    shift
+  done
+  if [ "$#" -gt 0 ]; then shift; fi
+  options=("$@")
+
+  printf '\n  %s?%s %s%s%s\n' "$C_CYAN" "$C_RESET" "$C_BOLD" "$title" "$C_RESET"
+  for line in "${help[@]}"; do
+    printf '    %s%s%s\n' "$C_DIM" "$line" "$C_RESET"
+  done
+  for ((i = 0; i < ${#options[@]}; i++)); do
+    marker=""
+    if [ "$((i + 1))" -eq "$def" ]; then marker=" ${C_DIM}(suggested)${C_RESET}"; fi
+    printf '    %s%d)%s %s%s\n' "$C_YELLOW" "$((i + 1))" "$C_RESET" "${options[$i]}" "$marker"
+  done
+
+  if $ASSUME_YES; then
+    printf '    %s› auto-answer: %s%s\n' "$C_YELLOW" "$def" "$C_RESET"
+    printf -v "$var" '%s' "${options[$((def - 1))]}"
+    return 0
+  fi
+  while true; do
+    read -r -p "    ${C_YELLOW}›${C_RESET} Number [$def]: " reply || { echo; reply=""; }
+    reply="${reply:-$def}"
+    if [[ "$reply" =~ ^[0-9]+$ ]] && [ "$reply" -ge 1 ] && [ "$reply" -le "${#options[@]}" ]; then
+      printf -v "$var" '%s' "${options[$((reply - 1))]}"
+      return 0
+    fi
+    ui_warn "Type a number between 1 and ${#options[@]}."
+  done
+}
+
+resolve_conflict() {
+  case "$CONFLICT_POLICY" in
+    backup) return 0 ;;
+    skip) return 1 ;;
+    *) ask_yes_no "Replace it with the dotfiles version?" y \
+         "The current one is moved to ${1}.bak-${STAMP}, nothing is deleted." ;;
+  esac
+}
+
+sudo_keepalive_start() {
+  if ! sudo -v; then
+    ui_err "sudo authentication failed."
+    exit 1
+  fi
+  ( while kill -0 "$$" 2>/dev/null; do sudo -n true 2>/dev/null; sleep 50; done ) &
+  SUDO_PID=$!
+  trap 'kill "$SUDO_PID" 2>/dev/null || true' EXIT
 }
 
 create_symlink() {
@@ -38,7 +213,7 @@ create_symlink() {
   local target="$2"
 
   if [ ! -e "$source" ]; then
-    echo "  [✗] Source does not exist: $source"
+    ui_err "Source does not exist: $source"
     return 0
   fi
 
@@ -46,16 +221,16 @@ create_symlink() {
 
   if [ -L "$target" ]; then
     if [ "$(readlink "$target")" = "$source" ]; then
-      echo "  [✓] Already linked: $target"
+      ui_ok "Already linked: $target"
       return 0
     fi
-    echo "  [!] Replacing existing symlink: $target"
+    ui_warn "Replacing existing symlink: $target"
     rm "$target"
   elif [ -e "$target" ]; then
-    echo "  [!] Target already exists (not a symlink): $target"
-    if ask_yes_no "      Move it to ${target}.bak-${STAMP} and link the dotfiles version?"; then
+    ui_warn "Target already exists (not a symlink): $target"
+    if resolve_conflict "$target"; then
       mv "$target" "${target}.bak-${STAMP}"
-      echo "  [✓] Backup: ${target}.bak-${STAMP}"
+      ui_ok "Backup: ${target}.bak-${STAMP}"
     else
       echo "      Skipped (real file kept)."
       return 0
@@ -63,12 +238,9 @@ create_symlink() {
   fi
 
   ln -s "$source" "$target"
-  echo "  [✓] Linked: $target -> $source"
+  ui_ok "Linked: $target -> $source"
 }
 
-# OozeShell cambió de layout: tools/ pasó a Tools/ y OozeAudio/ + PackageSearch/
-# pasaron a Services/…  Se resuelven al usarlas (después de extraer el zip) para
-# seguir aceptando tanto zips nuevos como antiguos.
 oozeshell_tools() {
   if [ -d "$QS_DIR/OozeShell/Tools" ]; then
     printf '%s\n' "$QS_DIR/OozeShell/Tools"
@@ -91,7 +263,7 @@ extract_oozeshell() {
   if [ -d "$QS_DIR/OozeShell" ]; then
     mkdir -p "$BACKUP_DIR"
     mv "$QS_DIR/OozeShell" "$BACKUP_DIR/OozeShell.bak-${STAMP}"
-    echo "  [✓] Previous OozeShell moved to $BACKUP_DIR/OozeShell.bak-${STAMP}"
+    ui_ok "Previous OozeShell moved to $BACKUP_DIR/OozeShell.bak-${STAMP}"
   fi
   if [ "$runner" = "nix" ]; then
     nix-shell -p unzip --run "unzip -qo '$zip' -d '$QS_DIR'"
@@ -108,11 +280,11 @@ build_native() {
   local ok=false
 
   if [ ! -f "$script" ]; then
-    echo "  [i] This OozeShell build has no native module; skipping."
+    ui_info "This OozeShell build has no native module; skipping."
     return 0
   fi
   if [ -d "$NATIVE_PREFIX/OozeShell/Native" ]; then
-    echo "  [i] Native core already built: rebuilding it against your current Qt."
+    ui_info "Native core already built: rebuilding it against your current Qt."
   fi
 
   if [ "$runner" = "nix" ]; then
@@ -123,7 +295,7 @@ build_native() {
 
   if $ok; then
     NATIVE_OK=true
-    echo "  [✓] Native core installed in $NATIVE_PREFIX/OozeShell/Native"
+    ui_ok "Native core installed in $NATIVE_PREFIX/OozeShell/Native"
     if git -C "$DOTFILES" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
       local excl
       excl="$(git -C "$DOTFILES" rev-parse --git-path info/exclude)"
@@ -132,7 +304,7 @@ build_native() {
         || echo ".config/quickshell/OozeShell/native/AnimationController/build/" >> "$excl"
     fi
   else
-    echo "  [!] The native core did not build. OozeShell still works in pure QML."
+    ui_warn "The native core did not build. OozeShell still works in pure QML."
     if [ "$runner" = "nix" ]; then
       echo "      On NixOS the Qt in native/shell.nix must be the SAME one quickshell uses"
       echo "      (see the header of native/shell.nix). Retry later with:"
@@ -146,29 +318,27 @@ build_native() {
 
 maybe_build_native_other() {
   local runner=""
+  if ! $OPT_NATIVE; then return 0; fi
   if [ ! -f "$(oozeshell_tools)/build-native.sh" ]; then return 0; fi
   if command -v nix-shell >/dev/null 2>&1; then
     runner="nix"
   elif ! command -v cmake >/dev/null 2>&1; then
-    echo "[i] Optional native core skipped (no nix-shell and no cmake)."
+    ui_info "Optional native core skipped (no nix-shell and no cmake)."
     return 0
   fi
-  echo
-  if ask_yes_no "Build the optional native animation core (C++, ~1 min)? OozeShell works without it"; then
-    build_native "$runner"
-  fi
+  build_native "$runner"
 }
 
 install_oozewalls() {
   local dir="$DOTFILES/OozeWalls" ok=false
+  if ! $OPT_OOZEWALLS; then
+    return 0
+  fi
   if [ ! -f "$dir/Cargo.toml" ]; then
-    echo "  [i] OozeWalls source not found in $dir; skipping."
+    ui_info "OozeWalls source not found in $dir; skipping."
     return 0
   fi
-  echo
-  if ! ask_yes_no "Build and install the OozeWalls engine (Rust, a few minutes)? Optional: pick it in Settings -> Wallpapers"; then
-    return 0
-  fi
+  ui_task "Building the OozeWalls engine"
   chmod +x "$dir/install.sh"
 
   if $IS_ARCH; then
@@ -184,89 +354,270 @@ install_oozewalls() {
   elif command -v nix-shell >/dev/null 2>&1; then
     nix-shell -p cargo rustc gcc pkg-config --run "bash '$dir/install.sh'" && ok=true
   else
-    echo "  [!] cargo not found and no nix-shell available; cannot build OozeWalls."
+    ui_warn "cargo not found and no nix-shell available; cannot build OozeWalls."
   fi
 
   if $ok; then
     OOZEWALLS_OK=true
-    echo "  [✓] OozeWalls installed: $HOME/.local/bin/oozewalls"
+    ui_ok "OozeWalls installed: $HOME/.local/bin/oozewalls"
   else
-    echo "  [!] OozeWalls did not build. Retry later with:  bash $dir/install.sh"
+    ui_warn "OozeWalls did not build. Retry later with:  bash $dir/install.sh"
     FAILED+=("oozewalls (build)")
   fi
   return 0
 }
 
+# ── Arguments ──
+for arg in "$@"; do
+  case "$arg" in
+    -y|--yes) ASSUME_YES=true ;;
+    -h|--help)
+      printf 'Usage: %s [-y|--yes]\n' "$0"
+      printf '  -y, --yes   accept the suggested answer to every question (unattended)\n'
+      exit 0
+      ;;
+    *)
+      printf 'Unknown option: %s\n' "$arg" >&2
+      exit 1
+      ;;
+  esac
+done
+
 # ── Pre-checks ──
-echo "=========================================="
-echo "      Installing Oozenix / OozeShell"
-echo "=========================================="
+ui_banner "Oozenix / OozeShell" "Interactive installer"
 echo
 
 if [ "$(id -u)" -eq 0 ]; then
-  echo "[✗] Do not run this installer as root (makepkg refuses, and symlinks"
+  ui_err "Do not run this installer as root (makepkg refuses, and symlinks"
   echo "    would land in /root). Run it as your normal user; sudo is used"
   echo "    only where needed."
   exit 1
 fi
 
 if [ ! -d "$DOTFILES" ]; then
-  echo "[✗] Dotfiles directory not found: $DOTFILES"
+  ui_err "Dotfiles directory not found: $DOTFILES"
   exit 1
 fi
-echo "[✓] Dotfiles directory found: $DOTFILES"
-if [ -L "$HOME/.config/hypr" ] && [ "$(readlink "$HOME/.config/hypr")" = "$DOTFILES/.config/hypr" ]; then
-  IS_UPDATE=true
-  echo "[i] Existing install detected: running in update mode."
-fi
-echo
+ui_ok "Dotfiles directory found: $DOTFILES"
 
-# ── Distro selection ──
-if ask_yes_no "Are you using Arch Linux?"; then
-  IS_ARCH=true
-  if [ ! -f /etc/arch-release ] || ! command -v pacman >/dev/null 2>&1; then
-    echo "[!] This doesn't look like Arch (no /etc/arch-release or no pacman)."
-    ask_yes_no "    Continue with the Arch branch anyway?" || exit 1
-  fi
-fi
-
-# ── OozeShell.zip ──
-ZIP_FILE="$DOTFILES/OozeShell.zip"
 if [ ! -f "$ZIP_FILE" ]; then
-  echo "[✗] Could not find $ZIP_FILE"
+  ui_err "Could not find $ZIP_FILE"
   echo "    Put it there and re-run the installer."
   exit 1
 fi
-echo "[✓] Found $(basename "$ZIP_FILE")"
+ui_ok "Found $(basename "$ZIP_FILE")"
 
-# ── Arch branch ──
+if [ -L "$HOME/.config/hypr" ] && [ "$(readlink "$HOME/.config/hypr")" = "$DOTFILES/.config/hypr" ]; then
+  IS_UPDATE=true
+  ui_info "Existing install detected: running in update mode."
+fi
+
+# ── Questionnaire ──
+ui_phase "Quick questionnaire"
+ui_intro \
+  "A few questions first. Nothing is changed until you confirm the summary." \
+  "Press Enter to accept the suggested answer (the capital letter in [Y/n] or [y/N])."
+if $ASSUME_YES; then
+  ui_info "Unattended mode: every question gets its suggested answer."
+fi
+
+if [ -f /etc/arch-release ] && command -v pacman >/dev/null 2>&1; then
+  ARCH_DETECTED=true
+fi
+
+if $ARCH_DETECTED; then
+  ARCH_DEFAULT="y"
+  ARCH_NOTE="Detected: Arch Linux."
+else
+  ARCH_DEFAULT="n"
+  ARCH_NOTE="Detected: this does not look like Arch Linux."
+fi
+
+if ask_yes_no "Are you installing on Arch Linux?" "$ARCH_DEFAULT" \
+  "$ARCH_NOTE" \
+  "Yes: packages are installed for you with pacman and the AUR." \
+  "No (NixOS or another distro): only the configs are linked, and the dependency" \
+  "list is saved to $NIXOS_MD."; then
+  IS_ARCH=true
+  if ! $ARCH_DETECTED; then
+    ui_warn "No /etc/arch-release or no pacman found."
+    ask_yes_no "Continue with the Arch path anyway?" n \
+      "It will fail at the first pacman call if this is not Arch." || exit 1
+  fi
+fi
+
+if $IS_ARCH; then WIZ_TOTAL=5; else WIZ_TOTAL=4; fi
+
+ui_wizard_section "System"
 if $IS_ARCH; then
-  echo
-  echo "── Arch Linux ────────────────────────────────────────────────"
-
-  # ── AUR helper ──
   for h in paru yay; do
     if command -v "$h" >/dev/null 2>&1; then AUR_HELPER="$h"; break; fi
   done
+  if [ -n "$AUR_HELPER" ]; then
+    ui_ok "AUR helper found: $AUR_HELPER"
+  elif ask_yes_no "Install the AUR helper 'paru'?" y \
+    "No AUR helper (paru/yay) was found." \
+    "Some packages (matugen, mpvpaper, awww...) may only exist in the AUR." \
+    "If you say no, those packages are skipped and listed at the end."; then
+    OPT_PARU=true
+  fi
+  if ask_yes_no "Update the whole system first (sudo pacman -Syu)?" y \
+    "Recommended: package installs do not refresh the package database, so an" \
+    "old system can fail with missing files. Skip it only if you updated today."; then
+    OPT_UPDATE=true
+  fi
+else
+  if command -v unzip >/dev/null 2>&1; then
+    ui_ok "unzip found: nothing to ask in this section."
+  elif ! command -v nix-shell >/dev/null 2>&1; then
+    ui_err "'unzip' is missing and 'nix-shell' is not available either."
+    echo "    Install 'unzip' with your package manager and re-run the installer."
+    exit 1
+  elif ask_yes_no "Open a temporary nix-shell just to get unzip?" y \
+    "'unzip' is not installed. The shell is temporary and installs nothing permanent." \
+    "If you say no, the installer stops: extract OozeShell.zip by hand into $QS_DIR."; then
+    ui_ok "A temporary nix-shell will be used to extract OozeShell.zip."
+  else
+    ui_err "Without unzip the installer cannot continue."
+    exit 1
+  fi
+fi
 
-  if [ -z "$AUR_HELPER" ]; then
-    echo "[!] No AUR helper found (paru/yay). Some packages (matugen, mpvpaper,"
-    echo "    awww, etc.) may only live in the AUR."
-    if ask_yes_no "Install 'paru' now?"; then
-      sudo pacman -S --needed --noconfirm base-devel git
-      PARU_TMP="$(mktemp -d)"
-      git clone https://aur.archlinux.org/paru-bin.git "$PARU_TMP/paru-bin"
-      (cd "$PARU_TMP/paru-bin" && makepkg -si --noconfirm)
-      rm -rf "$PARU_TMP"
-      AUR_HELPER="paru"
-    else
-      echo "    Continuing with official packages only; AUR ones will be reported at the end."
+ui_wizard_section "Desktop"
+if $IS_ARCH; then
+  ask_choice TERM_CHOICE "Which terminal should I install?" 1 \
+    "The dotfiles include a config for each one; you can install more later." \
+    -- foot kitty alacritty wezterm ghostty "$TERM_SKIP"
+  if ask_yes_no "Enable NetworkManager, Bluetooth and power-profiles-daemon?" y \
+    "OozeShell's network, Bluetooth and power panels rely on these services." \
+    "Say no if you use iwd or another network stack."; then
+    OPT_SERVICES=true
+  fi
+  if ask_yes_no "Install Waybar?" n \
+    "An optional bar you can pick in OozeShell (Settings -> Bar)." \
+    "Skipping it changes nothing: OozeShell's own bar keeps working."; then
+    OPT_WAYBAR=true
+  fi
+  LEGACY_TITLE="Also install swaync, swayosd and wlogout?"
+else
+  LEGACY_TITLE="Also link the swaync and swayosd configs?"
+fi
+if ask_yes_no "$LEGACY_TITLE" n \
+  "OozeShell already replaces notifications, the volume/brightness OSD and the logout screen." \
+  "Only say yes if you want to use them on their own."; then
+  INSTALL_LEGACY=true
+fi
+
+if $IS_ARCH; then
+  ui_wizard_section "Extras and hardware"
+  if ask_yes_no "Install the extras bundle?" n \
+    "Dev tools (neovim, lazygit, vscodium...), gaming (lutris, wine, gamemode...)" \
+    "and utilities (yazi, dolphin...). It is a large download." \
+    "greetd and rtkit are installed but not configured."; then
+    OPT_EXTRAS=true
+  fi
+  if ask_yes_no "Install the Suwayomi manga server?" n \
+    "AUR package, controlled from OozeShell (Settings -> Services)." \
+    "If you say no, the manual steps are saved to SuwayomiSetup.md."; then
+    OPT_SUWAYOMI=true
+    if ask_yes_no "Start Tachidesk right after installing it?" n \
+      "It is never enabled at boot; control it from OozeShell or with 'tachidesk start'."; then
+      OPT_SUWAYOMI_START=true
     fi
   fi
-  echo "[✓] AUR helper: ${AUR_HELPER:-none}"
-  echo
+  if grep -qs '0x10de' /sys/class/drm/card*/device/vendor 2>/dev/null; then
+    NV_DEFAULT="y"
+    NV_NOTE="An Nvidia GPU was detected."
+  else
+    NV_DEFAULT="n"
+    NV_NOTE="No Nvidia GPU was detected."
+  fi
+  if ask_yes_no "Enable the Nvidia variables in Hyprland's env.lua?" "$NV_DEFAULT" \
+    "$NV_NOTE" \
+    "On laptops with hybrid graphics, say yes only if Nvidia renders your desktop."; then
+    HAS_NVIDIA=true
+  fi
+fi
 
-  if ask_yes_no "Run a full system update first (sudo pacman -Syu)? Recommended on an old install"; then
+ui_wizard_section "Optional builds"
+if $IS_ARCH || command -v nix-shell >/dev/null 2>&1 || command -v cmake >/dev/null 2>&1; then
+  if ask_yes_no "Build the native animation core?" n \
+    "A small C++ module (about 1 minute; on Arch it also installs cmake)." \
+    "OozeShell works without it in pure QML; with it the animation maths run natively."; then
+    OPT_NATIVE=true
+  fi
+else
+  ui_info "Native animation core unavailable (no nix-shell and no cmake)."
+fi
+if [ -f "$DOTFILES/OozeWalls/Cargo.toml" ]; then
+  if ask_yes_no "Build the OozeWalls wallpaper engine?" n \
+    "Written in Rust; takes a few minutes. You pick it later in Settings -> Wallpapers." \
+    "On Arch cargo is installed for you; elsewhere a temporary nix-shell is used."; then
+    OPT_OOZEWALLS=true
+  fi
+else
+  ui_info "OozeWalls source not found in $DOTFILES/OozeWalls: skipping that question."
+fi
+
+ui_wizard_section "Existing files"
+ask_choice CONFLICT_CHOICE "What if a config already exists in ~/.config?" 1 \
+  "Applies to real files or folders, not symlinks." \
+  "Backups are saved next to the original as name.bak-<date>." \
+  -- "Ask me each time" "Back up and replace them all" "Keep my files and skip those links"
+case "$CONFLICT_CHOICE" in
+  "Back up"*) CONFLICT_POLICY="backup" ;;
+  "Keep my files"*) CONFLICT_POLICY="skip" ;;
+  *) CONFLICT_POLICY="ask" ;;
+esac
+
+# ── Review ──
+ui_phase "Review your choices"
+echo
+if $IS_ARCH; then
+  ui_row "System" "Arch Linux"
+  if [ -z "$AUR_HELPER" ]; then ui_row "Install paru" "$(ui_yn "$OPT_PARU")"; fi
+  ui_row "Full system update" "$(ui_yn "$OPT_UPDATE")"
+  ui_row "Terminal" "$TERM_CHOICE"
+  ui_row "Enable system services" "$(ui_yn "$OPT_SERVICES")"
+  ui_row "Waybar" "$(ui_yn "$OPT_WAYBAR")"
+  ui_row "swaync, swayosd, wlogout" "$(ui_yn "$INSTALL_LEGACY")"
+  ui_row "Extras bundle" "$(ui_yn "$OPT_EXTRAS")"
+  ui_row "Suwayomi server" "$(ui_yn "$OPT_SUWAYOMI")"
+  ui_row "Nvidia variables" "$(ui_yn "$HAS_NVIDIA")"
+else
+  ui_row "System" "NixOS / other"
+  ui_row "swaync, swayosd configs" "$(ui_yn "$INSTALL_LEGACY")"
+fi
+ui_row "Native animation core" "$(ui_yn "$OPT_NATIVE")"
+ui_row "OozeWalls engine" "$(ui_yn "$OPT_OOZEWALLS")"
+ui_row "Existing files" "$CONFLICT_CHOICE"
+
+if ! ask_yes_no "Start the installation?" y "Nothing has been changed so far."; then
+  ui_info "Cancelled. Nothing was changed."
+  exit 0
+fi
+
+# ── Arch branch ──
+if $IS_ARCH; then
+  ui_phase "Installing on Arch Linux"
+  sudo_keepalive_start
+
+  ui_step "Preparing the system"
+  if [ -z "$AUR_HELPER" ] && $OPT_PARU; then
+    sudo pacman -S --needed --noconfirm base-devel git
+    PARU_TMP="$(mktemp -d)"
+    git clone https://aur.archlinux.org/paru-bin.git "$PARU_TMP/paru-bin"
+    (cd "$PARU_TMP/paru-bin" && makepkg -si --noconfirm)
+    rm -rf "$PARU_TMP"
+    AUR_HELPER="paru"
+  fi
+  if [ -z "$AUR_HELPER" ]; then
+    ui_warn "No AUR helper: AUR-only packages will be reported at the end."
+  fi
+  ui_ok "AUR helper: ${AUR_HELPER:-none}"
+
+  if $OPT_UPDATE; then
+    ui_task "Updating the system"
     sudo pacman -Syu --noconfirm
   fi
   echo
@@ -288,7 +639,7 @@ if $IS_ARCH; then
 
     if [ "${#repo[@]}" -gt 0 ]; then
       if ! sudo pacman -S --needed --noconfirm "${repo[@]}"; then
-        echo "  [!] Batch failed; retrying one by one..."
+        ui_warn "Batch failed; retrying one by one..."
         for p in "${repo[@]}"; do
           sudo pacman -S --needed --noconfirm "$p" || FAILED+=("$p")
         done
@@ -301,7 +652,7 @@ if $IS_ARCH; then
       else
 
         if ! "$AUR_HELPER" -S --needed "${aur[@]}"; then
-          echo "  [!] Batch failed; retrying one by one..."
+          ui_warn "Batch failed; retrying one by one..."
           for p in "${aur[@]}"; do
             "$AUR_HELPER" -S --needed "$p" || FAILED+=("$p")
           done
@@ -317,7 +668,7 @@ if $IS_ARCH; then
     ver="${ver%%-*}"
     [ -n "$ver" ] || return 0
     if [ "$(printf '%s\n%s\n' "0.55.0" "$ver" | sort -V | head -n1)" != "0.55.0" ]; then
-      echo "  [!] hyprland $ver is older than 0.55: the Lua config (hyprland.lua) needs 0.55 or newer."
+      ui_warn "hyprland $ver is older than 0.55: the Lua config (hyprland.lua) needs 0.55 or newer."
     fi
   }
 
@@ -479,7 +830,7 @@ If Suwayomi is already running by hand, stop it first with
 `pkill -TERM -f -i suwayomi`, or the port (4567) will be busy.
 MDEOF
     } > "$SUWAYOMI_MD"
-    echo "[✓] Steps saved to: $SUWAYOMI_MD"
+    ui_ok "Steps saved to: $SUWAYOMI_MD"
   }
 
   install_tachidesk_ctl() {
@@ -493,18 +844,18 @@ MDEOF
     fi
 
     if sudo install -Dm755 "$tmp" "$TACHIDESK_CTL_SYS"; then
-      echo "  [✓] Control command: $TACHIDESK_CTL_SYS  (tachidesk start|stop|restart|status|enable|disable)"
+      ui_ok "Control command: $TACHIDESK_CTL_SYS  (tachidesk start|stop|restart|status|enable|disable)"
       if [ -f "$TACHIDESK_CTL_USER" ] && [ ! -L "$TACHIDESK_CTL_USER" ]; then
         mv -f "$TACHIDESK_CTL_USER" "${TACHIDESK_CTL_USER}.bak-${STAMP}"
-        echo "  [i] Old copy moved to ${TACHIDESK_CTL_USER}.bak-${STAMP}"
+        ui_info "Old copy moved to ${TACHIDESK_CTL_USER}.bak-${STAMP}"
       fi
     else
-      echo "  [!] Could not write to $TACHIDESK_CTL_SYS (sudo failed); using ~/.local/bin instead."
+      ui_warn "Could not write to $TACHIDESK_CTL_SYS (sudo failed); using ~/.local/bin instead."
       mkdir -p "$(dirname "$TACHIDESK_CTL_USER")"
       if [ -e "$TACHIDESK_CTL_USER" ]; then cp -f "$TACHIDESK_CTL_USER" "${TACHIDESK_CTL_USER}.bak-${STAMP}"; fi
       install -m755 "$tmp" "$TACHIDESK_CTL_USER"
-      echo "  [✓] Control command: $TACHIDESK_CTL_USER"
-      echo "  [!] OozeShell only finds it if ~/.local/bin is in the PATH of your Hyprland session."
+      ui_ok "Control command: $TACHIDESK_CTL_USER"
+      ui_warn "OozeShell only finds it if ~/.local/bin is in the PATH of your Hyprland session."
       echo "      Otherwise the Services page will not be able to control the server."
     fi
     rm -f "$tmp"
@@ -514,50 +865,51 @@ MDEOF
     local bin
 
     if ! bin="$(find_suwayomi_bin)"; then
-      echo "  [!] Could not find the Suwayomi executable; skipping the service setup."
+      ui_warn "Could not find the Suwayomi executable; skipping the service setup."
       write_suwayomi_md
       return 0
     fi
-    echo "  [✓] Suwayomi executable: $bin"
+    ui_ok "Suwayomi executable: $bin"
 
     mkdir -p "$HOME/.local/share/Tachidesk/extensions" "$HOME/.local/share/Tachidesk/backups" \
              "$HOME/Manga/Downloads" "$HOME/.config/systemd/user"
 
     if [ -e "$TACHIDESK_UNIT" ]; then cp -f "$TACHIDESK_UNIT" "${TACHIDESK_UNIT}.bak-${STAMP}"; fi
     tachidesk_unit_body "$bin" > "$TACHIDESK_UNIT"
-    echo "  [✓] User service: $TACHIDESK_UNIT"
+    ui_ok "User service: $TACHIDESK_UNIT"
 
     install_tachidesk_ctl
 
     if systemctl --user daemon-reload 2>/dev/null; then
       if systemctl --user cat tachidesk.service >/dev/null 2>&1; then
-        echo "  [✓] systemd sees tachidesk.service"
+        ui_ok "systemd sees tachidesk.service"
         SUWAYOMI_OK=true
       else
-        echo "  [!] systemd did not load tachidesk.service; check: systemctl --user cat tachidesk.service"
+        ui_warn "systemd did not load tachidesk.service; check: systemctl --user cat tachidesk.service"
       fi
     else
-      echo "  [!] Could not reload the user systemd session; run 'systemctl --user daemon-reload' after logging in."
+      ui_warn "Could not reload the user systemd session; run 'systemctl --user daemon-reload' after logging in."
       SUWAYOMI_OK=true
     fi
 
     if ! systemctl --user is-active --quiet tachidesk.service 2>/dev/null \
        && pgrep -f -i 'java.*(suwayomi|tachidesk)' >/dev/null 2>&1; then
-      echo "  [!] A Suwayomi process is already running (started by hand?)."
+      ui_warn "A Suwayomi process is already running (started by hand?)."
       echo "      Stop it before using the service, or the port will be busy:"
       echo "        pkill -TERM -f -i suwayomi"
     fi
 
-    echo "  [i] Not started or enabled on boot (same as NixOS)."
+    ui_info "Not started or enabled on boot (same as NixOS)."
     echo "      Control it from OozeShell (Settings -> Services) or with: tachidesk start"
-    if ask_yes_no "  Start Tachidesk now?"; then
-      tachidesk start || echo "  [!] 'tachidesk start' failed; see: tachidesk status"
+    if $OPT_SUWAYOMI_START; then
+      tachidesk start || ui_warn "'tachidesk start' failed; see: tachidesk status"
       sleep 2
       tachidesk status 2>&1 | sed -n '1,6p' || true
     fi
   }
 
   # ── Base packages ──
+  ui_step "Installing base packages"
   BASE=(
     base-devel git curl unzip zip zsh jq python
     hyprland hyprpaper hypridle hyprlock
@@ -568,79 +920,77 @@ MDEOF
     brightnessctl power-profiles-daemon upower
     networkmanager network-manager-applet
     playerctl bluez bluez-utils blueman
-    mpv mpvpaper ffmpeg socat xdg-utils
-    libnotify imagemagick wtype wev grim slurp cava pavucontrol fastfetch
+    mpv mpvpaper ffmpeg socat xdg-utils xdg-user-dirs libpulse
+    libnotify imagemagick wtype wev grim slurp wf-recorder cava pavucontrol fastfetch
     qpwgraph rofi tmux
     matugen
-    ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-mono
+    ttf-jetbrains-mono-nerd ttf-nerd-fonts-symbols-mono noto-fonts-emoji
     ttf-silkscreen ttf-dotgothic16 ttf-vt323
   )
 
-  echo "Installing base dependencies..."
+  ui_task "Installing base dependencies"
   install_pkgs "${BASE[@]}"
+  if command -v xdg-user-dirs-update >/dev/null 2>&1; then
+    xdg-user-dirs-update >/dev/null 2>&1 || true
+  fi
   fc-cache -f >/dev/null 2>&1 || true
-  echo "Installing quickshell and awww (release or -git, whichever is available)..."
+  ui_task "Installing quickshell and awww (release or -git, whichever is available)"
   install_first quickshell quickshell-git
   install_first awww awww-git
   check_hyprland
   echo
 
   # ── Clipboard tools ──
-  echo "Installing clipboard tools (wl-clipboard + cliphist)..."
+  ui_task "Installing clipboard tools (wl-clipboard + cliphist)"
   if command -v wl-copy >/dev/null 2>&1 && command -v wl-paste >/dev/null 2>&1; then
-    echo "  [✓] wl-copy / wl-paste already available"
+    ui_ok "wl-copy / wl-paste already available"
   else
     install_first wl-clipboard wl-clipboard-rs
   fi
   if command -v cliphist >/dev/null 2>&1; then
-    echo "  [✓] cliphist already available"
+    ui_ok "cliphist already available"
   else
     install_first cliphist cliphist-git
   fi
   for c in wl-copy wl-paste cliphist; do
     if ! command -v "$c" >/dev/null 2>&1; then
-      echo "  [!] '$c' is still missing: the clipboard history panel will show its 'missing dependencies' notice."
+      ui_warn "'$c' is still missing: the clipboard history panel will show its 'missing dependencies' notice."
       FAILED+=("clipboard: $c")
     fi
   done
   echo
 
   # ── Terminal ──
-  echo "Choose your terminal:"
-  select TERM_CHOICE in foot kitty alacritty wezterm ghostty "Already installed"; do
-    case "$TERM_CHOICE" in
-      foot|kitty|alacritty|wezterm|ghostty) install_pkgs "$TERM_CHOICE"; break ;;
-      "Already installed") break ;;
-      *) echo "Invalid option." ;;
-    esac
-  done
+  ui_step "Terminal and system services"
+  if [ "$TERM_CHOICE" != "$TERM_SKIP" ]; then
+    install_pkgs "$TERM_CHOICE"
+  fi
   echo
 
   # ── Services ──
-  if ask_yes_no "Enable NetworkManager, bluetooth and power-profiles-daemon services now? (skip if you use iwd/other network stack)"; then
+  if $OPT_SERVICES; then
     for svc in NetworkManager bluetooth power-profiles-daemon; do
       sudo systemctl enable --now "$svc" || FAILED+=("service:$svc")
     done
   fi
   echo
 
-  echo "[i] Package search (SUPER+U): OozeShell detects Arch on its own and searches with"
+  ui_info "Package search (SUPER+U): OozeShell detects Arch on its own and searches with"
   echo "    paru/yay/pacman + AUR (no Nix needed). The keybind stays on 'nixsearch' (IPC name)."
   echo
 
   # ── Optional packages ──
-  if ask_yes_no "Install Waybar? It is an optional bar backend you can pick inside OozeShell (Settings -> Bar)"; then
+  ui_step "Optional packages"
+  if $OPT_WAYBAR; then
     install_pkgs waybar
   fi
-  echo
-  if ask_yes_no "Also install swaync, swayosd and wlogout? OozeShell already replaces them; only needed if you want them separately"; then
-    INSTALL_LEGACY=true
+  if $INSTALL_LEGACY; then
     install_pkgs swaync swayosd wlogout
   fi
   echo
 
   # ── Extras ──
-  if ask_yes_no "Also install the extras bundle (dev tools, gaming, misc utilities)?"; then
+  if $OPT_EXTRAS; then
     EXTRAS=(
       greetd greetd-tuigreet udisks2 rtkit flatpak yazi neovim starship
       fd ripgrep dolphin nomacs gamemode lutris mangohud wine
@@ -650,28 +1000,24 @@ MDEOF
       goverlay vscodium-bin nixd nixfmt pw-viz
     )
     install_pkgs "${EXTRAS[@]}"
-    echo "[i] greetd and rtkit were installed but NOT configured/enabled; set them up by hand if you want them."
+    ui_info "greetd and rtkit were installed but NOT configured/enabled; set them up by hand if you want them."
   fi
 
   echo
   # ── Suwayomi ──
-  if ask_yes_no "Install Suwayomi server (suwayomi-server-bin, AUR) and control it from OozeShell (same as on NixOS)?"; then
+  if $OPT_SUWAYOMI; then
     install_first jre21-openjdk jdk21-openjdk jdk-openjdk jre-openjdk
     install_pkgs suwayomi-server-bin
     setup_suwayomi
   else
-    echo "[i] Skipping Suwayomi. Writing the manual steps for later..."
+    ui_info "Skipping Suwayomi. Writing the manual steps for later..."
     write_suwayomi_md
   fi
 
   echo
-  # ── Nvidia ──
-  if ask_yes_no "Do you use an Nvidia GPU? (enables the Nvidia env vars in Hyprland's env.lua)"; then
-    HAS_NVIDIA=true
-  fi
-
-  echo
-  echo "[✓] Unzipping OozeShell.zip..."
+  # ── Unpacking ──
+  ui_step "Unpacking OozeShell"
+  ui_ok "Unzipping OozeShell.zip..."
   extract_oozeshell "$ZIP_FILE"
 
   # ── Fonts ──
@@ -680,58 +1026,39 @@ MDEOF
     mkdir -p "$HOME/.config/fontconfig/conf.d"
     cp -f "$FC_SRC" "$HOME/.config/fontconfig/conf.d/"
     fc-cache -f >/dev/null 2>&1 || true
-    echo "[✓] fontconfig installed (icon fallback)"
+    ui_ok "fontconfig installed (icon fallback)"
   fi
 
   # ── Native core ──
   if [ -f "$(oozeshell_tools)/build-native.sh" ]; then
     echo
-    if ask_yes_no "Build the optional native animation core (C++, needs cmake, ~1 min)? OozeShell works without it"; then
+    if $OPT_NATIVE; then
       install_pkgs cmake
       if command -v cmake >/dev/null 2>&1; then
         build_native
       else
-        echo "  [!] cmake is missing; skipping the native core."
+        ui_warn "cmake is missing; skipping the native core."
       fi
     fi
   fi
 
 # ── Non-Arch branch ──
 else
-  echo
-  echo "── Non-Arch distro (treated as NixOS) ──────────────────────────"
-  echo "I only give real support to NixOS and Arch. If you're on another"
-  echo "distro, the dependency list still lands in $NIXOS_MD for you to adapt."
-  echo
+  ui_phase "Installing on NixOS / other distro"
+  ui_info "Only NixOS and Arch are fully supported. On another distro, adapt the list in $NIXOS_MD."
 
+  ui_step "Unpacking OozeShell"
+  ui_ok "Unzipping OozeShell.zip..."
   if command -v unzip >/dev/null 2>&1; then
-    echo "[✓] Unzipping OozeShell.zip..."
     extract_oozeshell "$ZIP_FILE"
   else
-    echo "[!] I can't find 'unzip' installed."
-    if ! command -v nix-shell >/dev/null 2>&1; then
-      echo "  [✗] 'nix-shell' isn't available either (not NixOS / Nix not installed)."
-      echo "      Install 'unzip' with your package manager and re-run the installer."
-      exit 1
-    fi
-    if ask_yes_no "Can I open a temporary nix-shell with unzip to extract it (installs nothing permanent)?"; then
-      extract_oozeshell "$ZIP_FILE" nix
-    else
-      echo "  [✗] Without unzip I can't continue with this step."
-      echo "      Extract OozeShell.zip by hand into $QS_DIR and re-run the installer."
-      exit 1
-    fi
+    extract_oozeshell "$ZIP_FILE" nix
   fi
 
   maybe_build_native_other
 
-  echo
-  if ask_yes_no "Link the swaync and swayosd configs? OozeShell already replaces them; only needed if you want them separately"; then
-    INSTALL_LEGACY=true
-  fi
-
-  echo
-  echo "[i] Writing $NIXOS_MD with the dependency list..."
+  ui_step "Writing the dependency list"
+  ui_info "Writing $NIXOS_MD with the dependency list..."
   cat > "$NIXOS_MD" << 'EOF'
 # Oozenix / OozeShell dependencies for NixOS
 
@@ -750,10 +1077,13 @@ You can also skip all of this by using directly:
   hyprshutdown, hyprsysteminfo, hypridle, hyprlock
 - Quickshell (quickshell-git) — includes the Qt Quick wrapper/dependencies
 - tmux (Launcher tmux sessions)
+- zsh (the dotfiles link a `.zshrc`)
+- rofi (alternative Launcher / PowerMenu backend)
 - Qt6: QtQuick, QtQuick.Controls, QtQuick.Layouts, QtQuick.Shapes,
   QtQuick.Effects, QtQml, qt6ct
 - Nerd Fonts: "JetBrainsMono Nerd Font" and "Symbols Nerd Font Mono"
-- wpctl, pw-dump, pw-link (pipewire + wireplumber)
+- wpctl, pw-dump, pw-link, pw-cli, pw-loopback (pipewire + wireplumber)
+- pactl (libpulse; used by screen recording to pick the audio device)
 - brightnessctl
 - powerprofilesctl (power-profiles-daemon)
 - upower
@@ -767,23 +1097,31 @@ You can also skip all of this by using directly:
 - wl-copy / wl-paste (wl-clipboard)
 - cliphist (clipboard history panel; needs wl-clipboard too)
 - xdg-utils (xdg-open)
+- xdg-user-dirs (xdg-user-dir; finds your Pictures and Videos folders)
 - jq
+- curl (online wallpapers and downloads)
 - python3 >= 3.11 (palette-apply.py: applies the fixed Palettes to the matugen
   templates, i.e. terminals, Hyprland, Qt/KDE, etc.)
 - fastfetch
 - pgrep
 - A terminal: foot, kitty, alacritty, wezterm, or ghostty
-- libnotify
+- libnotify (notify-send)
 - imagemagick
 - wtype
 - wev
 - grim
 - slurp
+- wf-recorder (screen recording)
 - cava
 - pavucontrol
+- qpwgraph (audio routing graph)
+- A color emoji font (Noto Color Emoji)
 - awww (current successor to swww)
 - Optional, GPU stats: nvidia-smi (NVIDIA) or the amdgpu sysfs counters
 - Optional, to-do alarm sound: pw-play or paplay (pipewire / libpulse)
+- Optional, faster online wallpaper downloads: aria2 (falls back to curl)
+- Optional, safer storage of AI agent API keys: libsecret (secret-tool) and a
+  keyring such as gnome-keyring (falls back to an encrypted file using openssl)
 
 ## Optional — native animation core (C++)
 
@@ -859,19 +1197,15 @@ jdk21, lazygit, python3, python3Packages.pip, vscodium-fhs, nixd,
 nixfmt-rfc-style, ruff, tree, qt6.qtquick3d,
 qt6.qtdeclarative, uv, wget, vim
 EOF
-  echo "[✓] Done: $NIXOS_MD"
+  ui_ok "Done: $NIXOS_MD"
 fi
 
-echo
 # ── Symlinks and permissions ──
-echo "=========================================="
-echo "     Creating symlinks and permissions"
-echo "=========================================="
-echo
+ui_step "Linking configuration"
 
 mkdir -p "$HOME/.config" "$HOME/.local/bin"
 
-echo "Creating .config symlinks..."
+ui_task "Creating .config symlinks"
 
 config_items=(
   "alacritty"
@@ -907,7 +1241,7 @@ done
 create_symlink "$DOTFILES/.config/VK-Th/themes" "$HOME/.config/vesktop/themes"
 
 echo
-echo "Creating home & binary symlinks..."
+ui_task "Creating home & binary symlinks"
 
 create_symlink "$DOTFILES/.zshrc" "$HOME/.zshrc"
 create_symlink "$DOTFILES/random-fastfetch" "$HOME/.local/bin/random-fastfetch"
@@ -916,7 +1250,7 @@ if ! $IS_ARCH; then
 fi
 
 echo
-echo "Granting execution permissions..."
+ui_task "Granting execution permissions"
 
 scripts=(
   "$(oozeshell_services)/OozeAudio/backend/audio.sh"
@@ -950,28 +1284,19 @@ fi
 for script in "${scripts[@]}"; do
   if [ -f "$script" ]; then
     chmod +x "$script"
-    echo "  [✓] Executable: $script"
+    ui_ok "Executable: $script"
   else
-    echo "  [✗] Script file not found: $script"
+    ui_err "Script file not found: $script"
   fi
 done
 
-# Safety net: any other script shipped inside OozeShell (future additions, or a
-# zip rebuilt on a filesystem that dropped the permission bits).
 if [ -d "$QS_DIR/OozeShell" ]; then
   find "$QS_DIR/OozeShell" -type f \( -name '*.sh' -o -name '*.py' \) \
     -not -path '*/native/*/build/*' ! -perm -u+x -exec chmod +x {} + 2>/dev/null || true
-  echo "  [✓] Swept remaining *.sh / *.py inside OozeShell"
+  ui_ok "Swept remaining *.sh / *.py inside OozeShell"
 fi
 
 # ── Keybinds: migrate legacy IPC calls ──
-# Old dotfiles can still call IPC targets/paths that no longer exist:
-#   - "pacsearch"                      -> "nixsearch" (it detects Arch by itself)
-#   - .../OozeShell-mango/shell.qml    -> .../OozeShell/shell.qml
-#   - /home/<user>/...OozeShell call apps ...   (hardcoded home, no shell.qml, no "--")
-#       -> ~/.config/quickshell/OozeShell/shell.qml call -- apps ...
-#   - niri 'spawn "qs ipc ..."' / mango ',spawn,qs ipc ...' -> spawn-sh / spawn_shell
-#     (plain spawn runs no shell, so ~ is never expanded)
 migrate_ipc_binds() {
   local f
   for f in \
@@ -989,10 +1314,11 @@ migrate_ipc_binds() {
         -e 's#OozeShell-mango/shell\.qml#OozeShell/shell.qml#g' \
         -e 's#(qs|quickshell) ipc -p (/home/[^/ ]+|~|\$HOME)/\.config/quickshell/OozeShell call (--[[:space:]]+)?apps #quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- apps #g' \
         "$f"
-      echo "  [✓] IPC calls updated in $f (backup: ${f}.bak-${STAMP})"
+      ui_ok "IPC calls updated in $f (backup: ${f}.bak-${STAMP})"
     fi
   done
 }
+ui_step "Finishing up"
 migrate_ipc_binds
 echo
 
@@ -1003,7 +1329,7 @@ if [ -f "$OOZESHELL_TOOL" ]; then
   create_symlink "$OOZESHELL_TOOL" "$HOME/.local/bin/oozeshell"
   case ":$PATH:" in
     *":$HOME/.local/bin:"*) ;;
-    *) echo "  [!] ~/.local/bin is not in PATH; add it to use 'oozeshell' from a terminal." ;;
+    *) ui_warn "~/.local/bin is not in PATH; add it to use 'oozeshell' from a terminal." ;;
   esac
   echo
 fi
@@ -1018,15 +1344,15 @@ if $IS_ARCH; then
   if [ -f "$ENVLUA" ]; then
     cp -f "$ENVLUA" "${ENVLUA}.bak-${STAMP}"
     sed -i -E 's/^--[[:space:]]*(hl\.env\("ELECTRON_OZONE_PLATFORM_HINT", "auto"\).*)$/\1/' "$ENVLUA"
-    echo "  [✓] env.lua: ELECTRON_OZONE_PLATFORM_HINT enabled"
+    ui_ok "env.lua: ELECTRON_OZONE_PLATFORM_HINT enabled"
     if $HAS_NVIDIA; then
       sed -i -E 's/^--[[:space:]]*(hl\.env\("LIBVA_DRIVER_NAME", "nvidia"\).*)$/\1/' "$ENVLUA"
       sed -i -E 's/^--[[:space:]]*(hl\.env\("__GLX_VENDOR_LIBRARY_NAME", "nvidia"\).*)$/\1/' "$ENVLUA"
-      echo "  [✓] env.lua: Nvidia variables enabled (LIBVA_DRIVER_NAME, __GLX_VENDOR_LIBRARY_NAME)"
+      ui_ok "env.lua: Nvidia variables enabled (LIBVA_DRIVER_NAME, __GLX_VENDOR_LIBRARY_NAME)"
     fi
     echo "      Backup: ${ENVLUA}.bak-${STAMP}"
   else
-    echo "  [✗] env.lua not found: $ENVLUA"
+    ui_err "env.lua not found: $ENVLUA"
   fi
   echo
 fi
@@ -1037,14 +1363,14 @@ if $NATIVE_OK; then
   QML_LINE='hl.env("QML_IMPORT_PATH", os.getenv("HOME") .. "/.local/share/oozeshell/qml")'
   if [ -f "$ENVLUA" ]; then
     if grep -q 'QML_IMPORT_PATH' "$ENVLUA"; then
-      echo "  [✓] env.lua already sets QML_IMPORT_PATH"
+      ui_ok "env.lua already sets QML_IMPORT_PATH"
     else
       [ -f "${ENVLUA}.bak-${STAMP}" ] || cp -f "$ENVLUA" "${ENVLUA}.bak-${STAMP}"
       printf '\n-- OozeShell native core (added by install-oozenix.sh)\n%s\n' "$QML_LINE" >> "$ENVLUA"
-      echo "  [✓] env.lua: QML_IMPORT_PATH added (log out and back in to apply)"
+      ui_ok "env.lua: QML_IMPORT_PATH added (log out and back in to apply)"
     fi
   else
-    echo "  [!] env.lua not found: $ENVLUA"
+    ui_warn "env.lua not found: $ENVLUA"
     echo "      Add this to your Hyprland session environment by hand:"
     echo "        $QML_LINE"
   fi
@@ -1060,7 +1386,7 @@ if $IS_UPDATE && git -C "$DOTFILES" rev-parse --is-inside-work-tree >/dev/null 2
     EXCL="$(git -C "$DOTFILES" rev-parse --git-path info/exclude)"
     mkdir -p "$(dirname "$EXCL")"
     grep -qxF "$AUTOGEN_REL/" "$EXCL" 2>/dev/null || echo "$AUTOGEN_REL/" >> "$EXCL"
-    echo "  [✓] Git now ignores local changes in $AUTOGEN_REL (generated by OozeShell)"
+    ui_ok "Git now ignores local changes in $AUTOGEN_REL (generated by OozeShell)"
     echo "      Undo: git -C ~/dotfiles ls-files -z $AUTOGEN_REL | xargs -0 git -C ~/dotfiles update-index --no-skip-worktree"
     echo
   fi
@@ -1068,25 +1394,23 @@ fi
 
 # ── Summary ──
 if [ "${#FAILED[@]}" -gt 0 ]; then
-  echo "=========================================="
-  echo "  [!] These packages/services were NOT installed:"
-  for f in "${FAILED[@]}"; do echo "      - $f"; done
-  echo "  Check the names with: pacman -Ss <name>  /  ${AUR_HELPER:-paru} -Ss <name>"
-  echo "=========================================="
   echo
+  ui_warn "These packages/services were NOT installed:"
+  for f in "${FAILED[@]}"; do echo "      - $f"; done
+  echo "      Check the names with: pacman -Ss <name>  /  ${AUR_HELPER:-paru} -Ss <name>"
 fi
 
-echo "=========================================="
-echo "       Oozenix installation complete!"
-echo "=========================================="
-echo "Start it with:  quickshell -c OozeShell"
+ui_banner "Oozenix installation complete"
+echo
+echo "Restart:        log out and back in (or reboot) to start OozeShell safely, so the"
+echo "                session environment and autostart apply cleanly."
+echo "Manual start:   bash $(oozeshell_tools)/ooze-launch.sh   (restarts it cleanly, with the memory tuning)"
 echo "IPC:            oozeshell list   (targets/functions)  ·  oozeshell apps open browser"
 if ! command -v waybar >/dev/null 2>&1; then
   echo "Waybar:         not installed; the Waybar option in Settings -> Bar stays disabled until you install it"
 fi
 if $NATIVE_OK; then
-  echo "Native core:    log out and back in once (QML_IMPORT_PATH); the log should say"
-  echo "                '[theme] núcleo nativo: activo'"
+  echo "Native core:    after restarting, the log should say '[theme] núcleo nativo: activo'"
 fi
 if $OOZEWALLS_OK; then
   echo "OozeWalls:      Settings -> Wallpapers -> engine OozeWalls  ·  oozewalls status --json  ·  launcher: OozeWalls"
