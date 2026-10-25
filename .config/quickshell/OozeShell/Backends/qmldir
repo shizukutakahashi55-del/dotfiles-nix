@@ -1,2 +1,0 @@
-singleton SystemMonitor 1.0 SystemMonitor.qml
-singleton ProcessList 1.0 ProcessList.qml
