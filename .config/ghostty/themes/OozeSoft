@@ -3,34 +3,34 @@
 # ============================================================
 
 background = #0c141b
-foreground = #dbe3ed
+foreground = #dbe4ed
 
-cursor-color = #8bceff
-cursor-text = #00344e
+cursor-color = #87ceff
+cursor-text = #00344d
 
-selection-background = #8bceff
-selection-foreground = #00344e
+selection-background = #87ceff
+selection-foreground = #00344d
 
 
 # ── ANSI normal ──────────────────────────────────────────────
 
 palette = 0=#070f15
 palette = 1=#ffb4ab
-palette = 2=#8bceff
-palette = 3=#bac4fa
-palette = 4=#004b6f
-palette = 5=#3a4472
-palette = 6=#b4c7e9
-palette = 7=#dbe3ed
+palette = 2=#87ceff
+palette = 3=#b8c4fa
+palette = 4=#004c6d
+palette = 5=#384472
+palette = 6=#b3c8e9
+palette = 7=#dbe4ed
 
 
 # ── ANSI bright ─────────────────────────────────────────────
 
 palette = 8=#89929a
 palette = 9=#ffb4ab
-palette = 10=#8bceff
-palette = 11=#bac4fa
-palette = 12=#8bceff
-palette = 13=#bac4fa
-palette = 14=#b4c7e9
-palette = 15=#dbe3ed
+palette = 10=#87ceff
+palette = 11=#b8c4fa
+palette = 12=#87ceff
+palette = 13=#b8c4fa
+palette = 14=#b3c8e9
+palette = 15=#dbe4ed

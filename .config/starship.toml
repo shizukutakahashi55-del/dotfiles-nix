@@ -1,18 +1,16 @@
 # ~/.config/matugen/templates/starship.toml
 # Starship + Matugen
-# Unicode nativo — sin Nerd Fonts ni emojis dependientes de la fuente
 
 format = """
-[█](fg:#8bceff)\
+[](fg:#87ceff)\
 $username\
-[█](bg:#b4c7e9 fg:#8bceff)\
+[](bg:#b3c8e9 fg:#87ceff)\
 $hostname\
-[█](bg:#bac4fa fg:#b4c7e9)\
+[](bg:#b8c4fa fg:#b3c8e9)\
 $directory\
-[█](fg:#bac4fa bg:#004b6f)\
+[](fg:#b8c4fa)\
 $git_branch\
 $git_status\
-[█](fg:#004b6f)\
 $cmd_duration\
 $time\
 $line_break\
@@ -28,7 +26,7 @@ add_newline = true
 [username]
 show_always = true
 
-style_user = "bg:#8bceff fg:#00344e bold"
+style_user = "bg:#87ceff fg:#00344d bold"
 style_root = "bg:#ffb4ab fg:#690005 bold"
 
 format = "[✦ $user]($style)"
@@ -41,7 +39,7 @@ format = "[✦ $user]($style)"
 [hostname]
 ssh_only = false
 
-style = "bg:#b4c7e9 fg:#1e314c bold"
+style = "bg:#b3c8e9 fg:#1d314b bold"
 
 format = "[@$hostname]($style)"
 
@@ -51,7 +49,7 @@ format = "[@$hostname]($style)"
 # ─────────────────────────────────────────────
 
 [directory]
-style = "bg:#bac4fa fg:#232d5a bold"
+style = "bg:#b8c4fa fg:#212e5a bold"
 
 format = "[ ◈ $path ]($style)"
 
@@ -75,9 +73,9 @@ truncation_symbol = "…/"
 [git_branch]
 symbol = "⎇ "
 
-style = "bg:#004b6f fg:#c9e6ff bold"
+style = "bg:#004c6d fg:#c8e6ff bold"
 
-format = "[ $symbol$branch]($style)"
+format = "[](fg:#004c6d)[ $symbol$branch ]($style)[](fg:#004c6d)"
 
 
 # ─────────────────────────────────────────────
@@ -85,9 +83,9 @@ format = "[ $symbol$branch]($style)"
 # ─────────────────────────────────────────────
 
 [git_status]
-style = "bg:#004b6f fg:#c9e6ff bold"
+style = "bold #87ceff"
 
-format = "[($all_status$ahead_behind)]($style)"
+format = "[( $all_status$ahead_behind)]($style)"
 
 conflicted = "✖ "
 ahead = "↑${count} "
@@ -107,9 +105,10 @@ deleted = "− "
 [cmd_duration]
 min_time = 2_000
 
-style = "bold #bac4fa"
+style = "bold #b8c4fa"
 
 format = " ⏱ [$duration]($style)"
+disabled = false
 
 
 # ─────────────────────────────────────────────
@@ -119,11 +118,11 @@ format = " ⏱ [$duration]($style)"
 [time]
 disabled = false
 
-style = "bold #8bceff"
+style = "bold #87ceff"
 
 format = " ⯈ [$time]($style)"
 
-time_format = "%H:%M"
+time_format = "%I:%M %p"
 
 
 # ─────────────────────────────────────────────
@@ -131,5 +130,5 @@ time_format = "%H:%M"
 # ─────────────────────────────────────────────
 
 [character]
-success_symbol = "[╭─ ⮞](bold #8bceff) "
+success_symbol = "[╭─ ⮞](bold #87ceff) "
 error_symbol = "[╭─ ⮞](bold #ffb4ab) "

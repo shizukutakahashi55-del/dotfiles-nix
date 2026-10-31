@@ -1,50 +1,158 @@
 #!/usr/bin/env bash
+# random-fastfetch — TERMINAL
 
 IMG_DIR="$HOME/.config/fastfetch/images"
 CONFIG="$HOME/.config/fastfetch/config.jsonc"
+OOZE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/oozeshell"
+STATE="$OOZE_DIR/terminal.toml"
+ANSI_FILE="$OOZE_DIR/fastfetch-logo.ansi"
 
-# Buscar una imagen aleatoria
-RANDOM_IMG=""
-
-if [[ -d "$IMG_DIR" ]]; then
-    RANDOM_IMG=$(
-        find "$IMG_DIR" -type f \
-            \( -iname '*.png' \
-            -o -iname '*.jpg' \
-            -o -iname '*.jpeg' \
-            -o -iname '*.gif' \
-            -o -iname '*.webp' \) |
-        shuf -n 1
-    )
+# ── ESTADO ──
+declare -A CFG=()
+if [[ -f "$STATE" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        [[ "$line" =~ ^[[:space:]]*([A-Za-z0-9_]+)[[:space:]]*=[[:space:]]*(.*)$ ]] || continue
+        key="${BASH_REMATCH[1]}"
+        [[ -n "${CFG[$key]+x}" ]] && continue
+        val="${BASH_REMATCH[2]%%#*}"
+        val="${val%"${val##*[![:space:]]}"}"
+        [[ "$val" =~ ^\"(.*)\"$ ]] && val="${BASH_REMATCH[1]}"
+        CFG[$key]="$val"
+    done < "$STATE"
 fi
 
-# Detectar el protocolo de imagen
-case "${TERM_PROGRAM:-}:${TERM:-}" in
-    *foot*:*|*:foot*)
-        LOGO_TYPE="sixel"
+is_uint() { [[ "$1" =~ ^[0-9]+$ ]]; }
+
+FORCE=0
+if [[ "${1:-}" == "--force" ]]; then
+    FORCE=1
+    shift
+fi
+
+ENABLED="${CFG[fastfetch]-}"
+if [[ "$ENABLED" == "false" && "$FORCE" -eq 0 ]]; then
+    exit 0
+fi
+
+SOURCE="${CFG[fastfetchSource]-}"
+RANDOM_MODE="${CFG[fastfetchRandom]-}"
+FIXED="${CFG[fastfetchImage]-}"
+BUILTIN="${CFG[fastfetchBuiltin]-}"
+TYPE_PREF="${CFG[fastfetchLogoType]-}"
+STYLE="${CFG[fastfetchStyle]-}"
+MARGINS="${CFG[fastfetchMargins]-}"
+POSITION="${CFG[fastfetchPosition]-}"
+LOGO_W="${CFG[fastfetchWidth]-}"
+LOGO_H="${CFG[fastfetchHeight]-}"
+SOURCE="${SOURCE:-images}"
+
+# ── ESTILO ──
+if [[ -n "$STYLE" && "$STYLE" != "config" && "$STYLE" =~ ^[A-Za-z0-9_/-]+$ && "$STYLE" != *..* ]]; then
+    CONFIG="$STYLE"
+fi
+
+# ── PROTOCOLO ──
+detect_type() {
+    case "${TERM_PROGRAM:-}:${TERM:-}" in
+        *foot*:*|*:foot*)
+            echo "sixel"
+            return
+            ;;
+        *kitty*:*|*:xterm-kitty*)
+            echo "kitty"
+            return
+            ;;
+        *WezTerm*:*|*:wezterm*)
+            echo "kitty"
+            return
+            ;;
+        *Ghostty*:*|*:xterm-ghostty*)
+            echo "kitty"
+            return
+            ;;
+    esac
+    if [[ -n "${KITTY_WINDOW_ID:-}" || -n "${WEZTERM_EXECUTABLE:-}" || -n "${GHOSTTY_RESOURCES_DIR:-}" ]]; then
+        echo "kitty"
+    else
+        echo "auto"
+    fi
+}
+
+pick_type() {
+    local allowed=" $1 "
+    if [[ -n "$TYPE_PREF" && "$TYPE_PREF" != "detect" && "$allowed" == *" $TYPE_PREF "* ]]; then
+        echo "$TYPE_PREF"
+    else
+        echo "$2"
+    fi
+}
+
+# ── LOGO ──
+LOGO_ARGS=()
+case "$SOURCE" in
+    ansi)
+        if [[ -s "$ANSI_FILE" ]]; then
+            LOGO_ARGS=(--logo "$ANSI_FILE" --logo-type file-raw)
+        fi
         ;;
-    *kitty*:*|*:xterm-kitty*)
-        LOGO_TYPE="kitty"
+    builtin)
+        LOGO_ARGS=(--logo-type "$(pick_type "builtin small" builtin)")
+        if [[ "$BUILTIN" =~ ^[A-Za-z0-9_/.\ -]+$ ]]; then
+            LOGO_ARGS+=(--logo "$BUILTIN")
+        fi
         ;;
-    *WezTerm*:*|*:wezterm*)
-        LOGO_TYPE="kitty"
-        ;;
-    *Ghostty*:*|*:xterm-ghostty*)
-        LOGO_TYPE="kitty"
+    none)
+        LOGO_ARGS=(--logo-type none)
         ;;
     *)
-        LOGO_TYPE="auto"
+        SELECTED_IMG=""
+        if [[ -d "$IMG_DIR" ]]; then
+            if [[ "$RANDOM_MODE" == "false" ]]; then
+                if [[ -n "$FIXED" && -f "$IMG_DIR/$FIXED" ]]; then
+                    SELECTED_IMG="$IMG_DIR/$FIXED"
+                fi
+            else
+                SELECTED_IMG=$(
+                    find "$IMG_DIR" -type f \
+                        \( -iname '*.png' \
+                        -o -iname '*.jpg' \
+                        -o -iname '*.jpeg' \
+                        -o -iname '*.gif' \
+                        -o -iname '*.webp' \) |
+                    shuf -n 1
+                )
+            fi
+        fi
+        if [[ -n "$SELECTED_IMG" ]]; then
+            LOGO_TYPE="$(pick_type "auto sixel kitty kitty-direct kitty-icat iterm chafa raw" "$(detect_type)")"
+            LOGO_ARGS=(--logo "$SELECTED_IMG" --logo-type "$LOGO_TYPE")
+        fi
         ;;
 esac
 
-# Mostrar Fastfetch con la imagen aleatoria
-if [[ -n "$RANDOM_IMG" ]]; then
-    exec fastfetch \
-        --config "$CONFIG" \
-        --logo "$RANDOM_IMG" \
-        --logo-type "$LOGO_TYPE" \
-        "$@"
-else
-    exec fastfetch --config "$CONFIG" "$@"
+# ── MÁRGENES Y TAMAÑO ──
+LAYOUT_ARGS=()
+if [[ "$SOURCE" != "none" ]]; then
+    if [[ "$MARGINS" == "true" ]]; then
+        for side in Top Bottom Left Right; do
+            value="${CFG[fastfetchPad$side]-}"
+            if is_uint "$value"; then
+                LAYOUT_ARGS+=("--logo-padding-${side,,}" "$value")
+            fi
+        done
+    fi
+    if [[ "$SOURCE" == "images" ]]; then
+        is_uint "$LOGO_W" && [[ "$LOGO_W" -gt 0 ]] && LAYOUT_ARGS+=(--logo-width "$LOGO_W")
+        is_uint "$LOGO_H" && [[ "$LOGO_H" -gt 0 ]] && LAYOUT_ARGS+=(--logo-height "$LOGO_H")
+    fi
+    case "$POSITION" in
+        auto|left|top|right) LAYOUT_ARGS+=(--logo-position "$POSITION") ;;
+    esac
 fi
 
+# ── EJECUCIÓN ──
+exec fastfetch \
+    --config "$CONFIG" \
+    "${LOGO_ARGS[@]}" \
+    "${LAYOUT_ARGS[@]}" \
+    "$@"

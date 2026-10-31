@@ -205,8 +205,6 @@ hl.bind(mainMod .. " + SHIFT + S", hl.dsp.window.move({ workspace = "special:mag
 -- Minimize windows using special workspace.
 -- Note that one keybind can only handle one window.
 
-
-
 hl.bind("SUPER + X", functions.toggleMinimizedWindow)
 
 
@@ -226,21 +224,12 @@ hl.bind(mainMod .. " + mouse:272", hl.dsp.window.drag(),   { mouse = true })
 hl.bind(mainMod .. " + mouse:273", hl.dsp.window.resize(), { mouse = true })
 
 
--- -------------------------------------------------------------------------------
--- -- LAYOUTS Cycle
--- -------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
--- OSD helper (toast de Quickshell/OozeShell, NO crea notificaciones)
--------------------------------------------------------------------------------
-
-
 -------------------------------------------------------------------------------
 -- Hyprsunset
 -------------------------------------------------------------------------------
 
-
 hl.bind(mainMod .. " + Y", functions.toggleHyprsunset())
+
 
 -------------------------------------------------------------------------------
 -- LayoutCycle
@@ -252,6 +241,12 @@ hl.bind("SUPER + K", functions.cycleLayout)
 -------------------------------------------------------------------------------
 -- OOZESHELL
 -------------------------------------------------------------------------------
+-- SUPER + SHIFT + P
+-- Restart Quickshell 
+hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(
+  "setsid -f bash ~/.config/quickshell/OozeShell/Tools/ooze-launch.sh"
+))
+
 -- SUPER + W
 -- Wallpaper selector 
 hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(
@@ -263,12 +258,6 @@ hl.bind(mainMod .. " + W", hl.dsp.exec_cmd(
 -- Monitor selector
 hl.bind(mainMod .. " + L", hl.dsp.exec_cmd(
   "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- monitor togglePicker"
-))
-
--- SUPER + SHIFT + P
--- Restart Quickshell 
-hl.bind(mainMod .. " + SHIFT + P", hl.dsp.exec_cmd(
-  "setsid -f bash ~/.config/quickshell/OozeShell/Tools/ooze-launch.sh"
 ))
 
 -- SUPER + I
@@ -344,7 +333,7 @@ hl.bind(mainMod .. " + ALT + N", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/qu
 hl.bind(mainMod .. " + ALT + B", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- bluetooth toggle"))
 
 -- Audio menu
-hl.bind(mainMod .. " + ALT + A", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio toggle"))
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio toggle"))
 
 -- Media player (MPRIS)
 hl.bind(mainMod .. " + ALT + M", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- mpris toggle"))
@@ -361,12 +350,23 @@ hl.bind(mainMod .. "+ F1", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshe
 -- Ecualize Toggle
 hl.bind(mainMod .. "+ F2", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- equalizer toggle"))
 
+-- Record FullScreen Toggle
+hl.bind(mainMod .. "+ F9", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call record toggleScreen"))
+
 -- System Monitor
 --local home = os.getenv("HOME")
 hl.bind(mainMod .. "+ CTRL + M", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- sysmon toggle"))
 
+-- Dashboard Performance Toggle
+hl.bind(mainMod .. " + T", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- dashboard toggle performance"), { description = "Dashboard de rendimiento" })
+
+-- Dashboard Focus Toggle
+hl.bind(mainMod .. " + ALT + F", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- dashboard toggle focus"), { description = "Dashboard de rendimiento" })
+
+
 -- NixSearch with Rofi
 -- hl.bind(mainMod .. " + U", hl.dsp.exec_cmd("~/.local/bin/nix-rofi"))
+
 
 -------------------------------------------------------------------------------
 -- LEGACY SIDE
@@ -386,6 +386,7 @@ hl.bind(mainMod .. "+ CTRL + M", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/qu
 
 -- Hyprlock
 -- hl.bind(mainMod .. " + SHIFT + K", hl.dsp.exec_cmd("hyprlock"))
+
 
 -------------------------------------------------------------------------------
 -- MULTIMEDIA / VOLUME
@@ -429,18 +430,21 @@ hl.bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("brightnessctl -e4 -n2 set 5%-")
 
 -- PRINT
 -- Capture entire screen and copy it to the clipboard
+-- hl.bind("PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot fullSave"))
 hl.bind("PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot fullSave"))
 
 -- SUPER + PRINT
 -- Select an area with the mouse and copy it to the clipboard
-hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaCopy"))
+-- hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaCopy"))
+hl.bind(mainMod .. " + PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaEdit"))
 
 -- SUPER + SHIFT + PRINT
 -- Select an area, copy it to the clipboard and save it
 -- to ~/Pictures/Screenshots
-hl.bind(mainMod .. " + SHIFT + PRINT", hl.dsp.exec_cmd(
-    "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaSave"
-))
+-- hl.bind(mainMod .. " + SHIFT + PRINT", hl.dsp.exec_cmd(
+--     "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot areaSave"
+-- ))
+-- hl.bind(mainMod .. " + CTRL + PRINT", hl.dsp.exec_cmd("quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- screenshot colorPick"))
 
 
 -------------------------------------------------------------------------------

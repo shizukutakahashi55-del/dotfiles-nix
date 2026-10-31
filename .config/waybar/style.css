@@ -15,14 +15,14 @@
 @define-color surface_alt  #182127;
 
 /* Texto */
-@define-color text         #dbe3ed;
-@define-color subtext      #bfc7d1;
+@define-color text         #dbe4ed;
+@define-color subtext      #bfc8d0;
 
 /* Acento principal */
-@define-color primary      #8bceff;
-@define-color p_container  #004b6f;
-@define-color on_primary   #00344e;
-@define-color on_p_cont    #c9e6ff;
+@define-color primary      #87ceff;
+@define-color p_container  #004c6d;
+@define-color on_primary   #00344d;
+@define-color on_p_cont    #c8e6ff;
 
 /* Estados */
 @define-color error        #ffb4ab;

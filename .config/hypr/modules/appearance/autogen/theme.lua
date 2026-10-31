@@ -3,8 +3,8 @@
 return {
     gaps_in = 3,
     gaps_out = 6,
-    border_size = 3,
-    rounding = 14,
+    border_size = 0,
+    rounding = 10,
     rounding_power = 5,
     active_opacity = 1,
     inactive_opacity = 1,

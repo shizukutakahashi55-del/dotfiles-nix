@@ -1,18 +1,16 @@
 # ~/.config/matugen/templates/starship.toml
 # Starship + Matugen
-# Unicode nativo — sin Nerd Fonts ni emojis dependientes de la fuente
 
 format = """
-[█](fg:{{colors.primary.default.hex}})\
+[](fg:{{colors.primary.default.hex}})\
 $username\
-[█](bg:{{colors.secondary.default.hex}} fg:{{colors.primary.default.hex}})\
+[](bg:{{colors.secondary.default.hex}} fg:{{colors.primary.default.hex}})\
 $hostname\
-[█](bg:{{colors.tertiary.default.hex}} fg:{{colors.secondary.default.hex}})\
+[](bg:{{colors.tertiary.default.hex}} fg:{{colors.secondary.default.hex}})\
 $directory\
-[█](fg:{{colors.tertiary.default.hex}} bg:{{colors.primary_container.default.hex}})\
+[](fg:{{colors.tertiary.default.hex}})\
 $git_branch\
 $git_status\
-[█](fg:{{colors.primary_container.default.hex}})\
 $cmd_duration\
 $time\
 $line_break\
@@ -77,7 +75,7 @@ symbol = "⎇ "
 
 style = "bg:{{colors.primary_container.default.hex}} fg:{{colors.on_primary_container.default.hex}} bold"
 
-format = "[ $symbol$branch]($style)"
+format = "[](fg:{{colors.primary_container.default.hex}})[ $symbol$branch ]($style)[](fg:{{colors.primary_container.default.hex}})"
 
 
 # ─────────────────────────────────────────────
@@ -85,9 +83,9 @@ format = "[ $symbol$branch]($style)"
 # ─────────────────────────────────────────────
 
 [git_status]
-style = "bg:{{colors.primary_container.default.hex}} fg:{{colors.on_primary_container.default.hex}} bold"
+style = "bold {{colors.primary.default.hex}}"
 
-format = "[($all_status$ahead_behind)]($style)"
+format = "[( $all_status$ahead_behind)]($style)"
 
 conflicted = "✖ "
 ahead = "↑${count} "
@@ -110,6 +108,7 @@ min_time = 2_000
 style = "bold {{colors.tertiary.default.hex}}"
 
 format = " ⏱ [$duration]($style)"
+disabled = false
 
 
 # ─────────────────────────────────────────────
@@ -123,7 +122,7 @@ style = "bold {{colors.primary.default.hex}}"
 
 format = " ⯈ [$time]($style)"
 
-time_format = "%H:%M"
+time_format = "%I:%M %p"
 
 
 # ─────────────────────────────────────────────

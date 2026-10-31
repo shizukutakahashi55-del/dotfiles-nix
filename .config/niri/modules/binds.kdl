@@ -246,7 +246,7 @@ binds {
     }
 
     // Audio menu
-    Mod+Alt+A {
+    Mod+A {
         spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- audio toggle";
     }
 
@@ -274,6 +274,17 @@ binds {
     Mod+F2 {
         spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- equalizer toggle";
     }
+
+    // Dashboard Performance Toggle
+    Mod+T {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- dashboard toggle performance";
+    }
+
+    // Dashboard Focus Toggle
+    Mod+Alt+F {
+        spawn-sh "quickshell ipc -p ~/.config/quickshell/OozeShell/shell.qml call -- dashboard toggle focus";
+    }
+
     // ------------------------------------------------------------------------
     // HYPRSUNSET -> GENERIC WAYLAND ADAPTATION
     // ------------------------------------------------------------------------
